@@ -18,9 +18,9 @@ import java.io.InputStream;
 /**
  * Created by luann on 2016-06-29.
  */
-public class Contacts {
+public class Contact {
     private Activity caller;
-    public Contacts(Activity caller){
+    public Contact(Activity caller){
         this.caller = caller;
 
     }

@@ -493,18 +493,18 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
     }
     /*public void getContacts(){
         ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+        Cursor cur = cr.query(ContactsContract.Contact.CONTENT_URI,
                 null, null, null, null);
 
         if (cur.getCount() > 0) {
             while (cur.moveToNext()) {
                 String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contacts._ID));
+                        cur.getColumnIndex(ContactsContract.Contact._ID));
                 String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.DISPLAY_NAME));
+                        ContactsContract.Contact.DISPLAY_NAME));
 
                 if (Integer.parseInt(cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+                        ContactsContract.Contact.HAS_PHONE_NUMBER))) > 0) {
                     Cursor pCur = cr.query(
                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             null,
@@ -634,10 +634,10 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
     }
 
 /*    public InputStream openPhoto(long id) {
-        Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, id);
-        Uri photoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.CONTENT_DIRECTORY);
+        Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contact.CONTENT_URI, id);
+        Uri photoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contact.Photo.CONTENT_DIRECTORY);
         Cursor cursor = getContentResolver().query(photoUri,
-                new String[] {ContactsContract.Contacts.Photo.PHOTO}, null, null, null);
+                new String[] {ContactsContract.Contact.Photo.PHOTO}, null, null, null);
         if (cursor == null) {
             return null;
         }

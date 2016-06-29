@@ -1,7 +1,6 @@
 package luan.localmotion;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -125,6 +124,10 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         mapLayout.height = squareSize*2;
         mapLayout.width = squareSize*2;
         mapView.setLayoutParams(mapLayout);
+        Fragment f = getFragmentManager().findFragmentById(R.id.map);
+        if (f != null){
+            getFragmentManager().beginTransaction().remove(f).commit();
+        }
 
         CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
                 .findFragmentById(R.id.map);
@@ -468,7 +471,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
 
                 view4.setLayoutParams(lpGl4);
 
-                Bitmap profilePic=activity.utlities.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
+                Bitmap profilePic=activity.contact.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
                 ImageView img = (ImageView) view4.findViewById(R.id.imageView);
                 if(profilePic!=null){
                     img.setImageBitmap(profilePic);

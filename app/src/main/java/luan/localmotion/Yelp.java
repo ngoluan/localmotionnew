@@ -93,7 +93,7 @@ public class Yelp {
 
     public void fillPlacesFragment(Location loc, Map<String, String> params, final MainActivity mainActivity){
 
-
+        Log.i(MainActivity.TAG, "Location:" + loc.toString());
         searchNearby(loc.getLatitude(),loc.getLongitude(), params,null);
         setYelpListener(new YelpListener() {
             @Override

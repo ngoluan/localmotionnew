@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -111,7 +110,7 @@ public class ContactFragment2 extends Fragment {
                 String idContact = contatCursor.getString(contactIdIdx);
                 String name = contatCursor.getString(nameIdx);
                 String phoneNumber = contatCursor.getString(phoneNumberIdx);
-                Bitmap profilePic= activity.utlities.retrieveContactPhoto(getContext(),phoneNumber);
+                Bitmap profilePic= activity.contact.retrieveContactPhoto(getContext(),phoneNumber);
 
                 contacts.add(new ContactItem(idContact, name, phoneNumber,profilePic));
             } while (contatCursor.moveToNext());
