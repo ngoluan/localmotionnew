@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivityOld"
+    android:padding="0dp">
+
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/imageView"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/background1"
+                android:scaleType="centerCrop" />
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+
+                android:columnCount="3"
+                android:rowCount="5"
+                android:id="@+id/grid">
+
+                <RelativeLayout
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="2"
+                    android:layout_column="0"
+                    android:id="@+id/square1"></RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="1"
+                    android:layout_column="2"
+                    android:id="@+id/square2" />
+
+                <fragment
+                    android:layout_height="100dp"
+                    android:id="@+id/map"
+                    android:layout_row="1"
+                    android:layout_columnSpan="2"
+                    android:layout_column="0"
+                    android:layout_rowSpan="2"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    tools:context="luan.localmotion.MapsActivity"
+                    android:layout_margin="1dp"
+                    android:layout_width="100dp" />
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="1"
+                    android:layout_column="2"
+                    android:id="@+id/square3"
+                    android:background="#b33d3d" />
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="1"
+                    android:layout_column="2"
+                    android:id="@+id/square4" />
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="1"
+                    android:layout_column="0"
+                    android:id="@+id/square5" />
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="1"
+                    android:layout_column="1"
+                    android:id="@+id/square6" />
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_columnSpan="1"
+                    android:layout_column="2"
+                    android:id="@+id/square7" />
+
+            </GridLayout>
+
+        </RelativeLayout>
+    </ScrollView>
+
+    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>

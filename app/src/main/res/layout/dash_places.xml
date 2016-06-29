@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:padding="1dp">
+
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/imageView"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="1"
+        android:scaleType="fitCenter"
+        android:background="@color/abc_search_url_text_normal"
+        android:layout_margin="1dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="1dp">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/type"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:layout_gravity="top|center_horizontal"
+            android:textSize="14dp"
+            android:layout_marginBottom="4dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:textAlignment="center"
+            android:background="@color/colorPrimary" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/category"
+            android:textColor="@android:color/white"
+            android:layout_gravity="bottom|center_horizontal"
+            android:textSize="14dp"
+            android:layout_marginTop="4dp"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:textAlignment="center"
+            android:background="@color/colorPrimary" />
+
+    </RelativeLayout>
+
+
+</FrameLayout>
