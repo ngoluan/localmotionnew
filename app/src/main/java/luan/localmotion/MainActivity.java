@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -15,7 +16,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -33,7 +33,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +46,8 @@ public class MainActivity extends AppCompatActivity implements
         LocationListener,
         ContactFragment2.OnListFragmentInteractionListener,
         PlacesFragment.OnPlacesFragmentInteractionListener,
-        DashFragment.OnDashFragmentInteractionListener {
+        DashFragment.OnDashFragmentInteractionListener,
+        MapFragment.OnMapInteractionListener{
     //FOR location
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     public SectionsPagerAdapter mSectionsPagerAdapter;
-    public ArrayList<Fragment> fragments=new ArrayList<Fragment>();
+
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -367,13 +367,9 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void OnPlacesStart() {
-        if(mCurrentLocation==null){
-            mCurrentLocation = new Location("dummyprovider");
-            mCurrentLocation.setLatitude(43.6532);
-            mCurrentLocation.setLongitude(-79.3832);
-        }
+
         Map<String, String> params = new HashMap<>();
-        //yelp.fillPlacesFragment(mCurrentLocation,params, this);
+        yelp.fillPlacesFragment(mCurrentLocation,params, this);
 
 
     }
@@ -441,7 +437,10 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
 
+    }
 
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
@@ -457,26 +456,22 @@ public class MainActivity extends AppCompatActivity implements
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             //return MainActivityOld.PlaceholderFragment.newInstance(position + 1);
-            Log.i(TAG, "page switch pager" + String.valueOf(position));
-            try{
-                Fragment fragment=fragments.get(position);
-            }
-            catch (IndexOutOfBoundsException error){
-                switch (position) {
-                    case 0: // Fragment # 0 - This will show FirstFragment
-                        fragments.add(position, DashFragment.newInstance("0", "Page # 1"));
-                    case 1:
-                        fragments.add(position, ContactFragment2.newInstance(3));
-                    case 2:
-
-                        fragments.add(position, PlacesFragment.newInstance(3));
-                    default:
-                        fragments.add(position, DashFragment.newInstance("0", "Page # 1"));
-                }
+            switch (position) {
+                case 0: // Fragment # 0 - This will show FirstFragment
+                    return DashFragment.newInstance("0", "Page # 1");
+                case 1:
+                    Log.i(TAG, "page switch pager" + String.valueOf(position));
+                    return ContactFragment2.newInstance(3);
+                case 2:
+                    Log.i(TAG, "page switch pager" + String.valueOf(position));
+                    return PlacesFragment.newInstance(3 );
+                case 3:
+                    Log.i(TAG, "page switch pager" + String.valueOf(position));
+                    return MapFragment.newInstance("test","test");
+                default:
+                    return DashFragment.newInstance("0", "Page # 1");
             }
 
-
-            return fragments.get(position);
         }
 
         public Fragment getActiveFragment(ViewPager container, int position) {
@@ -489,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 4;
         }
 
         @Override
@@ -501,6 +496,8 @@ public class MainActivity extends AppCompatActivity implements
                     return "SECTION 2";
                 case 2:
                     return "SECTION 3";
+                case 3:
+                    return "SECTION 4";
             }
             return null;
         }

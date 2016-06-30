@@ -16,6 +16,7 @@ import android.provider.Telephony;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.Display;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +49,7 @@ import java.util.Random;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {DashFragment.OnFragmentInteractionListener} interface
+ * {DashFragment.OnMapInteractionListener} interface
  * to handle interaction events.
  * Use the {@link DashFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -110,8 +111,17 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
+        if (f != null){
+            getFragmentManager().beginTransaction().remove(f).commit();
+            Log.i(MainActivity.TAG, "Destroying map");
+        }
         // Inflate the layout for this fragment
-        view = inflater.inflate(R.layout.fragment_dash, container, false);
+        try {
+            view = inflater.inflate(R.layout.fragment_dash, container, false);
+        } catch (InflateException e) {
+            Log.i(MainActivity.TAG, e.getMessage());
+        }
 
         Point dSize = getDisplaySize();
         squareSize = dSize.x / 3;
@@ -124,10 +134,6 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         mapLayout.height = squareSize*2;
         mapLayout.width = squareSize*2;
         mapView.setLayoutParams(mapLayout);
-        Fragment f = getFragmentManager().findFragmentById(R.id.map);
-        if (f != null){
-            getFragmentManager().beginTransaction().remove(f).commit();
-        }
 
         CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
                 .findFragmentById(R.id.map);
@@ -198,11 +204,11 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnMapInteractionListener) {
+            mListener = (OnMapInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnMapInteractionListener");
         }
     }
 
@@ -222,7 +228,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      *//*
-    public interface OnFragmentInteractionListener {
+    public interface OnMapInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }*/
@@ -564,6 +570,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
     @Override
     public void onDetach() {
         super.onDetach();
+
         mListener = null;
     }
     public interface OnDashFragmentInteractionListener {
