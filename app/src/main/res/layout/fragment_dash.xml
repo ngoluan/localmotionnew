@@ -1,4 +1,4 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -61,8 +61,7 @@
                     android:layout_height="50dp"
                     android:layout_columnSpan="1"
                     android:layout_column="2"
-                    android:id="@+id/square3"
-                    android:background="#b33d3d" />
+                    android:id="@+id/square3" />
 
                 <RelativeLayout
                     android:layout_width="50dp"
@@ -96,4 +95,4 @@
 
         </RelativeLayout>
     </ScrollView>
-</FrameLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

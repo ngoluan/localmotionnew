@@ -1,22 +1,19 @@
 package luan.localmotion;
 
-import android.content.ContentResolver;
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Display;
-import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,24 +23,22 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.yelp.clientlib.entities.Business;
 import com.yelp.clientlib.entities.Category;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 
 /**
@@ -54,7 +49,7 @@ import java.util.Random;
  * Use the {@link DashFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DashFragment extends Fragment  implements OnMapReadyCallback{
+public class DashFragment extends Fragment  implements OnMapReadyCallback, SwipeRefreshLayout.OnRefreshListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public View view;
@@ -74,7 +69,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
 
     public MainActivity activity;
     public NextBus nextBus;
-
+    public Contacts contacts;
     public DashFragment() {
         // Required empty public constructor
     }
@@ -111,17 +106,9 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
-        if (f != null){
-            getFragmentManager().beginTransaction().remove(f).commit();
-            Log.i(MainActivity.TAG, "Destroying map");
-        }
+
         // Inflate the layout for this fragment
-        try {
-            view = inflater.inflate(R.layout.fragment_dash, container, false);
-        } catch (InflateException e) {
-            Log.i(MainActivity.TAG, e.getMessage());
-        }
+        view = inflater.inflate(R.layout.fragment_dash, container, false);
 
         Point dSize = getDisplaySize();
         squareSize = dSize.x / 3;
@@ -129,21 +116,24 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
         grid = (GridLayout) view.findViewById(R.id.grid);
-        View mapView = view.findViewById(R.id.map);
-        ViewGroup.LayoutParams mapLayout = mapView.getLayoutParams();
-        mapLayout.height = squareSize*2;
-        mapLayout.width = squareSize*2;
-        mapView.setLayoutParams(mapLayout);
 
-        CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        mapFragment.setListener(new CustomMapView.OnTouchListener() {
-            @Override
-            public void onTouch() {
-                mScrollView.requestDisallowInterceptTouchEvent(true);
-            }
-        });
+        if (mMap == null) {
+            View mapView = view.findViewById(R.id.map);
+            ViewGroup.LayoutParams mapLayout = mapView.getLayoutParams();
+            mapLayout.height = squareSize * 2;
+            mapLayout.width = squareSize * 2;
+            mapView.setLayoutParams(mapLayout);
+
+            CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+            mapFragment.setListener(new CustomMapView.OnTouchListener() {
+                @Override
+                public void onTouch() {
+                    mScrollView.requestDisallowInterceptTouchEvent(true);
+                }
+            });
+        }
         View view1 = view.findViewById(R.id.square1);
         ViewGroup.LayoutParams lpGl1 = (ViewGroup.LayoutParams) view1.getLayoutParams();
         lpGl1.height = squareSize;
@@ -153,10 +143,12 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         view1.setId(R.id.transitView);
 
         nextBus= new NextBus(getActivity());
+        contacts = new Contacts(getActivity());
 
-
-        getMessages();
-
+        getContacts();
+        if(activity.mCurrentLocation!=null){
+            setupDash(activity.mCurrentLocation);
+        }
         return view;
     }
 
@@ -194,12 +186,20 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         });
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-/*    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+    public void setupDash(Location mCurrentLocation){
+        LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        if (mMap != null) {
+
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
+            locMarker = mMap.addMarker(new MarkerOptions()
+                    .position(loc)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));
+
         }
-    }*/
+        getTransit(mCurrentLocation);
+        nextBus.getVehicleLocations();
+        getPlaces(mCurrentLocation);
+    }
 /*
     @Override
     public void onAttach(Context context) {
@@ -246,6 +246,11 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         Log.i(MainActivity.TAG, "height       = " + height);
         return new Point(width, height);
     }
+    @Override
+    public void onRefresh() {
+
+    }
+
     public void getTransit(Location loc){
         nextBus.setNextBusListener(new NextBus.NextBusListener(){
 
@@ -329,9 +334,9 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         nextBus.getPredictionLocation(String.valueOf(loc.getLatitude()), String.valueOf(loc.getLongitude()));
     }
 
-    public void getYelp(Location loc){
+    public void getPlaces(Location loc){
         MainActivity caller = (MainActivity) getActivity();
-        Log.i(MainActivityOld.TAG, "Getting yelp");
+        Log.i(MainActivityOld.TAG, "Getting places");
         Map<String, String> params = new HashMap<>();
         params.put("term", "food");
         params.put("category", "restaurant");
@@ -346,8 +351,8 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
 
         layout.addView(view2);
 
-        caller.yelp.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
-        caller.yelp.setYelpListener(new Yelp.YelpListener() {
+        caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
+        caller.places.setYelpListener(new Places.YelpListener() {
             @Override
             public void OnGetSearch(final ArrayList<Business> businesses, View view) {
 
@@ -359,7 +364,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
                 TextView category = (TextView) view.findViewById(R.id.category);
                 category.setText(String.valueOf(businessCategory.get(0).name()) );
 
-                Log.i(MainActivityOld.TAG, "Total yelp results (painting):" + String.valueOf(businesses.size()));
+                Log.i(MainActivityOld.TAG, "Total places results (painting):" + String.valueOf(businesses.size()));
 
                 String businessImg= businesses.get(0).imageUrl();
                 ImageView img = (ImageView) view.findViewById(R.id.imageView);
@@ -371,12 +376,17 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
                             // Notify the active callbacks interface (the activity, if the
                             // fragment is attached to one) that an item has been selected.
                             Map<String, String> viewParams= new HashMap<>();
-                            viewParams.put("type","yelp");
+                            viewParams.put("type","places");
                             viewParams.put("id", businesses.get(0).id());
                             mListener.onDashFragmentInteraction(viewParams);
                         }
                     }
                 });
+            }
+
+            @Override
+            public void OnGetBusiness(Activity caller, Business business) {
+
             }
         });
 
@@ -391,52 +401,17 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         layout2.setLayoutParams(lpGl3);
 
         layout2.addView(view3);
-        caller.yelp.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
+        caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
     }
-    public class LoadImage extends AsyncTask<String, String, Bitmap> {
-        Bitmap bitmap;
-        ImageView img;
-        public LoadImage(ImageView img) {
-            super();
-            this.img = img;
-            // do stuff
-        }
-        protected Bitmap doInBackground(String... args) {
-            try {
-                bitmap = BitmapFactory.decodeStream((InputStream)new URL(args[0]).getContent());
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return bitmap;
-        }
-
-        protected void onPostExecute(Bitmap image) {
-
-            if(image != null){
-                img.setImageBitmap(image);
-
-            }else{
-
-                Toast.makeText(getActivity(), "Image Does Not exist or Network Error", Toast.LENGTH_SHORT).show();
-
-            }
-        }
-    }
-    public void getMessages(){
+    public void getContacts(){
         ArrayList<String> conversation = new ArrayList<>();
 
-        /*Uri uri    = Uri.parse( "content://mms-sms/messages/byphone" );
-        String[] projection= { "DISTINCT address"};
-        Cursor cursor = getActivity().getContentResolver().query( uri, projection, null ,null, "date desc LIMIT 4" );*/
 
         Uri uri    = Uri.parse( "content://sms/inbox" );
         String[] projection= { "DISTINCT Replace(Address, '+', '') AS ADDRESS"};
         Cursor cursor = getActivity().getContentResolver().query(uri, projection, null ,null, "DATE desc"  );
 
-/*        if(cursor==null){
-            return;
-        }*/
         cursor.moveToFirst();
         if( cursor.getCount() > 0 ) {
             String count = Integer.toString( cursor.getCount() );
@@ -457,8 +432,8 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
 
                 int SENDER_ADDRESS = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
                 final String address = cursor.getString(SENDER_ADDRESS);
-                String contactName = getContactName(getContext(), cursor.getString(SENDER_ADDRESS));
-                int contactId= getContactIDFromNumber(String.valueOf(SENDER_ADDRESS), getContext());
+                String contactName = contacts.getContactName(getContext(), cursor.getString(SENDER_ADDRESS));
+                int contactId= contacts.getContactIDFromNumber(String.valueOf(SENDER_ADDRESS), getContext());
 
                 //InputStream photoIS = openPhoto(id);
 
@@ -477,7 +452,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
 
                 view4.setLayoutParams(lpGl4);
 
-                Bitmap profilePic=activity.contact.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
+                Bitmap profilePic=activity.contacts.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
                 ImageView img = (ImageView) view4.findViewById(R.id.imageView);
                 if(profilePic!=null){
                     img.setImageBitmap(profilePic);
@@ -495,7 +470,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
                             // Notify the active callbacks interface (the activity, if the
                             // fragment is attached to one) that an item has been selected.
                             Map<String, String> viewParams= new HashMap<>();
-                            viewParams.put("type","people");
+                            viewParams.put("type","contacts");
                             viewParams.put("id", address);
                             mListener.onDashFragmentInteraction(viewParams);
                         }
@@ -508,41 +483,6 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
         }
 
         cursor.close();
-    }
-    public String getContactName(Context context, String phoneNumber) {
-        ContentResolver cr = context.getContentResolver();
-        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
-        Cursor cursor = cr.query(uri, new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
-        if (cursor == null) {
-            return null;
-        }
-        String contactName = null;
-        if(cursor.moveToFirst()) {
-            contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-        }
-
-        if(cursor != null && !cursor.isClosed()) {
-            cursor.close();
-        }
-
-        if (contactName != null) {
-            return contactName;
-        } else {
-            return phoneNumber;
-        }
-    }
-
-    public  int getContactIDFromNumber(String contactNumber,Context context)
-    {
-        contactNumber = Uri.encode(contactNumber);
-        int phoneContactID = new Random().nextInt();
-        Cursor contactLookupCursor = context.getContentResolver().query(Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,contactNumber),new String[] {ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup._ID}, null, null, null);
-        while(contactLookupCursor.moveToNext()){
-            phoneContactID = contactLookupCursor.getInt(contactLookupCursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup._ID));
-        }
-        contactLookupCursor.close();
-
-        return phoneContactID;
     }
 
     public static boolean isInteger(String str) {
@@ -576,5 +516,19 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback{
     public interface OnDashFragmentInteractionListener {
         // TODO: Update argument type and name
         void onDashFragmentInteraction(Map<String, String> param);
+        void onDashFragmentInteraction(Uri uri);
+    }
+    /**** The mapfragment's id must be removed from the FragmentManager
+     **** or else if the same it is passed on the next time then
+     **** app will crash ****/
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
+        if (f != null){
+            getFragmentManager().beginTransaction().remove(f).commit();
+            Log.i(MainActivity.TAG, "Destroying map");
+            mMap=null;
+        }
     }
 }

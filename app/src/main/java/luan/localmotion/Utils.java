@@ -1,7 +1,14 @@
 package luan.localmotion;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
+import android.widget.ImageView;
+import android.widget.Toast;
+
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 
 /**
  * Created by luann on 2016-06-29.
@@ -28,4 +35,5 @@ public class Utils {
         }
         catch(Exception ex){}
     }
+
 }

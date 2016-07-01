@@ -1,5 +1,6 @@
 package luan.localmotion;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -35,7 +36,7 @@ public class ContactFragment2 extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public MainActivity activity;
+    public Activity activity;
     public ContactFragment2() {
     }
 
@@ -56,7 +57,7 @@ public class ContactFragment2 extends Fragment {
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
-        activity=(MainActivity) getActivity();
+        activity=getActivity();
     }
 
     @Override
@@ -110,7 +111,7 @@ public class ContactFragment2 extends Fragment {
                 String idContact = contatCursor.getString(contactIdIdx);
                 String name = contatCursor.getString(nameIdx);
                 String phoneNumber = contatCursor.getString(phoneNumberIdx);
-                Bitmap profilePic= activity.contact.retrieveContactPhoto(getContext(),phoneNumber);
+                Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),phoneNumber);
 
                 contacts.add(new ContactItem(idContact, name, phoneNumber,profilePic));
             } while (contatCursor.moveToNext());

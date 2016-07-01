@@ -25,17 +25,38 @@ import retrofit2.Response;
 /**
  * Created by luann on 2016-06-03.
  */
-public class Yelp {
+public class Places {
     YelpAPI yelpAPI;
     private Activity caller;
     private YelpListener listener = null;
 
 
-    public Yelp(Activity caller){
+    public Places(Activity caller){
         YelpAPIFactory apiFactory = new YelpAPIFactory("X320v-hKa-_-hkzoQFlo4Q", "SzhtYQTfDQRbSHW70p_ou419Ylw", "MrAZgZ-GhsjOHNs4N6psi5VSknn-SoRz", "SxLw_leUV8yHUTceulflVtMjNog");
         yelpAPI = apiFactory.createAPI();
         this.caller = caller;
 
+    }
+    public void searchBusiness(final Activity caller, String id){
+        Call<Business> call = yelpAPI.getBusiness(id);
+        Log.i(MainActivity.TAG,"opened business");
+        call.enqueue(new Callback<Business>() {
+            @Override
+            public void onResponse(Call<Business> call, Response<Business> response) {
+                Business business = response.body();
+                Log.i(MainActivity.TAG,"business:" +business.toString());
+
+                    if (listener != null)
+                    listener.OnGetBusiness(caller, business);
+
+
+            }
+            @Override
+            public void onFailure(Call<Business> call, Throwable t) {
+                // HTTP error happened, do something to handle it.
+            }
+        });
+        // Response<Business> response = call.execute();
     }
     public void searchNearby(Double lat, Double lng,  Map<String, String> params, final View view ){
 
@@ -99,7 +120,7 @@ public class Yelp {
             @Override
             public void OnGetSearch(ArrayList<Business> businesses, View view) {
                 PlacesFragment placesFragment = (PlacesFragment) mainActivity.mSectionsPagerAdapter.getActiveFragment(mainActivity.mViewPager, 2);
-                Log.i(MainActivity.TAG, "yelp start" + businesses.size());
+                Log.i(MainActivity.TAG, "places start" + businesses.size());
 
                 for (Business business :
                         businesses) {
@@ -107,6 +128,11 @@ public class Yelp {
                 }
                 placesFragment.recycleViewAdapter.notifyDataSetChanged();
 
+
+            }
+
+            @Override
+            public void OnGetBusiness(Activity caller, Business business) {
 
             }
         });
@@ -117,6 +143,7 @@ public class Yelp {
     public interface YelpListener {
 
         public void OnGetSearch( ArrayList<Business> businesses, View view);
+        public void OnGetBusiness(Activity caller,Business business );
     }
     interface CallbackExt extends Callback{
 

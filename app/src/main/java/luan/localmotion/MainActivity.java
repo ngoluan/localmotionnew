@@ -27,10 +27,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -47,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements
         ContactFragment2.OnListFragmentInteractionListener,
         PlacesFragment.OnPlacesFragmentInteractionListener,
         DashFragment.OnDashFragmentInteractionListener,
-        MapFragment.OnMapInteractionListener{
+        MapFragment.OnMapInteractionListener {
     //FOR location
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
@@ -70,8 +66,8 @@ public class MainActivity extends AppCompatActivity implements
      */
     protected String mLastUpdateTime;
 
-    public Yelp yelp;
-    public Contact contact;
+    public Places places;
+    public Contacts contacts;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -109,8 +105,8 @@ public class MainActivity extends AppCompatActivity implements
         updateValuesFromBundle(savedInstanceState);
         buildGoogleApiClient();
 
-        contact = new Contact(this);
-        yelp= new Yelp(this);
+        contacts = new Contacts(this);
+        places = new Places(this);
     }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
@@ -281,24 +277,13 @@ public class MainActivity extends AppCompatActivity implements
             }
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+
             //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
             //updateUI();
 
             if (mViewPager.getCurrentItem() == 0) {
                 DashFragment dashFragment = (DashFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
-                if (dashFragment.mMap != null) {
-
-                    dashFragment.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
-                    final LatLng MELBOURNE = new LatLng(-37.813, 144.962);
-                    dashFragment.locMarker = dashFragment.mMap.addMarker(new MarkerOptions()
-                            .position(loc)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));
-
-                }
-                dashFragment.getTransit(mCurrentLocation);
-                dashFragment.nextBus.getVehicleLocations();
-                dashFragment.getYelp(mCurrentLocation);
+                dashFragment.setupDash(mCurrentLocation);
 
             }
 
@@ -369,16 +354,24 @@ public class MainActivity extends AppCompatActivity implements
     public void OnPlacesStart() {
 
         Map<String, String> params = new HashMap<>();
-        yelp.fillPlacesFragment(mCurrentLocation,params, this);
+        places.fillPlacesFragment(mCurrentLocation,params, this);
 
 
     }
     @Override
     public void onDashFragmentInteraction(Map<String, String> param) {
-        Toast.makeText(MainActivity.this, "Dash touch"+param.toString(), Toast.LENGTH_SHORT).show();
-        Intent scheduleIntent = new Intent(this, ScheduleView.class);
+        Intent scheduleIntent = new Intent(this, SchedulerActivity2.class);
 
+        scheduleIntent.putExtra("type",param.get("type"));
+        scheduleIntent.putExtra("id", param.get("id"));
+        scheduleIntent.putExtra("lat",String.valueOf(mCurrentLocation.getLatitude()));
+        scheduleIntent.putExtra("lng",String.valueOf(mCurrentLocation.getLongitude()));
         startActivity(scheduleIntent);
+    }
+
+    @Override
+    public void onDashFragmentInteraction(Uri uri) {
+        Log.i(MainActivity.TAG, "URI:" + uri.toString());
     }
 
     public void setBottomBar() {

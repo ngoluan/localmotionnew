@@ -1,5 +1,6 @@
 package luan.localmotion;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -65,7 +66,7 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
     private GoogleApiClient mGoogleApiClient;
     protected Location mLastLocation;
     private NextBus nextBus=null;
-    private Yelp yelp;
+    private Places places;
     public int squareSize;
     public String[][] dashGrid= new String[5][3];
     int currentRow=0;
@@ -89,7 +90,7 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
         setContentView(R.layout.activity_main);
 
         nextBus= new NextBus(this);
-        yelp= new Yelp(this);
+        places = new Places(this);
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -415,8 +416,8 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
 
         layout.addView(view2);
 
-        yelp.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
-        yelp.setYelpListener(new Yelp.YelpListener() {
+        places.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
+        places.setYelpListener(new Places.YelpListener() {
             @Override
             public void OnGetSearch(ArrayList<Business> businesses, View view) {
 
@@ -431,11 +432,16 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
                 TextView category = (TextView) view.findViewById(R.id.category);
                 category.setText(String.valueOf(businessCategory.get(0).name()) );
 
-                Log.i(MainActivityOld.TAG, "Total yelp results (painting):" + String.valueOf(businesses.size()));
+                Log.i(MainActivityOld.TAG, "Total places results (painting):" + String.valueOf(businesses.size()));
 
                 String businessImg= businesses.get(0).imageUrl();
                 ImageView img = (ImageView) view.findViewById(R.id.imageView);
                 new LoadImage(img).execute(businessImg);
+            }
+
+            @Override
+            public void OnGetBusiness(Activity caller, Business business) {
+
             }
         });
 
@@ -451,7 +457,7 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
         layout2.setLayoutParams(lpGl3);
 
         layout2.addView(view3);
-        yelp.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
+        places.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
     }
     private void drawTransitMap(){
         nextBus.getVehicleLocations();
@@ -493,18 +499,18 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
     }
     /*public void getContacts(){
         ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contact.CONTENT_URI,
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                 null, null, null, null);
 
         if (cur.getCount() > 0) {
             while (cur.moveToNext()) {
                 String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contact._ID));
+                        cur.getColumnIndex(ContactsContract.Contacts._ID));
                 String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contact.DISPLAY_NAME));
+                        ContactsContract.Contacts.DISPLAY_NAME));
 
                 if (Integer.parseInt(cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contact.HAS_PHONE_NUMBER))) > 0) {
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
                     Cursor pCur = cr.query(
                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             null,
@@ -515,7 +521,7 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
                                 ContactsContract.CommonDataKinds.Phone.NUMBER));
 *//*                        Toast.makeText(this, "Name: " + name
                                 + ", Phone No: " + phoneNo, Toast.LENGTH_SHORT).show();*//*
-                        *//*Log.i(TAG, "Contact:" + name + " - " + phoneNo);*//*
+                        *//*Log.i(TAG, "Contacts:" + name + " - " + phoneNo);*//*
                     }
                     pCur.close();
                 }
@@ -590,7 +596,7 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
 
                 layout.addView(view4);
 
-                Log.i(TAG, "Contact:" +contactName+" Row: "+ row + " Col:" + col + " Children:"+grid.getChildCount());
+                Log.i(TAG, "Contacts:" +contactName+" Row: "+ row + " Col:" + col + " Children:"+grid.getChildCount());
                 j++;
             }
         }
@@ -634,10 +640,10 @@ public class MainActivityOld extends AppCompatActivity implements OnMapReadyCall
     }
 
 /*    public InputStream openPhoto(long id) {
-        Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contact.CONTENT_URI, id);
-        Uri photoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contact.Photo.CONTENT_DIRECTORY);
+        Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, id);
+        Uri photoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.CONTENT_DIRECTORY);
         Cursor cursor = getContentResolver().query(photoUri,
-                new String[] {ContactsContract.Contact.Photo.PHOTO}, null, null, null);
+                new String[] {ContactsContract.Contacts.Photo.PHOTO}, null, null, null);
         if (cursor == null) {
             return null;
         }
