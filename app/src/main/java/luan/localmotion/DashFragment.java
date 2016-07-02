@@ -1,7 +1,11 @@
 package luan.localmotion;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -10,8 +14,11 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +29,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -50,7 +58,7 @@ import luan.localmotion.Content.NextBusDashItem;
  * Use the {@link DashFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DashFragment extends Fragment  implements OnMapReadyCallback, SwipeRefreshLayout.OnRefreshListener {
+public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeRefreshLayout.OnRefreshListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public View view;
@@ -71,6 +79,9 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
     public MainActivity activity;
     public NextBus nextBus;
     public Contacts contacts;
+    Location mCurrentLocation;
+
+
     public DashFragment() {
         // Required empty public constructor
     }
@@ -101,9 +112,20 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        activity=(MainActivity) getActivity();
-    }
+        activity = (MainActivity) getActivity();
 
+
+        getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
+    }
+    BroadcastReceiver locationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            mCurrentLocation = new Location(intent.getExtras().getString("provider"));
+            mCurrentLocation.setLongitude(intent.getExtras().getDouble("lng"));
+            mCurrentLocation.setLatitude(intent.getExtras().getDouble("lat"));
+        }
+    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -138,18 +160,20 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
         View view1 = view.findViewById(R.id.square1);
         ViewGroup.LayoutParams lpGl1 = view1.getLayoutParams();
         lpGl1.height = squareSize;
-        lpGl1.width = squareSize*2;
+        lpGl1.width = squareSize * 2;
 
         view1.setLayoutParams(lpGl1);
         view1.setId(R.id.transitView);
 
-        nextBus= new NextBus(getActivity());
+        nextBus = new NextBus(getActivity());
         contacts = new Contacts(getActivity());
 
         getContacts();
-        if(activity.mCurrentLocation!=null){
-            setupDash(activity.mCurrentLocation);
+        if (mCurrentLocation != null) {
+            setupDash(mCurrentLocation);
         }
+
+        getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
         return view;
     }
 
@@ -158,10 +182,10 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
         mMap = googleMap;
         MainActivity activity = (MainActivity) getActivity();
         Location currentLocation = activity.getCurrentLocation();
-        if(currentLocation!=null){
+        if (currentLocation != null) {
             LatLng loc = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc,16));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
 
 
         }
@@ -189,11 +213,22 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
     public void setupDash(Location mCurrentLocation){
         LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         if (mMap != null) {
-
+            if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
-            locMarker = mMap.addMarker(new MarkerOptions()
+            /*locMarker = mMap.addMarker(new MarkerOptions()
                     .position(loc)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));*/
 
         }
         getTransit(mCurrentLocation);
@@ -504,6 +539,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
             throw new RuntimeException(context.toString()
                     + " must implement OnDashFragmentInteractionListener");
         }
+        getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
     }
 
     @Override
@@ -511,6 +547,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
         super.onDetach();
 
         mListener = null;
+        getActivity().unregisterReceiver(locationReceiver);
     }
     public interface OnDashFragmentInteractionListener {
         // TODO: Update argument type and name
@@ -529,5 +566,6 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
 
             mMap=null;
         }
+        getActivity().unregisterReceiver(locationReceiver);
     }
 }

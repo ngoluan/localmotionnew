@@ -1,6 +1,10 @@
 package luan.localmotion;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -8,6 +12,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.app.Fragment;
@@ -22,6 +27,8 @@ import android.widget.Toast;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -55,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements
     protected GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
     public Location mCurrentLocation;
+
     /**
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
@@ -106,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements
 
         contacts = new Contacts(this);
         places = new Places(this);
+
         Intent intent = new Intent(this, LocationService.class);
         startService(intent);
 
@@ -125,7 +134,15 @@ public class MainActivity extends AppCompatActivity implements
             }
         }
         // [END handle_data_extras]
-        Log.d(TAG, "GEt token+" +FirebaseInstanceId.getInstance().getToken());
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        AppEventsLogger.activateApp(this);
+        SharedPreferences prefs = this.getSharedPreferences(
+                "luan.localmotion", Context.MODE_PRIVATE);
+        if(prefs.getString("lastLa","").equals("")){
+            prefs.edit().putString("lastLat","43.6532").apply();
+            prefs.edit().putString("lastLng", "-79.3832").apply();
+            prefs.edit().putString("lastProvider", "provider").apply();
+        }
 
     }
 
@@ -179,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements
         // application will never receive updates faster than this value.
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
 
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
     }
 
     protected void startLocationUpdates() {
@@ -225,6 +242,7 @@ public class MainActivity extends AppCompatActivity implements
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
         }
+
     }
 
     @Override
@@ -234,12 +252,12 @@ public class MainActivity extends AppCompatActivity implements
         if (mGoogleApiClient.isConnected()) {
             stopLocationUpdates();
         }
+
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
-
         super.onStop();
     }
 
@@ -295,7 +313,14 @@ public class MainActivity extends AppCompatActivity implements
                 // for ActivityCompat#requestPermissions for more phoneNumber.
                 return;
             }
+
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            SharedPreferences prefs = this.getSharedPreferences(
+                    "luan.localmotion", Context.MODE_PRIVATE);
+            Log.d(TAG,"Putting location shared preferences"+mCurrentLocation.toString());
+            prefs.edit().putString("lastLat", String.valueOf(mCurrentLocation.getLatitude())).apply();
+            prefs.edit().putString("lastLng", String.valueOf(mCurrentLocation.getLongitude())).apply();
+            prefs.edit().putString("lastProvider", String.valueOf(mCurrentLocation.getProvider())).apply();
             mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
 
             //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
@@ -519,4 +544,3 @@ public class MainActivity extends AppCompatActivity implements
 
 
 }
-

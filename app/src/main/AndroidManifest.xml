@@ -17,8 +17,8 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyACglJPY-CcKiodFyT52yKeMkPlHIsamkc" />
-
+            android:value="AIzaSyDFaWQ80f68t72jnT4QVC3_Q-fiiYprAr4" />
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main2"
@@ -56,6 +56,14 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
             </intent-filter>
         </service>
+<!--        <receiver android:name="LocationReceiver">
+
+            <intent-filter>
+                <action android:name="NEW_LOCATION">
+                </action>
+            </intent-filter>
+
+        </receiver>-->
         <!-- [END firebase_iid_service] -->
     </application>
 

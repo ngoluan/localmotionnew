@@ -25,7 +25,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.google.android.gms:play-services:9.2.0'
     compile 'com.squareup.okhttp3:okhttp:3.2.0'
-    compile 'com.android.support:percent:23.4.0'
     compile 'com.google.maps.android:android-maps-utils:0.3.+'
     compile 'com.aurelhubert:ahbottomnavigation:1.2.2'
     compile 'com.yelp.clientlib:yelp-android:2.0.0'
@@ -39,4 +38,5 @@ dependencies {
     compile 'com.github.aakira:expandable-layout:1.5.1@aar'
     compile 'com.google.firebase:firebase-messaging:9.2.0'
     apply plugin: 'com.google.gms.google-services'
+    compile 'com.facebook.android:facebook-android-sdk:4.+'
 }
