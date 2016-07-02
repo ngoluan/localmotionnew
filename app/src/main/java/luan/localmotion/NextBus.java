@@ -411,7 +411,7 @@ public class NextBus {
         }.execute();
     }
     void drawMarkers(ArrayList<VehicleData>  vehicles, GoogleMap mMap){
-        Log.i("luan.localmotion", "Array size" + String.valueOf(vehicles.size()));
+
         for (Marker marker:googleMapMarkers) {
             marker.remove();
         }
@@ -441,7 +441,7 @@ public class NextBus {
     }
     public interface NextBusListener {
 
-        public void OnGetPredictions(ArrayList<ArrayList<NextBusDashItem>> routesArr);
-        public void OnGetVehicles( ArrayList<VehicleData> vehicleData);
+        void OnGetPredictions(ArrayList<ArrayList<NextBusDashItem>> routesArr);
+        void OnGetVehicles(ArrayList<VehicleData> vehicleData);
     }
 }

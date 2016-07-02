@@ -40,8 +40,7 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener,
-        ContactFragment2.OnListFragmentInteractionListener,
-        PlacesFragment.OnPlacesFragmentInteractionListener,
+        OnFragmentInteractionListener,
         DashFragment.OnDashFragmentInteractionListener,
         MapFragment.OnMapInteractionListener {
     //FOR location
@@ -55,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements
     static String TAG = "luan.localmotion";
     protected GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
-    protected Location mCurrentLocation;
+    public Location mCurrentLocation;
     /**
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Log.i(TAG, "Updating values from bundle");
+
         if (savedInstanceState != null) {
             // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
             // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
@@ -137,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     protected synchronized void buildGoogleApiClient() {
-        Log.i(TAG, "Building GoogleApiClient");
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -251,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.i(TAG, "Connected to GoogleApiClient");
+
 
         // If the initial location was never previously requested, we use
         // FusedLocationApi.getLastLocation() to get it. If it was previously requested, we store
@@ -300,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.i(TAG, "Connection suspended");
+
         mGoogleApiClient.connect();
     }
 
@@ -342,11 +341,11 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onContactFragmentInteraction(ContactItem item) {
+    public void onContactFragmentInteraction(String TAG, ContactItem item) {
         Toast.makeText(MainActivity.this, item.toString(), Toast.LENGTH_SHORT).show();
     }
     @Override
-    public void OnPlacesFragmentListener(PlacesItem item) {
+    public void OnPlacesFragmentListener(String TAG, PlacesItem item) {
 
     }
 
@@ -360,7 +359,7 @@ public class MainActivity extends AppCompatActivity implements
     }
     @Override
     public void onDashFragmentInteraction(Map<String, String> param) {
-        Intent scheduleIntent = new Intent(this, SchedulerActivity2.class);
+        Intent scheduleIntent = new Intent(this, Scheduler.class);
 
         scheduleIntent.putExtra("type",param.get("type"));
         scheduleIntent.putExtra("id", param.get("id"));
@@ -371,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onDashFragmentInteraction(Uri uri) {
-        Log.i(MainActivity.TAG, "URI:" + uri.toString());
+
     }
 
     public void setBottomBar() {
@@ -423,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements
         bottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
             @Override
             public void onTabSelected(int position, boolean wasSelected) {
-                Log.i(TAG, "switch page bottom bar " + String.valueOf(position));
+
                 mViewPager.setCurrentItem(position);
                 //mSectionsPagerAdapter.getItem(position);
             }
@@ -448,18 +447,17 @@ public class MainActivity extends AppCompatActivity implements
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            //return MainActivityOld.PlaceholderFragment.newInstance(position + 1);
             switch (position) {
                 case 0: // Fragment # 0 - This will show FirstFragment
                     return DashFragment.newInstance("0", "Page # 1");
                 case 1:
-                    Log.i(TAG, "page switch pager" + String.valueOf(position));
-                    return ContactFragment2.newInstance(3);
+
+                    return ContactFragment.newInstance(3);
                 case 2:
-                    Log.i(TAG, "page switch pager" + String.valueOf(position));
+
                     return PlacesFragment.newInstance(3 );
                 case 3:
-                    Log.i(TAG, "page switch pager" + String.valueOf(position));
+
                     return MapFragment.newInstance("test","test");
                 default:
                     return DashFragment.newInstance("0", "Page # 1");
@@ -470,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements
         public Fragment getActiveFragment(ViewPager container, int position) {
             //String name = makeFragmentName(container.getId(), position);
             String name = "android:switcher:" + container.getId() + ":" + position;
-            Log.i(TAG, "currentFragment" + name);
+
             return mFragmentManager.findFragmentByTag(name);
         }
 

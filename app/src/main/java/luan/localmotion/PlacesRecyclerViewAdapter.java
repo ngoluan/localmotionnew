@@ -9,24 +9,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-
-import luan.localmotion.PlacesFragment.OnPlacesFragmentInteractionListener;
 import luan.localmotion.Content.PlacesItem;
-import luan.localmotion.Content.DummyContent.DummyItem;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
- * specified {@link OnPlacesFragmentInteractionListener}.
+ * {@link RecyclerView.Adapter} that can display a {} and makes a call to the
+ * specified {@link OnFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
 public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecyclerViewAdapter.ViewHolder> {
 
     private final ArrayList<PlacesItem> mValues;
-    private final OnPlacesFragmentInteractionListener mListener;
+    private final OnFragmentInteractionListener mListener;
     public ImageLoader imageLoader;
     Activity activity;
 
-    public PlacesRecyclerViewAdapter(ArrayList<PlacesItem> PlacesItems, OnPlacesFragmentInteractionListener listener, Activity activity) {
+    public PlacesRecyclerViewAdapter(ArrayList<PlacesItem> PlacesItems, OnFragmentInteractionListener listener, Activity activity) {
         mValues = PlacesItems;
         mListener = listener;
         this.activity=activity;
@@ -52,7 +49,7 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.OnPlacesFragmentListener(holder.mItem);
+                    mListener.OnPlacesFragmentListener("PICK_PLACE", holder.mItem);
                 }
             }
         });

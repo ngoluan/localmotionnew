@@ -157,7 +157,7 @@ public class ImageLoader {
 
             // Constructs a new FileOutputStream that writes to file
             // if file not exist then it will create file
-            Log.i(MainActivity.TAG, "File"+f.getPath());
+
             OutputStream os = new FileOutputStream(f);
 
             // See Utils class CopyStream method
@@ -229,9 +229,7 @@ public class ImageLoader {
 
         String tag=imageViews.get(photoToLoad.imageView);
         //Check url is already exist in imageViews MAP
-        if(tag==null || !tag.equals(photoToLoad.url))
-            return true;
-        return false;
+        return tag == null || !tag.equals(photoToLoad.url);
     }
 
     //Used to display bitmap in the UI thread

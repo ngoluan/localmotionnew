@@ -135,7 +135,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
             });
         }
         View view1 = view.findViewById(R.id.square1);
-        ViewGroup.LayoutParams lpGl1 = (ViewGroup.LayoutParams) view1.getLayoutParams();
+        ViewGroup.LayoutParams lpGl1 = view1.getLayoutParams();
         lpGl1.height = squareSize;
         lpGl1.width = squareSize*2;
 
@@ -160,19 +160,18 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
         if(currentLocation!=null){
             LatLng loc = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
 
-            Log.i(activity.TAG, "fragment location:"+loc.toString());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc,16));
 
 
         }
-        Log.i(activity.TAG, "map ready");
+
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 LatLngBounds curScreen = mMap.getProjection()
                         .getVisibleRegion().latLngBounds;
                 ArrayList<VehicleData> currentVehicles= new ArrayList<VehicleData>();
-                Log.i("luan.localmotion", "zoom"+ cameraPosition.zoom);
+
                 for (VehicleData vehicle:nextBus.nextBusData) {
 
                     if(vehicle.lat<curScreen.northeast.latitude && vehicle.lat>curScreen.southwest.latitude &&
@@ -235,15 +234,14 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
     public Point getDisplaySize() {
         Display display = getActivity().getWindowManager().getDefaultDisplay();
         String displayName = display.getName();  // minSdkVersion=17+
-        Log.i(MainActivity.TAG, "displayName  = " + displayName);
+
 
 // display size in pixels
         Point size = new Point();
         display.getSize(size);
         int width = size.x;
         int height = size.y;
-        Log.i(MainActivity.TAG, "width        = " + width);
-        Log.i(MainActivity.TAG, "height       = " + height);
+
         return new Point(width, height);
     }
     @Override
@@ -275,7 +273,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
 
                     for (int j = 0; j < routesArr.get(i).size(); j++) {
                         routesArr.get(i).get(j);
-                        Log.i(MainActivity.TAG, "Predictions" + routesArr.size());
+
 
                         //getting the direction heading
                         int c = routesArr.get(i).get(j).dirTitle.indexOf("-");
@@ -319,7 +317,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
                 LatLngBounds curScreen = mMap.getProjection()
                         .getVisibleRegion().latLngBounds;
                 ArrayList<VehicleData>  currentVehicles= new ArrayList<VehicleData>();
-                Log.i("luan.localmotion", "vLat" + String.valueOf(vehicleData.size()));
+
                 for (VehicleData vehicle:vehicleData) {
 
                     if(vehicle.lat<curScreen.northeast.latitude && vehicle.lat>curScreen.southwest.latitude &&
@@ -336,14 +334,14 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
 
     public void getPlaces(Location loc){
         MainActivity caller = (MainActivity) getActivity();
-        Log.i(MainActivityOld.TAG, "Getting places");
+
         Map<String, String> params = new HashMap<>();
         params.put("term", "food");
         params.put("category", "restaurant");
 
         View view2 = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
         RelativeLayout layout = (RelativeLayout) view.findViewById(R.id.square2);
-        ViewGroup.LayoutParams lpGl2 = (ViewGroup.LayoutParams) layout.getLayoutParams();
+        ViewGroup.LayoutParams lpGl2 = layout.getLayoutParams();
         lpGl2.height = squareSize;
         lpGl2.width = squareSize;
         layout.setLayoutParams(lpGl2);
@@ -364,7 +362,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
                 TextView category = (TextView) view.findViewById(R.id.category);
                 category.setText(String.valueOf(businessCategory.get(0).name()) );
 
-                Log.i(MainActivityOld.TAG, "Total places results (painting):" + String.valueOf(businesses.size()));
+
 
                 String businessImg= businesses.get(0).imageUrl();
                 ImageView img = (ImageView) view.findViewById(R.id.imageView);
@@ -395,7 +393,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
         params2.put("category", "bars");
         View view3 = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
         RelativeLayout layout2 = (RelativeLayout) view.findViewById(R.id.square3);
-        ViewGroup.LayoutParams lpGl3 = (ViewGroup.LayoutParams) layout2.getLayoutParams();
+        ViewGroup.LayoutParams lpGl3 = layout2.getLayoutParams();
         lpGl3.height = squareSize;
         lpGl3.width = squareSize;
         layout2.setLayoutParams(lpGl3);
@@ -443,16 +441,16 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
                 View view4 = getActivity().getLayoutInflater().inflate(R.layout.dash_people, null);
                 int squareNum = j +4;
                 int resID = getResources().getIdentifier(String.valueOf("square"+squareNum), "id", "luan.localmotion");
-                Log.i(MainActivity.TAG, "Res:" + resID);
+
                 RelativeLayout layout = (RelativeLayout) view.findViewById(resID);
-                ViewGroup.LayoutParams lpGl4 = (ViewGroup.LayoutParams) layout.getLayoutParams();
+                ViewGroup.LayoutParams lpGl4 = layout.getLayoutParams();
                 lpGl4.height = squareSize;
                 lpGl4.width = squareSize;
 
 
                 view4.setLayoutParams(lpGl4);
 
-                Bitmap profilePic=activity.contacts.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
+                Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
                 ImageView img = (ImageView) view4.findViewById(R.id.imageView);
                 if(profilePic!=null){
                     img.setImageBitmap(profilePic);
@@ -527,7 +525,7 @@ public class DashFragment extends Fragment  implements OnMapReadyCallback, Swipe
         Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
         if (f != null){
             getFragmentManager().beginTransaction().remove(f).commit();
-            Log.i(MainActivity.TAG, "Destroying map");
+
             mMap=null;
         }
     }

@@ -19,7 +19,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyACglJPY-CcKiodFyT52yKeMkPlHIsamkc" />
 
-        <activity android:name=".MainActivityOld" />
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main2"
@@ -34,11 +33,8 @@
             android:name=".Scheduler"
             android:label="@string/title_activity_schedule_view"
             android:theme="@style/AppTheme" />
-        <activity
-            android:name=".SchedulerActivity2"
-            android:label="@string/title_activity_scheduler2"
-            android:theme="@style/AppTheme" />
-        <activity android:name=".ChooseContact"></activity>
+        <activity android:name=".PickContact" />
+        <activity android:name=".PickPlace"></activity>
     </application>
 
 </manifest>

@@ -39,12 +39,12 @@ public class Places {
     }
     public void searchBusiness(final Activity caller, String id){
         Call<Business> call = yelpAPI.getBusiness(id);
-        Log.i(MainActivity.TAG,"opened business");
+
         call.enqueue(new Callback<Business>() {
             @Override
             public void onResponse(Call<Business> call, Response<Business> response) {
                 Business business = response.body();
-                Log.i(MainActivity.TAG,"business:" +business.toString());
+
 
                     if (listener != null)
                     listener.OnGetBusiness(caller, business);
@@ -114,13 +114,12 @@ public class Places {
 
     public void fillPlacesFragment(Location loc, Map<String, String> params, final MainActivity mainActivity){
 
-        Log.i(MainActivity.TAG, "Location:" + loc.toString());
+
         searchNearby(loc.getLatitude(),loc.getLongitude(), params,null);
         setYelpListener(new YelpListener() {
             @Override
             public void OnGetSearch(ArrayList<Business> businesses, View view) {
                 PlacesFragment placesFragment = (PlacesFragment) mainActivity.mSectionsPagerAdapter.getActiveFragment(mainActivity.mViewPager, 2);
-                Log.i(MainActivity.TAG, "places start" + businesses.size());
 
                 for (Business business :
                         businesses) {
@@ -142,8 +141,8 @@ public class Places {
 
     public interface YelpListener {
 
-        public void OnGetSearch( ArrayList<Business> businesses, View view);
-        public void OnGetBusiness(Activity caller,Business business );
+        void OnGetSearch(ArrayList<Business> businesses, View view);
+        void OnGetBusiness(Activity caller, Business business);
     }
     interface CallbackExt extends Callback{
 
