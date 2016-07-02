@@ -27,10 +27,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
@@ -106,6 +106,27 @@ public class MainActivity extends AppCompatActivity implements
 
         contacts = new Contacts(this);
         places = new Places(this);
+        Intent intent = new Intent(this, LocationService.class);
+        startService(intent);
+
+        // If a notification message is tapped, any data accompanying the notification
+        // message is available in the intent extras. In this sample the launcher
+        // intent is fired when the notification is tapped, so any accompanying data would
+        // be handled here. If you want a different intent fired, set the click_action
+        // field of the notification message to the desired intent. The launcher intent
+        // is used when no click_action is specified.
+        //
+        // Handle possible data accompanying notification message.
+        // [START handle_data_extras]
+        if (getIntent().getExtras() != null) {
+            for (String key : getIntent().getExtras().keySet()) {
+                String value = getIntent().getExtras().getString(key);
+                Log.d(TAG, "Key: " + key + " Value: " + value);
+            }
+        }
+        // [END handle_data_extras]
+        Log.d(TAG, "GEt token+" +FirebaseInstanceId.getInstance().getToken());
+
     }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
@@ -349,17 +370,19 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    @Override
+/*    @Override
     public void OnPlacesStart() {
 
         Map<String, String> params = new HashMap<>();
-        places.fillPlacesFragment(mCurrentLocation,params, this);
+        params.put("limit","20");
+        params.put("offset","0");
+        placesItems.fillPlacesFragment(mCurrentLocation,params, this);
 
 
-    }
+    }*/
     @Override
     public void onDashFragmentInteraction(Map<String, String> param) {
-        Intent scheduleIntent = new Intent(this, Scheduler.class);
+        Intent scheduleIntent = new Intent(this, SchedulerActivity.class);
 
         scheduleIntent.putExtra("type",param.get("type"));
         scheduleIntent.putExtra("id", param.get("id"));

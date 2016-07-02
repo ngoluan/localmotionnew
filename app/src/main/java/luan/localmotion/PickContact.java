@@ -34,8 +34,4 @@ public class PickContact extends AppCompatActivity implements OnFragmentInteract
 
     }
 
-    @Override
-    public void OnPlacesStart() {
-
-    }
 }

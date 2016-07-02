@@ -1,4 +1,4 @@
-package luan.localmotion;
+package luan.localmotion.Content;
 
 public class NextBusDashItem {
     public String vID;

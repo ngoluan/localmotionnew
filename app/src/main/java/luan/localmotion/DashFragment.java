@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,6 +38,8 @@ import com.yelp.clientlib.entities.Category;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import luan.localmotion.Content.NextBusDashItem;
 
 
 /**

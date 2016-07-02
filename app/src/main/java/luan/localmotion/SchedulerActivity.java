@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -28,10 +27,10 @@ import java.util.ArrayList;
 
 import luan.localmotion.Content.ContactItem;
 
-public class Scheduler extends AppCompatActivity implements OnMapReadyCallback {
+public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCallback {
     Contacts contacts;
     Places places;
-    Location mLocation;
+    Location mCurrentLocation;
 
     public GoogleMap mMap;
     public Marker locMarker;
@@ -49,10 +48,10 @@ public class Scheduler extends AppCompatActivity implements OnMapReadyCallback {
         places = new Places(this);
         String type = intent.getStringExtra("type");
         String id = intent.getStringExtra("id");
-        mLocation = new Location("dummy");
+        mCurrentLocation = new Location("dummy");
 
-        mLocation.setLatitude(Double.valueOf(intent.getStringExtra("lat")));
-        mLocation.setLongitude(Double.valueOf(intent.getStringExtra("lng")));
+        mCurrentLocation.setLatitude(Double.valueOf(intent.getStringExtra("lat")));
+        mCurrentLocation.setLongitude(Double.valueOf(intent.getStringExtra("lng")));
         mScrollView = (ScrollView) findViewById(R.id.scrollView);
         if (mMap == null) {
             CustomMapView mapFragment = (CustomMapView) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -68,7 +67,7 @@ public class Scheduler extends AppCompatActivity implements OnMapReadyCallback {
         if(type.equals("contacts")){
             fillContact(id);
         }
-        if(type.equals("places")){
+        if(type.equals("placesItems")){
             fillPlace(id);
         }
 
@@ -123,7 +122,7 @@ public class Scheduler extends AppCompatActivity implements OnMapReadyCallback {
 
             @Override
             public void OnGetBusiness(Activity caller, Business business) {
-                Scheduler actvitity = (Scheduler) caller;
+                SchedulerActivity actvitity = (SchedulerActivity) caller;
                 TextView placesName = (TextView) findViewById(R.id.placeName);
                 placesName.setText(business.name());
 
@@ -136,7 +135,7 @@ public class Scheduler extends AppCompatActivity implements OnMapReadyCallback {
                 LatLng loc = new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude());
                 locMarker = mMap.addMarker(new MarkerOptions()
                         .position(loc));
-                LatLng currentLocation = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+                LatLng currentLocation = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 builder.include(loc).include(currentLocation);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
@@ -151,8 +150,8 @@ public class Scheduler extends AppCompatActivity implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if(mLocation!=null){
-            LatLng loc = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+        if(mCurrentLocation !=null){
+            LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             locMarker = mMap.addMarker(new MarkerOptions()
                     .position(loc)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));

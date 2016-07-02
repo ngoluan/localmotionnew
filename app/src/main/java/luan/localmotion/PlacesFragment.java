@@ -1,6 +1,8 @@
 package luan.localmotion;
 
+import android.app.Activity;
 import android.content.Context;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,25 +18,20 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import com.github.aakira.expandablelayout.ExpandableLinearLayout;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.yelp.clientlib.entities.Business;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
@@ -57,13 +54,18 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
     private int mColumnCount = 3;
     private OnFragmentInteractionListener mListener;
     public PlacesRecyclerViewAdapter recycleViewAdapter;
-    public ArrayList<PlacesItem> places = new ArrayList<PlacesItem>();
+    public ArrayList<PlacesItem> placesItems = new ArrayList<PlacesItem>();
     ExpandableLinearLayout expandableLayout;
 
     public GoogleMap mMap;
     public Marker locMarker;
     ArrayList<YelpCategoryItem> yelpCategoryItems;
     View view;
+    private boolean loading;
+    int offset = 0;
+    int numberofItems=18;
+
+    Places places;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -96,21 +98,39 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_places_list, container, false);
         RecyclerView recyclerView =(RecyclerView) view.findViewById(R.id.list);
+        final GridLayoutManager mLayoutManager;
         // Set the adapter
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
 
             recyclerView.setItemAnimator(new SlideInLeftAnimator());
             if (mColumnCount <= 1) {
+                mLayoutManager = new GridLayoutManager(getContext(),mColumnCount);
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                mLayoutManager = new GridLayoutManager(getContext(),mColumnCount);
+                recyclerView.setLayoutManager(mLayoutManager);
             }
-            mListener.OnPlacesStart();
-            recycleViewAdapter=new PlacesRecyclerViewAdapter(places, mListener, getActivity());
+            places=new Places(getActivity());
+            getPlaces();
+            recycleViewAdapter=new PlacesRecyclerViewAdapter(placesItems, mListener, getActivity());
             AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(recycleViewAdapter);
             recyclerView.setAdapter(alphaInAnimationAdapter);
 
+
+            recyclerView.addOnScrollListener(new EndlessOnScrollListener(mLayoutManager) {
+
+                @Override
+                public void onScrolledToEnd() {
+                    if (!loading) {
+                        loading = true;
+                        Log.i(MainActivity.TAG, "Places layout offset:"+String.valueOf(mLayoutManager.getItemCount()));
+                        offset=mLayoutManager.getItemCount()+numberofItems;
+                        getPlaces();
+                    }
+                    loading = false;
+                }
+            });
             if (mMap == null) {
                 CustomMapView mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.map);
                 mapFragment.getMapAsync(this);
@@ -142,8 +162,45 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
 
         return view;
     }
+    public void getPlaces(){
+        Location mCurrentLocation=null;
+        Map<String, String> params = new HashMap<>();
+        params.put("limit",String.valueOf(numberofItems));
+        params.put("offset",String.valueOf(offset));
+
+        if(getActivity() instanceof MainActivity){
+            MainActivity activity = (MainActivity) getActivity();
+            mCurrentLocation=activity.mCurrentLocation;
+        }
+        else if(getActivity() instanceof SchedulerActivity){
+            SchedulerActivity activity = (SchedulerActivity) getActivity();
+            mCurrentLocation=activity.mCurrentLocation;
+        }
+
+        fillPlacesFragment(mCurrentLocation,params);
+    }
+    public void fillPlacesFragment(Location loc, Map<String, String> params){
+        places.setYelpListener(new Places.YelpListener() {
+            @Override
+            public void OnGetSearch(ArrayList<Business> businesses, View view) {
+                for (Business business :
+                        businesses) {
+                    placesItems.add(new PlacesItem(business.id(),business.name(), business.categories().get(0).name(),business.imageUrl()));
+                }
+
+                recycleViewAdapter.notifyDataSetChanged();
+
+            }
+
+            @Override
+            public void OnGetBusiness(Activity caller, Business business) {
+
+            }
+        });
+        places.searchNearby(loc.getLatitude(),loc.getLongitude(), params,null);
 
 
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -160,13 +217,22 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
         super.onDetach();
         mListener = null;
     }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
+        if (f != null){
+            getFragmentManager().beginTransaction().remove(f).commit();
 
+            mMap=null;
+        }
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         /*
-        if(MainActivity.mLocation!=null){
-            LatLng loc = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+        if(MainActivity.mCurrentLocation!=null){
+            LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             locMarker = mMap.addMarker(new MarkerOptions()
                     .position(loc)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));
@@ -257,5 +323,27 @@ class YelpCategoryItem {
         this.parents = parents;
         this.title = title;
     }
+}
+abstract class EndlessOnScrollListener extends RecyclerView.OnScrollListener {
+
+    public static String TAG = EndlessOnScrollListener.class.getSimpleName();
+
+    // use your LayoutManager instead
+    private LinearLayoutManager lm;
+
+    public EndlessOnScrollListener(GridLayoutManager sglm) {
+        this.lm = sglm;
+    }
+
+    @Override
+    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        super.onScrolled(recyclerView, dx, dy);
+
+        if (!recyclerView.canScrollVertically(1)) {
+            onScrolledToEnd();
+        }
+    }
+
+    public abstract void onScrolledToEnd();
 }
 

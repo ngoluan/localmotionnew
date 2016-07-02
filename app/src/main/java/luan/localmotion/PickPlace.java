@@ -33,8 +33,5 @@ public class PickPlace extends AppCompatActivity implements OnFragmentInteractio
         finish();
     }
 
-    @Override
-    public void OnPlacesStart() {
 
-    }
 }

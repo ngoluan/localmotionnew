@@ -60,24 +60,13 @@ public class Places {
     }
     public void searchNearby(Double lat, Double lng,  Map<String, String> params, final View view ){
 
-        /*Map<String, String> params = new HashMap<>();*/
-
-// general params
-        /*params.put("term", "food");
-        params.put("limit", "3");
-        params.put("category","restaurants");*/
-
-// locale params
-        /*params.put("lang", "fr");*/
-
-        // coordinates
         CoordinateOptions coordinate = CoordinateOptions.builder()
                 .latitude(lat)
                 .longitude(lng).build();
 
         Call<SearchResponse> call = yelpAPI.search(coordinate, params);
 
-
+        Log.d(MainActivity.TAG, "HTTP request yelp");
         /*Callback<SearchResponse> callback = ;*/
 
 
@@ -89,7 +78,6 @@ public class Places {
                 int totalNumberOfResult = searchResponse.total();  // 3
 
                 ArrayList<Business> businesses = searchResponse.businesses();
-
                 if (listener != null)
                     listener.OnGetSearch(businesses, view);
 
@@ -97,7 +85,7 @@ public class Places {
             }
             @Override
             public void onFailure(Call<SearchResponse> call, Throwable t) {
-                // HTTP error happened, do something to handle it.
+                Log.e(MainActivity.TAG, "Yelp fail:"+t.getMessage());
             }
         });
 
@@ -109,35 +97,11 @@ public class Places {
     }
 
     public void setYelpListener (YelpListener listener) {
+        Log.d(MainActivity.TAG, "Setting yelp listener");
         this.listener = listener;
     }
 
-    public void fillPlacesFragment(Location loc, Map<String, String> params, final MainActivity mainActivity){
 
-
-        searchNearby(loc.getLatitude(),loc.getLongitude(), params,null);
-        setYelpListener(new YelpListener() {
-            @Override
-            public void OnGetSearch(ArrayList<Business> businesses, View view) {
-                PlacesFragment placesFragment = (PlacesFragment) mainActivity.mSectionsPagerAdapter.getActiveFragment(mainActivity.mViewPager, 2);
-
-                for (Business business :
-                        businesses) {
-                    placesFragment.places.add(new PlacesItem(business.id(),business.name(), business.categories().get(0).name(),business.imageUrl()));
-                }
-                placesFragment.recycleViewAdapter.notifyDataSetChanged();
-
-
-            }
-
-            @Override
-            public void OnGetBusiness(Activity caller, Business business) {
-
-            }
-        });
-
-
-    }
 
     public interface YelpListener {
 
