@@ -382,8 +382,10 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         lpGl2.width = squareSize;
         layout.setLayoutParams(lpGl2);
 
-
         layout.addView(view2);
+
+        ImageView img = (ImageView) view2.findViewById(R.id.imageView);
+        img.setImageDrawable(getResources().getDrawable(R.drawable.placesicon));
 
         caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
         caller.places.setYelpListener(new Places.YelpListener() {
@@ -400,9 +402,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
 
 
-                String businessImg= businesses.get(0).imageUrl();
-                ImageView img = (ImageView) view.findViewById(R.id.imageView);
-                new LoadImage(img).execute(businessImg);
+
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -435,6 +435,9 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         layout2.setLayoutParams(lpGl3);
 
         layout2.addView(view3);
+        img = (ImageView) view3.findViewById(R.id.imageView);
+        img.setImageDrawable(getResources().getDrawable(R.drawable.drinksicon));
+
         caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
     }
 
@@ -559,7 +562,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
      **** app will crash ****/
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
+
         Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
         if (f != null){
             getFragmentManager().beginTransaction().remove(f).commit();
@@ -567,5 +570,6 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             mMap=null;
         }
         getActivity().unregisterReceiver(locationReceiver);
+        super.onDestroyView();
     }
 }

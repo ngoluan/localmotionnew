@@ -1,9 +1,7 @@
 package luan.localmotion;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -12,7 +10,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.app.Fragment;
@@ -29,19 +26,25 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.stetho.Stetho;
+import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.PlacesItem;
+import me.everything.providers.android.calendar.Calendar;
+import me.everything.providers.android.calendar.CalendarProvider;
+import me.everything.providers.stetho.ProvidersStetho;
+import okhttp3.OkHttpClient;
 
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main);
 
 
         // Create the adapter that will return a fragment for each of the three
@@ -143,7 +146,27 @@ public class MainActivity extends AppCompatActivity implements
             prefs.edit().putString("lastLng", "-79.3832").apply();
             prefs.edit().putString("lastProvider", "provider").apply();
         }
+        Stetho.initializeWithDefaults(this);
+        OkHttpClient client = new OkHttpClient();
+        new OkHttpClient.Builder()
+                .addNetworkInterceptor(new StethoInterceptor())
+                .build();
+        getCalendar();
+        ProvidersStetho providersStetho = new ProvidersStetho(this);
+        providersStetho.enableDefaults();
 
+        Stetho.initialize(Stetho.newInitializerBuilder(this)
+                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
+                .enableWebKitInspector(providersStetho.defaultInspectorModulesProvider())
+                .build());
+    }
+    void getCalendar(){
+        CalendarProvider calendarProvider = new CalendarProvider(this);
+        List<Calendar> calendars = calendarProvider.getCalendars().getList();
+        for (Calendar calendar:calendars) {
+            Log.d(TAG, "calendar"+ calendar.id);
+        }
+        //calendarProvider.getEvents(calendarId);
     }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
@@ -395,16 +418,6 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-/*    @Override
-    public void OnPlacesStart() {
-
-        Map<String, String> params = new HashMap<>();
-        params.put("limit","20");
-        params.put("offset","0");
-        placesItems.fillPlacesFragment(mCurrentLocation,params, this);
-
-
-    }*/
     @Override
     public void onDashFragmentInteraction(Map<String, String> param) {
         Intent scheduleIntent = new Intent(this, SchedulerActivity.class);
@@ -425,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements
         AHBottomNavigation bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
 
 // Create items
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Dash", R.drawable.gridicon, Color.parseColor("#F63D2B"));
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Dash", R.drawable.dashicon, Color.parseColor("#F63D2B"));
         AHBottomNavigationItem item2 = new AHBottomNavigationItem("Friends", R.drawable.friendsicon, Color.parseColor("#F63D2B"));
         AHBottomNavigationItem item3 = new AHBottomNavigationItem("Places", R.drawable.placesicon, Color.parseColor("#3366ff"));
         AHBottomNavigationItem item4 = new AHBottomNavigationItem("Map", R.drawable.mapicon, Color.parseColor("#33ffcc"));

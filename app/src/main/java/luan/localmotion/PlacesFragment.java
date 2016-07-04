@@ -78,7 +78,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
     int numberofItems = 18;
     Places places;
     Location mCurrentLocation=null;
-    ArrayList<Marker> markers=new ArrayList<Marker>();
+    ArrayList<Marker> markers;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -129,7 +129,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             mCurrentLocation.setLongitude(Double.valueOf(prefs.getString("lastLng","")));
             mCurrentLocation.setLatitude(Double.valueOf(prefs.getString("lastLat","")));
         }
-
+        markers=new ArrayList<Marker>();
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         final GridLayoutManager mLayoutManager;
         // Set the adapter
@@ -143,6 +143,15 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             } else {
                 mLayoutManager = new GridLayoutManager(getContext(), mColumnCount);
                 recyclerView.setLayoutManager(mLayoutManager);
+            }
+            if (mMap == null) {
+                CustomMapView mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.map);
+                mapFragment.getMapAsync(this);
+                mapFragment.setListener(new CustomMapView.OnTouchListener() {
+                    @Override
+                    public void onTouch() {
+                    }
+                });
             }
             places = new Places(getActivity());
             getPlaces();
@@ -164,15 +173,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
                     loading = false;
                 }
             });
-            if (mMap == null) {
-                CustomMapView mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(this);
-                mapFragment.setListener(new CustomMapView.OnTouchListener() {
-                    @Override
-                    public void onTouch() {
-                    }
-                });
-            }
+
 
 
         }

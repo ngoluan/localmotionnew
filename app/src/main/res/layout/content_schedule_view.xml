@@ -55,20 +55,38 @@
 
             </RelativeLayout>
 
-            <DatePicker
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/datePicker"
-                android:spinnersShown="true"
-                android:scrollIndicators="top"
-                android:datePickerMode="spinner" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-            <TimePicker
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/timePicker"
-                android:timePickerMode="spinner" />
+                <DatePicker
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleX="0.7"
+                    android:scaleY="0.7"
+                    android:layout_marginLeft="-40dp"
+                    android:layout_marginTop="-30dp"
+                    android:layout_marginRight="-50dp"
+                    android:layout_marginBottom="-30dp"
+                    android:id="@+id/datePicker"
+                    android:spinnersShown="true"
+                    android:calendarViewShown="false"
+                    android:scrollIndicators="top"
+                    android:datePickerMode="spinner" />
 
+                <TimePicker
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleX="0.7"
+                    android:scaleY="0.7"
+                    android:layout_marginLeft="-40dp"
+                    android:layout_marginTop="-30dp"
+                    android:layout_marginRight="-50dp"
+                    android:layout_marginBottom="-30dp"
+                    android:id="@+id/timePicker"
+                    android:timePickerMode="spinner" />
+            </LinearLayout>
 
 
             <LinearLayout
@@ -149,7 +167,8 @@
                 android:layout_column="0"
                 android:layout_rowSpan="2"
                 android:layout_margin="1dp"
-                android:layout_width="fill_parent" />
+                android:layout_width="fill_parent"
+                tools:layout="@layout/square" />
         </LinearLayout>
 
     </ScrollView>

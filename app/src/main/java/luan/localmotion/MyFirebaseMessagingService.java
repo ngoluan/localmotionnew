@@ -22,8 +22,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -40,12 +40,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     // [START receive_message]
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // TODO(developer): Handle FCM messages here.
         // If the application is in the foreground handle both data and notification messages here.
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
-        Log.d(TAG, "From: " + remoteMessage.getFrom());
-        Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+        sendNotification(remoteMessage.getData().toString());
     }
     // [END receive_message]
 
@@ -61,13 +59,48 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 PendingIntent.FLAG_ONE_SHOT);
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+
+
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                /*.setSmallIcon(R.drawable.ic_stat_ic_notification)*/
+                .setSmallIcon(R.drawable.ttcinner)
                 .setContentTitle("FCM Message")
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
+
+        //Yes intent
+        Intent yesReceive = new Intent();
+        yesReceive.setAction("EVENT_INTENT");
+        Bundle yesBundle = new Bundle();
+        yesBundle.putInt("userAnswer", 1);//This is the value I want to pass
+        yesReceive.putExtras(yesBundle);
+
+
+        PendingIntent pendingIntentYes = PendingIntent.getBroadcast(this, 12345, yesReceive, PendingIntent.FLAG_UPDATE_CURRENT);
+        notificationBuilder.addAction(R.drawable.doneicon, "Yes", pendingIntentYes);
+
+        Intent changeReceive = new Intent(getApplicationContext(), SchedulerActivity.class);
+        changeReceive.setAction("EDIT_EVENT");
+
+        changeReceive.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        Bundle changeBundle = new Bundle();
+        changeBundle.putInt("userAnswer", 1);//This is the value I want to pass
+        changeReceive.putExtras(changeBundle);
+        PendingIntent pendingIntentChange = PendingIntent.getActivity(getBaseContext(), 0,
+                changeReceive, 0);
+        notificationBuilder.addAction(R.drawable.editicon, "Edit", pendingIntentChange);
+
+        Intent rejectReceive = new Intent();
+        rejectReceive.setAction("EVENT_INTENT");
+        Bundle rejectBundle = new Bundle();
+        rejectBundle.putInt("userAnswer", 1);//This is the value I want to pass
+        rejectReceive.putExtras(rejectBundle);
+        PendingIntent pendingIntentreject= PendingIntent.getBroadcast(this, 12345, rejectReceive, PendingIntent.FLAG_UPDATE_CURRENT);
+        notificationBuilder.addAction(R.drawable.clearicon, "Reject", pendingIntentreject);
+
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

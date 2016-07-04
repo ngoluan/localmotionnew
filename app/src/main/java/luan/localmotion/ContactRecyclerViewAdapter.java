@@ -42,8 +42,8 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.nameView.setText(mValues.get(position).name);
-        holder.phoneNumberView.setText(mValues.get(position).phoneNumber);
+        holder.nameView.setText(mValues.get(position).name);/*
+        holder.phoneNumberView.setText(mValues.get(position).phoneNumber);*/
         ViewGroup.LayoutParams param = holder.profilePicView.getLayoutParams();
         param.height = holder.profilePicView.getWidth();
         holder.profilePicView.setLayoutParams(param);
@@ -118,22 +118,22 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
-        public final TextView nameView;
-        public final TextView phoneNumberView;
+        public final TextView nameView;/*
+        public final TextView phoneNumberView;*/
         public final ImageView profilePicView;
         public ContactItem mItem;
 
         public ViewHolder(View view) {
             super(view);
             mView = view;
-            nameView = (TextView) view.findViewById(R.id.name);
-            phoneNumberView = (TextView) view.findViewById(R.id.type);
+            nameView = (TextView) view.findViewById(R.id.name);/*
+            phoneNumberView = (TextView) view.findViewById(R.id.type);*/
             profilePicView = (ImageView) view.findViewById(R.id.profilePic);
         }
 
         @Override
         public String toString() {
-            return super.toString() + " '" + phoneNumberView.getText() + "'";
+            return super.toString() + " '" + nameView.getText() + "'";
         }
     }
 }
