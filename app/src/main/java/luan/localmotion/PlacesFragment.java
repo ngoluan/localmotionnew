@@ -115,7 +115,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             mCurrentLocation.setLatitude(intent.getExtras().getDouble("lat"));
         }
     };
-
+//test
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
