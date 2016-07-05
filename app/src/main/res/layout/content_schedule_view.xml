@@ -55,39 +55,31 @@
 
             </RelativeLayout>
 
-            <LinearLayout
-                android:orientation="horizontal"
+            <com.github.sundeepk.compactcalendarview.CompactCalendarView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/compactcalendar_view"
+                android:layout_width="fill_parent"
+                android:paddingRight="10dp"
+                android:paddingLeft="10dp"
+                android:layout_height="250dp"
+                app:compactCalendarTextSize="12sp"
+                app:compactCalendarBackgroundColor="#ffe95451"
+                app:compactCalendarTextColor="#fff"
+                app:compactCalendarCurrentSelectedDayBackgroundColor="#E57373"
+                app:compactCalendarCurrentDayBackgroundColor="#B71C1C"
+                app:compactCalendarMultiEventIndicatorColor="#fff"
+                />
+
+            <com.appyvet.rangebar.RangeBar
+                xmlns:custom="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/rangebar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <DatePicker
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:scaleX="0.7"
-                    android:scaleY="0.7"
-                    android:layout_marginLeft="-40dp"
-                    android:layout_marginTop="-30dp"
-                    android:layout_marginRight="-50dp"
-                    android:layout_marginBottom="-30dp"
-                    android:id="@+id/datePicker"
-                    android:spinnersShown="true"
-                    android:calendarViewShown="false"
-                    android:scrollIndicators="top"
-                    android:datePickerMode="spinner" />
-
-                <TimePicker
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:scaleX="0.7"
-                    android:scaleY="0.7"
-                    android:layout_marginLeft="-40dp"
-                    android:layout_marginTop="-30dp"
-                    android:layout_marginRight="-50dp"
-                    android:layout_marginBottom="-30dp"
-                    android:id="@+id/timePicker"
-                    android:timePickerMode="spinner" />
-            </LinearLayout>
-
+                android:layout_height="72dp"
+                custom:tickStart="1"
+                custom:tickInterval="1"
+                custom:tickEnd="48"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"/>
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -157,6 +149,12 @@
                 </LinearLayout>
 
             </LinearLayout>
+
+            <SeekBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/seekBar" />
+
             <fragment
                 class="luan.localmotion.CustomMapView"
                 tools:context="luan.localmotion.MapsActivity"

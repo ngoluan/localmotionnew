@@ -1,7 +1,9 @@
 package luan.localmotion;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -48,10 +50,14 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
         places = new Places(this);
         String type = intent.getStringExtra("type");
         String id = intent.getStringExtra("id");
-        mCurrentLocation = new Location("dummy");
+        if(mCurrentLocation==null){
 
-        mCurrentLocation.setLatitude(Double.valueOf(intent.getStringExtra("lat")));
-        mCurrentLocation.setLongitude(Double.valueOf(intent.getStringExtra("lng")));
+            SharedPreferences prefs = getSharedPreferences(
+                    "luan.localmotion", Context.MODE_PRIVATE);
+            mCurrentLocation=new Location(prefs.getString("lastProvider",""));
+            mCurrentLocation.setLongitude(Double.valueOf(prefs.getString("lastLng","")));
+            mCurrentLocation.setLatitude(Double.valueOf(prefs.getString("lastLat","")));
+        }
         mScrollView = (ScrollView) findViewById(R.id.scrollView);
         if (mMap == null) {
             CustomMapView mapFragment = (CustomMapView) getSupportFragmentManager().findFragmentById(R.id.map);

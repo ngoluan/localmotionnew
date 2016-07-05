@@ -16,10 +16,13 @@
 
 package luan.localmotion;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +30,9 @@ import android.support.v4.app.NotificationCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import java.io.InputStream;
+import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -43,16 +49,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // If the application is in the foreground handle both data and notification messages here.
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
-        sendNotification(remoteMessage.getData().toString());
+        sendNotification(remoteMessage.getData());
     }
     // [END receive_message]
 
     /**
      * Create and show a simple notification containing the received FCM message.
      *
-     * @param messageBody FCM message body received.
+     *  FCM message body received.
      */
-    private void sendNotification(String messageBody) {
+    private void sendNotification(Map<String,String> data) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
@@ -61,15 +67,34 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
 
+        Bitmap image=null;
+        String urldisplay = "https://maps.googleapis.com/maps/api/staticmap?center=2+bloor+west+Toronto&markers=2+bloor+west+Toronto&zoom=13.5&size=100x100&key=AIzaSyDanfrkNLdf5vDKb861Z3Et-z2BiLzZPc0";
+        try {
+            InputStream in = new java.net.URL(urldisplay).openStream();
+            image = BitmapFactory.decodeStream(in);
+        } catch (Exception e) {
+            image = null;
+        }
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ttcinner)
-                .setContentTitle("FCM Message")
-                .setContentText(messageBody)
+                .setContentTitle(data.get("title"))
+                .setContentText(data.get("message"))
                 .setAutoCancel(true)
+                .setPriority(Notification.PRIORITY_HIGH)
+                .setCategory(Notification.CATEGORY_EVENT)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
 
+        if(image!=null){
+/*            notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+                    .bigPicture(image)
+                    .setBigContentTitle(data.get("message"))
+                    .setSummaryText(data.get("message")));*/
+            notificationBuilder.setLargeIcon(image);
+            notificationBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(data.get("message")));
+        }
         //Yes intent
         Intent yesReceive = new Intent();
         yesReceive.setAction("EVENT_INTENT");
@@ -83,11 +108,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         Intent changeReceive = new Intent(getApplicationContext(), SchedulerActivity.class);
         changeReceive.setAction("EDIT_EVENT");
-
         changeReceive.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         Bundle changeBundle = new Bundle();
-        changeBundle.putInt("userAnswer", 1);//This is the value I want to pass
+        changeBundle.putString("place", data.get("place"));
+        changeBundle.putString("message", data.get("message"));
+        changeBundle.putString("address", data.get("address"));
+        changeBundle.putString("senderName", data.get("senderName"));
+        changeBundle.putString("senderPhone", data.get("senderPhone"));
+        changeBundle.putString("dateTime", data.get("dateTime"));
+
         changeReceive.putExtras(changeBundle);
         PendingIntent pendingIntentChange = PendingIntent.getActivity(getBaseContext(), 0,
                 changeReceive, 0);
