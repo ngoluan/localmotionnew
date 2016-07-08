@@ -1,30 +1,16 @@
 package luan.localmotion;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.location.Location;
 import android.net.Uri;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.TextView;
-
-import luan.localmotion.Content.ContactItem;
-import luan.localmotion.Content.PlacesItem;
 
 public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragment.OnFragmentInteractionListener{
 
@@ -48,7 +34,7 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_schedule_actvity2);
+        setContentView(R.layout.activity_schedule_actvity);
 
 
         // Create the adapter that will return a fragment for each of the three

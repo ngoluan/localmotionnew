@@ -93,8 +93,7 @@
             <ListView
                 android:layout_width="fill_parent"
                 android:layout_height="150dp"
-                android:id="@+id/timeListView"
-                android:background="@color/colorSecondaryClear"></ListView>
+                android:id="@+id/timeListView"></ListView>
         </LinearLayout>
 
             <TextView

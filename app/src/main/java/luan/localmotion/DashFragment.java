@@ -512,7 +512,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                             // fragment is attached to one) that an item has been selected.
 
                             Map<String, String> viewParams= new HashMap<>();
-                            viewParams.put("type","contacts");
+                            viewParams.put("type","contact");
                             viewParams.put("contactPhone", address);
                             mListener.onDashFragmentInteraction(viewParams);
                         }

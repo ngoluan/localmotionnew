@@ -47,6 +47,7 @@ import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.yelp.clientlib.entities.Business;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -85,7 +86,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     public static final int PICK_CONTACT_REQUEST = 1;
     public static final int PICK_PLACE_REQUEST = 2;
 
-    String placeName="";
+    String placeName=null;
     String placeAddress="";
 
     MaterialCalendarView calendarView;
@@ -148,6 +149,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
             });
         }
         Log.d(MainActivity.TAG, "onCreateView: "+extras.toString());
+
         if(extras.getString("contactPhone")!=null){
             fillContact(extras.getString("contactPhone"));
         }
@@ -164,7 +166,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                 startActivityForResult(contactIntent,PICK_CONTACT_REQUEST);
             }
         });
-        View placePicView= view.findViewById(R.id.placePic);
+        final View placePicView= view.findViewById(R.id.placePic);
         placePicView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -177,19 +179,19 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         FloatingActionButton sendFab = (FloatingActionButton) view.findViewById(R.id.send);
         FloatingActionButton doneFab= (FloatingActionButton) view.findViewById(R.id.done);
         FloatingActionButton rejectFab= (FloatingActionButton) view.findViewById(R.id.reject);
-        rejectFab.setOnClickListener(new View.OnClickListener() {
+        doneFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final ContentValues event = new ContentValues();
                 event.put(CalendarContract.Events.CALENDAR_ID, 1);
-
-                event.put(CalendarContract.Events.TITLE, "Hangout with" + contact.name );
+                String title = "Hangout";
+                if(contact!=null){
+                    title+= " with " +contact.name;
+                }
+                event.put(CalendarContract.Events.TITLE, title);
                 //event.put(CalendarContract.Events.DESCRIPTION, description);
 
-                event.put(CalendarContract.Events.EVENT_LOCATION, placeName);
 
-                event.put(CalendarContract.Events.DTSTART, String.valueOf(getTimestamp("")));
-                event.put(CalendarContract.Events.DTEND, String.valueOf(getTimestamp("")));
                 event.put(CalendarContract.Events.ALL_DAY, 0);   // 0 for false, 1 for true
                 event.put(CalendarContract.Events.HAS_ALARM, 1); // 0 for false, 1 for true
 
@@ -202,8 +204,25 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                 } else {
                     baseUri = Uri.parse("content://calendar/events");
                 }
+                //getActivity().getContentResolver().insert(baseUri, event);
 
-                getActivity().getContentResolver().insert(baseUri, event);
+
+                Calendar beginTime = getTimestamp(getSelectedDateTime("first"));
+                Calendar endTime = getTimestamp(getSelectedDateTime("last"));
+
+                Intent intent = new Intent(Intent.ACTION_INSERT)
+                        .setData(CalendarContract.Events.CONTENT_URI)
+                        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+                        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+                        .putExtra(CalendarContract.Events.TITLE, title)
+                        .putExtra(CalendarContract.Events.DESCRIPTION, title)
+                        .putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
+                if(placeName!=null){
+                    intent.putExtra(CalendarContract.Events.EVENT_LOCATION, placeName);
+                }
+
+                Log.d(MainActivity.TAG, "event"+intent.getExtras().toString());
+                startActivity(intent);
             }
         });
 
@@ -222,20 +241,45 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
 
         return  view;
     }
-    public void getSelectedDateTime(){
+    public String getSelectedDateTime(String firstOrLast){
         CalendarDay date=  calendarView.getSelectedDate();
-        String dateStr = date.getYear()+"-"+date.getMonth()+"-"+date.getDay();
-        if(listView.getCheckedItemCount()>0){
-            SparseBooleanArray items = listView.getCheckedItemPositions();
-            dateStr += " " + items.get(0);
+        DateFormat FORMATTER = SimpleDateFormat.getDateInstance();
+        String dateStr = calendarView.getSelectedDate().getYear()+"-"+(calendarView.getSelectedDate().getMonth()+1)+"-"+calendarView.getSelectedDate().getDay();
+        CustomAdapter adapter = (CustomAdapter) listView.getAdapter();
+        if(firstOrLast.equals("first")){
+
+            for (int i = 0; i < adapter.list.size(); i++) {
+                Log.d(MainActivity.TAG, "adapter " + adapter.mSelectedItemsIds.get(i));
+                if (adapter.mSelectedItemsIds.get(i)==true){
+                    dateStr += " " + adapter.list.get(i);
+                    break;
+                }
+            }
         }
         else{
-            dateStr += " 00:00";
+            for (int i = adapter.list.size(); i >= 0; i--) {
+                if (adapter.mSelectedItemsIds.get(i)==true){
+                    dateStr += " " + adapter.list.get(i);
+                    break;
+                }
+            }
         }
-        Toast.makeText(getContext(), dateStr, Toast.LENGTH_SHORT).show();
+
+
+        return dateStr;
+        //Toast.makeText(getContext(), dateStr, Toast.LENGTH_SHORT).show();
+    }
+    class TimeObject{
+        String time;
+        Boolean selected;
+        TimeObject(String time){
+            this.time = time;
+            selected=false;
+        }
     }
     public void setupListview(){
         listView = (ListView)view.findViewById(R.id.timeListView);
+        //ArrayList<TimeObject> timeList = new ArrayList<TimeObject>();
         List<String> list = new ArrayList<String>();
         list.add("12:00 am");
         list.add("12:30 am");
@@ -287,14 +331,15 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         list.add("11:00 pm");
 
         mAdapter = new CustomAdapter(getContext(),R.layout.custom_textview, list);
+
         listView.setAdapter(mAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String string = (String) parent.getAdapter().getItem(position);
-                Toast.makeText(getContext(), string, Toast.LENGTH_SHORT).show();
-
+                //String string = (String) parent.getAdapter().getItem(position);
+                //Toast.makeText(getContext(), string, Toast.LENGTH_SHORT).show();
+                mAdapter.toggleSelection(position);
             }
         });
         setListViewHeightBasedOnChildren(listView);
@@ -347,7 +392,6 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                             return true;
                         }
                         */
-                        getSelectedDateTime();
                         return false;
                     }
 
@@ -409,15 +453,19 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         params.height = pixels;
         listView.setLayoutParams(params);
     }
-    Timestamp getTimestamp(String time){
+    Calendar getTimestamp(String time){
+        Calendar beginTime = Calendar.getInstance();
+        beginTime.set(2016, 7,9, 12,0, 0);
         try{
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
-            Date parsedDate = dateFormat.parse("");
-            Timestamp startTime = new java.sql.Timestamp(parsedDate.getTime());
-            return startTime;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-M-d hh:mm a");
+            Date parsedDate = dateFormat.parse(time);
+            beginTime.setTime(parsedDate);
+            return beginTime;
+            //Timestamp startTime = new java.sql.Timestamp(parsedDate.getTime());
+            //return startTime;
         }catch(Exception e){
         }
-        return null;
+        return beginTime;
     }
     View.OnClickListener clickListener = new View.OnClickListener() {
         @Override

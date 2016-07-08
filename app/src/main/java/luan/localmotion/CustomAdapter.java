@@ -1,11 +1,13 @@
 package luan.localmotion;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.List;
@@ -14,10 +16,10 @@ import java.util.List;
  * Created by luann on 2016-07-07.
  */
 public class CustomAdapter extends ArrayAdapter<String> {
-    private SparseBooleanArray mSelectedItemsIds;
+    public SparseBooleanArray mSelectedItemsIds;
     private LayoutInflater inflater;
     private Context mContext;
-    private List<String> list;
+    public List<String> list;
 
     public CustomAdapter (Context context, int resourceId, List<String> list) {
         super(context, resourceId, list);
@@ -37,11 +39,20 @@ public class CustomAdapter extends ArrayAdapter<String> {
             holder = new ViewHolder();
             view = inflater.inflate(R.layout.custom_textview, null);
             holder.itemName = (TextView) view.findViewById(R.id.custom_tv);
+
             view.setTag(holder);
         } else {
             holder = (ViewHolder) view.getTag();
         }
         holder.itemName.setText(list.get(position));
+        RelativeLayout layout = (RelativeLayout) view.findViewById(R.id.custom_layout);
+        if(mSelectedItemsIds.get(position)==true){
+
+            layout.setBackgroundColor(parent.getResources().getColor(R.color.colorAccent));
+        }
+        else{
+            layout.setBackgroundColor(parent.getResources().getColor(R.color.colorPrimaryClear));
+        }
         return view;
     }
 
@@ -52,6 +63,7 @@ public class CustomAdapter extends ArrayAdapter<String> {
     }
 
     public void toggleSelection(int position) {
+
         selectView(position, !mSelectedItemsIds.get(position));
     }
 

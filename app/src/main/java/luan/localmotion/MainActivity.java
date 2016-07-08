@@ -433,7 +433,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(MainActivity.TAG, "onDashFragmentInteraction: "  +param.get("type"));
         scheduleIntent.putExtra("type",param.get("type"));
         if(param.get("type").equals("contact")){
-            scheduleIntent.putExtra("contactPhone", param.get("phone"));
+            scheduleIntent.putExtra("contactPhone", param.get("contactPhone"));
         }
         else if(param.get("type").equals("place")){
             scheduleIntent.putExtra("placeId", param.get("placeId"));
