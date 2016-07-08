@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Display;
@@ -29,17 +28,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.yelp.clientlib.entities.Business;
 import com.yelp.clientlib.entities.Category;
 
@@ -134,7 +130,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         view = inflater.inflate(R.layout.fragment_dash, container, false);
 
         Point dSize = getDisplaySize();
-        squareSize = dSize.x / 3;
+        squareSize = (dSize.x - 24)/ 3 ;
 
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
@@ -165,6 +161,18 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         view1.setLayoutParams(lpGl1);
         view1.setId(R.id.transitView);
 
+        RelativeLayout viewUber = (RelativeLayout) view.findViewById(R.id.square2);
+        ViewGroup.LayoutParams lpGlUber = viewUber.getLayoutParams();
+        lpGlUber.height = squareSize;
+        lpGlUber.width = squareSize;
+        viewUber.setLayoutParams(lpGlUber);
+
+        RelativeLayout viewBike = (RelativeLayout) view.findViewById(R.id.square3);
+        ViewGroup.LayoutParams lpGlBike = viewBike.getLayoutParams();
+        lpGlBike.height = squareSize;
+        lpGlBike.width = squareSize;
+        viewBike.setLayoutParams(lpGlBike);
+        
         nextBus = new NextBus(getActivity());
         contacts = new Contacts(getActivity());
 
@@ -376,7 +384,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         params.put("category", "restaurant");
 
         View view2 = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
-        RelativeLayout layout = (RelativeLayout) view.findViewById(R.id.square2);
+        RelativeLayout layout = (RelativeLayout) view.findViewById(R.id.square4);
         ViewGroup.LayoutParams lpGl2 = layout.getLayoutParams();
         lpGl2.height = squareSize;
         lpGl2.width = squareSize;
@@ -393,14 +401,9 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             public void OnGetSearch(final ArrayList<Business> businesses, View view) {
 
                 String businessName = businesses.get(0).name();  // "JapaCurry Truck"
-                ArrayList<Category> businessCategory = businesses.get(0).categories();  // 4.0
 
-                TextView name = (TextView) view.findViewById(R.id.type);
+                TextView name = (TextView) view.findViewById(R.id.name);
                 name.setText(businessName);
-                TextView category = (TextView) view.findViewById(R.id.category);
-                category.setText(String.valueOf(businessCategory.get(0).name()) );
-
-
 
 
                 view.setOnClickListener(new View.OnClickListener() {
@@ -411,7 +414,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                             // fragment is attached to one) that an item has been selected.
                             Map<String, String> viewParams= new HashMap<>();
                             viewParams.put("type","places");
-                            viewParams.put("id", businesses.get(0).id());
+                            viewParams.put("placeId", businesses.get(0).id());
                             mListener.onDashFragmentInteraction(viewParams);
                         }
                     }
@@ -428,7 +431,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         params2.put("term", "bars");
         params2.put("category", "bars");
         View view3 = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
-        RelativeLayout layout2 = (RelativeLayout) view.findViewById(R.id.square3);
+        RelativeLayout layout2 = (RelativeLayout) view.findViewById(R.id.square5);
         ViewGroup.LayoutParams lpGl3 = layout2.getLayoutParams();
         lpGl3.height = squareSize;
         lpGl3.width = squareSize;
@@ -456,7 +459,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             int row=2;
             int col=1;
             while( cursor.moveToNext() ) {
-                if(j>3){break;}
+                if(j>1){break;}
                 String result = "";
 
                 for( int i = 0; i < cursor.getColumnCount(); i++ ) {
@@ -478,7 +481,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 conversation.add( result );
 
                 View view4 = getActivity().getLayoutInflater().inflate(R.layout.dash_people, null);
-                int squareNum = j +4;
+                int squareNum = j +6;
                 int resID = getResources().getIdentifier(String.valueOf("square"+squareNum), "id", "luan.localmotion");
 
                 RelativeLayout layout = (RelativeLayout) view.findViewById(resID);
@@ -498,17 +501,19 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     img.setImageDrawable(res);
                 }
 
-                TextView name = (TextView) view4.findViewById(R.id.type);
+                TextView name = (TextView) view4.findViewById(R.id.category);
                 name.setText(contactName);
                 view4.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        Log.d(MainActivity.TAG, "onClick: ");
                         if (null != mListener) {
                             // Notify the active callbacks interface (the activity, if the
                             // fragment is attached to one) that an item has been selected.
+
                             Map<String, String> viewParams= new HashMap<>();
                             viewParams.put("type","contacts");
-                            viewParams.put("id", address);
+                            viewParams.put("contactPhone", address);
                             mListener.onDashFragmentInteraction(viewParams);
                         }
                     }

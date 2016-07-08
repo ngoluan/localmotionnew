@@ -19,6 +19,7 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -26,16 +27,16 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
-import com.facebook.stetho.Stetho;
-import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,9 +44,8 @@ import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.PlacesItem;
 import me.everything.providers.android.calendar.Calendar;
 import me.everything.providers.android.calendar.CalendarProvider;
-import me.everything.providers.stetho.ProvidersStetho;
-import okhttp3.OkHttpClient;
-
+import me.everything.providers.android.contacts.Contact;
+import me.everything.providers.android.contacts.ContactsProvider;
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -141,30 +141,39 @@ public class MainActivity extends AppCompatActivity implements
         AppEventsLogger.activateApp(this);
         SharedPreferences prefs = this.getSharedPreferences(
                 "luan.localmotion", Context.MODE_PRIVATE);
-        if(prefs.getString("lastLa","").equals("")){
+        if(prefs.getString("lastLat","").equals("")){
             prefs.edit().putString("lastLat","43.6532").apply();
             prefs.edit().putString("lastLng", "-79.3832").apply();
             prefs.edit().putString("lastProvider", "provider").apply();
         }
-        Stetho.initializeWithDefaults(this);
+        /*Stetho.initializeWithDefaults(this);
         OkHttpClient client = new OkHttpClient();
         new OkHttpClient.Builder()
                 .addNetworkInterceptor(new StethoInterceptor())
-                .build();
-        getCalendar();
-        ProvidersStetho providersStetho = new ProvidersStetho(this);
-        providersStetho.enableDefaults();
-
-        Stetho.initialize(Stetho.newInitializerBuilder(this)
-                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-                .enableWebKitInspector(providersStetho.defaultInspectorModulesProvider())
-                .build());
+                .build();*/
+        //getCalendar();
+        //getContacts();
+        Log.d(TAG, "FCM Token: " + FirebaseInstanceId.getInstance().getToken());
     }
     void getCalendar(){
         CalendarProvider calendarProvider = new CalendarProvider(this);
         List<Calendar> calendars = calendarProvider.getCalendars().getList();
         for (Calendar calendar:calendars) {
-            Log.d(TAG, "calendar"+ calendar.id);
+
+        }
+        //calendarProvider.getEvents(calendarId);
+    }
+    void getContacts(){
+        ContactsProvider contactsProvider = new ContactsProvider(this);
+        List<Contact> contactsList =  contactsProvider.getContacts().getList();
+        HashMap<String, Contact> contactsMap= new HashMap<String, Contact>();
+        for (Contact contact:contactsList) {
+
+            if (!contactsMap.containsKey(contact.normilizedPhone)) {
+                contactsMap.put(contact.normilizedPhone, contact);
+                Log.d(TAG, "contact "+ contact.normilizedPhone);
+            }
+
         }
         //calendarProvider.getEvents(calendarId);
     }
@@ -284,10 +293,10 @@ public class MainActivity extends AppCompatActivity implements
         super.onStop();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main2, menu);
+
+    public boolean onCreateContextMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main2, menu);
         return true;
     }
 
@@ -420,10 +429,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onDashFragmentInteraction(Map<String, String> param) {
-        Intent scheduleIntent = new Intent(this, SchedulerActivity.class);
-
+        Intent scheduleIntent = new Intent(this, ScheduleActvity2.class);
+        Log.d(MainActivity.TAG, "onDashFragmentInteraction: "  +param.get("type"));
         scheduleIntent.putExtra("type",param.get("type"));
-        scheduleIntent.putExtra("id", param.get("id"));
+        if(param.get("type").equals("contact")){
+            scheduleIntent.putExtra("contactPhone", param.get("phone"));
+        }
+        else if(param.get("type").equals("place")){
+            scheduleIntent.putExtra("placeId", param.get("placeId"));
+        }
         scheduleIntent.putExtra("lat",String.valueOf(mCurrentLocation.getLatitude()));
         scheduleIntent.putExtra("lng",String.valueOf(mCurrentLocation.getLongitude()));
         startActivity(scheduleIntent);
@@ -438,10 +452,10 @@ public class MainActivity extends AppCompatActivity implements
         AHBottomNavigation bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
 
 // Create items
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Dash", R.drawable.dashicon, Color.parseColor("#F63D2B"));
-        AHBottomNavigationItem item2 = new AHBottomNavigationItem("Friends", R.drawable.friendsicon, Color.parseColor("#F63D2B"));
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Places", R.drawable.placesicon, Color.parseColor("#3366ff"));
-        AHBottomNavigationItem item4 = new AHBottomNavigationItem("Map", R.drawable.mapicon, Color.parseColor("#33ffcc"));
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Dash", R.drawable.dashicon,getResources().getColor(R.color.colorPrimary));
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem("Friends", R.drawable.friendsicon, getResources().getColor(R.color.colorSecondary));
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Places", R.drawable.placesicon, getResources().getColor(R.color.colorTertiary));
+        AHBottomNavigationItem item4 = new AHBottomNavigationItem("More", R.drawable.ic_more_horiz_white_48dp, getResources().getColor(R.color.colorAccent));
 
 // Add items
         bottomNavigation.addItem(item1);
@@ -483,7 +497,11 @@ public class MainActivity extends AppCompatActivity implements
         bottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
             @Override
             public void onTabSelected(int position, boolean wasSelected) {
-
+                Log.d(MainActivity.TAG, "onTabSelected: " + position);
+                if(position==3){
+                    openOptionsMenu();
+                    return;
+                }
                 mViewPager.setCurrentItem(position);
                 //mSectionsPagerAdapter.getItem(position);
             }

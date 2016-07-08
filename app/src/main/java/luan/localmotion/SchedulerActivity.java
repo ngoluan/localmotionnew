@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -38,6 +39,7 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
     public Marker locMarker;
     public ScrollView mScrollView;
 
+    Bundle extras=null;
     public static final int PICK_CONTACT_REQUEST = 1;
     public static final int PICK_PLACE_REQUEST = 2;
     @Override
@@ -48,8 +50,9 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
 
         contacts = new Contacts(this);
         places = new Places(this);
-        String type = intent.getStringExtra("type");
-        String id = intent.getStringExtra("id");
+        extras = intent.getExtras();
+        String contactPhone = extras.getString("contactPhone");
+        Log.i(MainActivity.TAG, "Schedule bundle: " + extras.toString());
         if(mCurrentLocation==null){
 
             SharedPreferences prefs = getSharedPreferences(
@@ -70,11 +73,11 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
             });
         }
 
-        if(type.equals("contacts")){
-            fillContact(id);
+        if(contactPhone!=null){
+            fillContact(contactPhone);
         }
-        if(type.equals("placesItems")){
-            fillPlace(id);
+        if(extras.getString("placeId")!=null){
+            fillYelpPlace(extras.getString("placeId"));
         }
 
         View profilePicView= findViewById(R.id.profilePicView);
@@ -95,14 +98,6 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
                 startActivityForResult(placesIntent,PICK_PLACE_REQUEST);
             }
         });
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
     public void fillContact(String phoneNumber){
         ContactItem contact = contacts.getContactItem(this,phoneNumber);
@@ -118,7 +113,8 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
             img.setImageBitmap(contact.profilePic);
         }
     }
-    public void fillPlace(String id){
+    public void fillYelpPlace(String id){
+        Log.i(MainActivity.TAG, "Got business " + id);
         places.searchBusiness(this, id);
         places.setYelpListener(new Places.YelpListener() {
             @Override
@@ -136,7 +132,7 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
                 placesAddress.setText(business.location().address().get(0));
 
                 ImageView placesPic = (ImageView) findViewById(R.id.placePic);
-
+                Log.i(MainActivity.TAG, "Get business pic: " + business.imageUrl());
                 new LoadImage(placesPic).execute(business.imageUrl());
                 LatLng loc = new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude());
                 locMarker = mMap.addMarker(new MarkerOptions()
@@ -177,7 +173,7 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
         }
         else if(requestCode == PICK_PLACE_REQUEST) {
             if (resultCode == RESULT_OK) {
-                fillPlace(data.getStringExtra("placeId"));
+                fillYelpPlace(data.getStringExtra("placeId"));
             }
         }
     }

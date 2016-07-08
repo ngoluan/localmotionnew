@@ -71,7 +71,7 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
             super(view);
             mView = view;
             nameView = (TextView) view.findViewById(R.id.name);
-            typeView = (TextView) view.findViewById(R.id.type);
+            typeView = (TextView) view.findViewById(R.id.category);
             placesImg = (ImageView) view.findViewById(R.id.placesImg);
         }
 

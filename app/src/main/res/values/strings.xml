@@ -10,4 +10,5 @@
     <string name="title_activity_schedule_view">ScheduleView</string>
     <string name="title_activity_scheduler2">SchedulerActivity2</string>
     <string name="facebook_app_id">531634470231247</string>
+    <string name="title_activity_schedule_actvity2">ScheduleActvity2</string>
 </resources>

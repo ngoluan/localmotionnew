@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="100dp"
-    android:layout_height="100dp"
-    android:padding="1dp">
+android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:focusableInTouchMode="true"
+    android:background="@color/colorPrimaryClear">
 
 
     <ImageView
@@ -12,27 +13,26 @@ android:layout_width="100dp"
         android:layout_gravity="center_horizontal"
         android:layout_weight="1"
         android:scaleType="fitCenter"
-        android:background="@color/abc_search_url_text_normal"
-        android:layout_margin="1dp" />
+        android:layout_marginBottom="@dimen/img_sq_margin"
+        android:layout_marginTop="@dimen/img_sq_margin_sm"
+        android:layout_marginRight="@dimen/img_sq_margin_sm"
+        android:layout_marginLeft="@dimen/img_sq_margin_sm"
+        style="@style/SmallTitle" />
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="1dp">
+        android:layout_height="match_parent">
 
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:id="@+id/type"
-            android:textColor="@android:color/white"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/category"
             android:layout_gravity="bottom|center_horizontal"
-            android:textSize="14dp"
-            android:layout_marginTop="4dp"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:textAlignment="center"
-            android:background="@color/colorPrimary" />
+            style="@style/SmallTitle" />
 
     </RelativeLayout>
 

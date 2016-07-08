@@ -27,6 +27,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -38,12 +39,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
 
-    /**
-     * Called when message is received.
-     *
-     * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
-     */
-    // [START receive_message]
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // If the application is in the foreground handle both data and notification messages here.
@@ -107,17 +102,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationBuilder.addAction(R.drawable.doneicon, "Yes", pendingIntentYes);
 
         Intent changeReceive = new Intent(getApplicationContext(), SchedulerActivity.class);
-        changeReceive.setAction("EDIT_EVENT");
+        changeReceive.setAction("EVENT_EDIT");
         changeReceive.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         Bundle changeBundle = new Bundle();
         changeBundle.putString("place", data.get("place"));
+        changeBundle.putString("placeId", data.get("placeId"));
         changeBundle.putString("message", data.get("message"));
         changeBundle.putString("address", data.get("address"));
-        changeBundle.putString("senderName", data.get("senderName"));
-        changeBundle.putString("senderPhone", data.get("senderPhone"));
+        changeBundle.putString("contactName", data.get("senderName"));
+        changeBundle.putString("contactPhone", data.get("senderPhone"));
         changeBundle.putString("dateTime", data.get("dateTime"));
-
         changeReceive.putExtras(changeBundle);
         PendingIntent pendingIntentChange = PendingIntent.getActivity(getBaseContext(), 0,
                 changeReceive, 0);

@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.mikhaellopez.circularimageview.CircularImageView;
+
 import luan.localmotion.Content.ContactItem;
 
 import java.util.ArrayList;
@@ -42,8 +44,7 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.nameView.setText(mValues.get(position).name);/*
-        holder.phoneNumberView.setText(mValues.get(position).phoneNumber);*/
+        holder.nameView.setText(mValues.get(position).name);
         ViewGroup.LayoutParams param = holder.profilePicView.getLayoutParams();
         param.height = holder.profilePicView.getWidth();
         holder.profilePicView.setLayoutParams(param);
@@ -120,7 +121,7 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
         public final View mView;
         public final TextView nameView;/*
         public final TextView phoneNumberView;*/
-        public final ImageView profilePicView;
+        public final CircularImageView profilePicView;
         public ContactItem mItem;
 
         public ViewHolder(View view) {
@@ -128,7 +129,7 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
             mView = view;
             nameView = (TextView) view.findViewById(R.id.name);/*
             phoneNumberView = (TextView) view.findViewById(R.id.type);*/
-            profilePicView = (ImageView) view.findViewById(R.id.profilePic);
+            profilePicView = (CircularImageView) view.findViewById(R.id.profilePic);
         }
 
         @Override
