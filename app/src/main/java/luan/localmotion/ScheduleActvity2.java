@@ -97,6 +97,8 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
             switch (position) {
                 case 0: // Fragment # 0 - This will show FirstFragment
                     return ScheduleFragment.newInstance();
+                case 1: // Fragment # 0 - This will show FirstFragment
+                    return ChatFragment.newInstance(1);
 
                 default:
                     return ScheduleFragment.newInstance();
@@ -114,7 +116,7 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 4;
+            return 2;
         }
 
         @Override

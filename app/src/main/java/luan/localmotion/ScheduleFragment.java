@@ -481,6 +481,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
             }
         }
     };
+
     public void fillContact(String phoneNumber){
          contact = scheduleActvity2.contacts.getContactItem(getActivity(),phoneNumber);
 

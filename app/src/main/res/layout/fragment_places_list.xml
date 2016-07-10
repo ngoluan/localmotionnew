@@ -46,13 +46,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Rating"
-                    android:id="@+id/textView" />
+                    android:text="Rating" />
 
                 <SeekBar
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/ratingSeekBar"
                     android:layout_alignParentRight="true"
                     android:max="5" />
             </RelativeLayout>
@@ -67,13 +65,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Price"
-                    android:id="@+id/textView2" />
+                    android:text="Price" />
 
                 <SeekBar
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/priceSeekBar"
                     android:layout_alignParentRight="true"
                     android:max="5" />
 
@@ -89,8 +85,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Category"
-                    android:id="@+id/textView3" />
+                    android:text="Category" />
 
                 <Spinner
                     android:layout_width="200dp"

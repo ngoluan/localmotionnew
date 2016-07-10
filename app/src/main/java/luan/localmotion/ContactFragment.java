@@ -135,8 +135,9 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                     if (!contactsMap.containsKey(contact.normilizedPhone)) {
                         contactsMap.put(contact.normilizedPhone, contact);
-                        Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),contact.phone);
-                        contacts.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic));
+                        //Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),contact.phone);
+                        Bitmap profilePic=null;
+                        contacts.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, contact.uriPhoto));
                     }
 
                 }

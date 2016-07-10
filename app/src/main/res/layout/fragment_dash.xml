@@ -1,4 +1,4 @@
-<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -38,7 +38,6 @@
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:text="Dashboard"
-                        android:id="@+id/textView6"
                         android:layout_marginTop="@dimen/label_margin"
                         android:layout_marginBottom="@dimen/label_margin"
                         android:layout_centerVertical="true"
@@ -47,7 +46,6 @@
                     <SearchView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/searchView2"
                         android:layout_centerVertical="true"
                         android:layout_alignParentRight="true"
                         android:maxWidth="250dp" />
@@ -87,10 +85,6 @@
                             android:layout_gravity="center_horizontal"
                             android:layout_weight="1"
                             android:scaleType="fitCenter"
-                            android:layout_marginBottom="@dimen/img_sq_margin"
-                            android:layout_marginTop="@dimen/img_sq_margin_sm"
-                            android:layout_marginRight="@dimen/img_sq_margin_sm"
-                            android:layout_marginLeft="@dimen/img_sq_margin_sm"
                             style="@style/SmallTitle"
                             android:src="@drawable/ubericon" />
 
@@ -202,7 +196,6 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:text="Contacts"
-                    android:id="@+id/textView4"
                     style="@style/MediumTitle"
                     android:layout_marginTop="@dimen/label_margin"
                     android:layout_marginBottom="@dimen/label_margin" />
@@ -210,4 +203,4 @@
 
         </RelativeLayout>
     </ScrollView>
-</android.support.v4.widget.SwipeRefreshLayout>
+</RelativeLayout>

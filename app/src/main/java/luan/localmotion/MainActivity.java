@@ -133,7 +133,6 @@ public class MainActivity extends AppCompatActivity implements
         if (getIntent().getExtras() != null) {
             for (String key : getIntent().getExtras().keySet()) {
                 String value = getIntent().getExtras().getString(key);
-                Log.d(TAG, "Key: " + key + " Value: " + value);
             }
         }
         // [END handle_data_extras]
@@ -146,37 +145,10 @@ public class MainActivity extends AppCompatActivity implements
             prefs.edit().putString("lastLng", "-79.3832").apply();
             prefs.edit().putString("lastProvider", "provider").apply();
         }
-        /*Stetho.initializeWithDefaults(this);
-        OkHttpClient client = new OkHttpClient();
-        new OkHttpClient.Builder()
-                .addNetworkInterceptor(new StethoInterceptor())
-                .build();*/
-        //getCalendar();
-        //getContacts();
-        Log.d(TAG, "FCM Token: " + FirebaseInstanceId.getInstance().getToken());
+        Utils.serverUserCheckIn(FirebaseInstanceId.getInstance().getToken(), getApplicationContext());
     }
-    void getCalendar(){
-        CalendarProvider calendarProvider = new CalendarProvider(this);
-        List<Calendar> calendars = calendarProvider.getCalendars().getList();
-        for (Calendar calendar:calendars) {
 
-        }
-        //calendarProvider.getEvents(calendarId);
-    }
-    void getContacts(){
-        ContactsProvider contactsProvider = new ContactsProvider(this);
-        List<Contact> contactsList =  contactsProvider.getContacts().getList();
-        HashMap<String, Contact> contactsMap= new HashMap<String, Contact>();
-        for (Contact contact:contactsList) {
 
-            if (!contactsMap.containsKey(contact.normilizedPhone)) {
-                contactsMap.put(contact.normilizedPhone, contact);
-                Log.d(TAG, "contact "+ contact.normilizedPhone);
-            }
-
-        }
-        //calendarProvider.getEvents(calendarId);
-    }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
 

@@ -96,8 +96,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="Medium Text"
-                        android:id="@+id/placeDistance" />
+                        android:text="Medium Text" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -110,20 +109,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:text="Small Text"
-                        android:id="@+id/placesHours" />
+                        android:text="Small Text" />
 
                     <Button
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Details"
-                        android:id="@+id/button" />
+                        android:text="Details" />
 
                     <Button
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Change"
-                        android:id="@+id/button2" />
+                        android:text="Change" />
 
                 </LinearLayout>
 
@@ -131,8 +127,7 @@
 
             <SeekBar
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/seekBar" />
+                android:layout_height="wrap_content" />
 
             <fragment
                 class="luan.localmotion.CustomMapView"
@@ -150,7 +145,6 @@
 
     </ScrollView>
     <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mikhaellopez.circularimageview.CircularImageView;
+import com.squareup.picasso.Picasso;
 
 import luan.localmotion.Content.ContactItem;
 
@@ -49,11 +50,13 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
         param.height = holder.profilePicView.getWidth();
         holder.profilePicView.setLayoutParams(param);
         if(mValues.get(position).profilePic!=null){
-            holder.profilePicView.setImageBitmap((mValues.get(position).profilePic));
+            Picasso.with(parent.getContext()).load(mValues.get(position).profilePicURI).into(holder.profilePicView);
+            //holder.profilePicView.setImageBitmap((mValues.get(position).profilePic));
         }else{
 
-            Drawable res = parent.getResources().getDrawable(R.drawable.personicon);
-            holder.profilePicView.setImageDrawable(res);
+/*            Drawable res = holder.getResources().getDrawable(R.drawable.personicon);
+            holder.profilePicView.setImageDrawable(res);*/
+            Picasso.with(parent.getContext()).load(mValues.get(position).profilePicURI).into(holder.profilePicView);
         }
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

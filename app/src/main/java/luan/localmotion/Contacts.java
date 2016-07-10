@@ -75,6 +75,7 @@ public class Contacts {
         ContactItem contact=null;
         String contactName = null;
         String contactId=null;
+        String contactPicUri=null;
         InputStream inputStream=null;
         Bitmap profilePic=null;
 
@@ -88,7 +89,10 @@ public class Contacts {
         if(cursor.moveToFirst()) {
             contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup._ID));
             contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-
+            contactPicUri = cursor
+                    .getString(cursor
+                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
+/*
             if(contactId!=null){
                 inputStream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(), ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, new Long(contactId)));
             }
@@ -97,8 +101,10 @@ public class Contacts {
             if(inputStream!=null){
                 profilePic = BitmapFactory.decodeStream(inputStream);
             }
+*/
+            profilePic=null;
 
-            contact=new ContactItem(contactId, contactName,phoneNumber,profilePic);
+            contact=new ContactItem(contactId, contactName,phoneNumber,profilePic, contactPicUri);
         }
 
         if(cursor != null && !cursor.isClosed()) {

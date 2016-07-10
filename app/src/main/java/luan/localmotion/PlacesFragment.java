@@ -271,12 +271,19 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
-        if (f != null) {
-            getFragmentManager().beginTransaction().remove(f).commit();
+        try{
+            Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
+            if (f != null) {
+                getFragmentManager().beginTransaction().remove(f).commit();
 
-            mMap = null;
+                mMap = null;
+            }
         }
+        catch (RuntimeException e){
+            
+        }
+
+
         getActivity().unregisterReceiver(locationReceiver);
     }
 

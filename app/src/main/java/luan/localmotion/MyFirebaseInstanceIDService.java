@@ -39,7 +39,7 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
         Log.d(TAG, "Refreshed token: " + refreshedToken);
 
         // TODO: Implement this method to send any registration to your app's servers.
-        sendRegistrationToServer(refreshedToken);
+        Utils.serverUserCheckIn(refreshedToken, getApplicationContext());
     }
     // [END refresh_token]
 
@@ -51,9 +51,5 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
      *
      * @param token The new token.
      */
-    private void sendRegistrationToServer(String token) {
-        // Add custom implementation, as needed.
-        Log.d(TAG, "Refreshed token: " + token);
 
-    }
 }

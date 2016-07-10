@@ -20,6 +20,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
@@ -37,7 +38,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.yelp.clientlib.entities.Business;
-import com.yelp.clientlib.entities.Category;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,6 +65,8 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
     public ScrollView mScrollView;
 
+    private boolean isSpeakButtonLongPressed = false;
+
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -74,10 +76,12 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
     public MainActivity activity;
     public NextBus nextBus;
+    public BikeShare bikeShare;
     public Contacts contacts;
     Location mCurrentLocation;
-
-
+    public int mapMarkerType;
+    public int NEXTBUS=0;
+    public int BIKESHARE=0;
     public DashFragment() {
         // Required empty public constructor
     }
@@ -160,7 +164,14 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
         view1.setLayoutParams(lpGl1);
         view1.setId(R.id.transitView);
+        view1.setOnClickListener(new View.OnClickListener(){
 
+            @Override
+            public void onClick(View v) {
+                Log.d(MainActivity.TAG, "Luan-onClick: viewTransit");
+                drawNextBus();
+            }
+        });
         RelativeLayout viewUber = (RelativeLayout) view.findViewById(R.id.square2);
         ViewGroup.LayoutParams lpGlUber = viewUber.getLayoutParams();
         lpGlUber.height = squareSize;
@@ -172,11 +183,47 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         lpGlBike.height = squareSize;
         lpGlBike.width = squareSize;
         viewBike.setLayoutParams(lpGlBike);
-        
+        viewBike.setOnClickListener(new View.OnClickListener(){
+
+                @Override
+                public void onClick(View v) {
+                    Log.d(MainActivity.TAG, "Luan-onClick: viewBike");
+drawBikeShare();
+                }
+            });
+        viewBike.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                isSpeakButtonLongPressed = true;
+                Log.d(MainActivity.TAG, "Luan-onLongClick: ");
+drawBikeShare();
+                return true;
+            }
+        });
+        viewBike.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                v.onTouchEvent(event);
+                // We're only interested in when the button is released.
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    // We're only interested in anything if our speak button is currently pressed.
+                    if (isSpeakButtonLongPressed) {
+                        // Do something when the button is released.
+                        isSpeakButtonLongPressed = false;
+                        ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
+                        mMap.clear();
+                        nextBus.drawMarkers(currentVehicles, mMap);
+                    }
+                }
+                return false;
+            }
+        });
         nextBus = new NextBus(getActivity());
+        bikeShare = new BikeShare(getActivity());
         contacts = new Contacts(getActivity());
 
         getContacts();
+        getBikeshare();
         if (mCurrentLocation != null) {
             setupDash(mCurrentLocation);
         }
@@ -184,7 +231,19 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
         return view;
     }
-
+    public void drawNextBus(){
+        mapMarkerType = NEXTBUS;
+        ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
+        mMap.clear();
+        nextBus.drawMarkers(currentVehicles, mMap);
+    }
+    public void drawBikeShare(){
+        mapMarkerType = BIKESHARE;
+        mMap.clear();
+        ArrayList<BikeShareItem> currenStations= lookupOnScreenBikess();
+        bikeShare.findNearestBikeShare(mCurrentLocation,mMap);
+        bikeShare.drawMarkers(currenStations, mMap);
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -201,23 +260,41 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                LatLngBounds curScreen = mMap.getProjection()
-                        .getVisibleRegion().latLngBounds;
-                ArrayList<VehicleData> currentVehicles= new ArrayList<VehicleData>();
-
-                for (VehicleData vehicle:nextBus.nextBusData) {
-
-                    if(vehicle.lat<curScreen.northeast.latitude && vehicle.lat>curScreen.southwest.latitude &&
-                            vehicle.lng<curScreen.northeast.longitude&& vehicle.lng>curScreen.southwest.longitude){
-                        currentVehicles.add(vehicle);
-                    }
-                }
-
-                nextBus.drawMarkers(currentVehicles, mMap);
+                if(mapMarkerType==NEXTBUS)
+                    drawNextBus();
+                else if(mapMarkerType==BIKESHARE)
+                    drawBikeShare();
             }
         });
     }
+    public ArrayList<VehicleData> lookupOnScreenVehicles(){
+        LatLngBounds curScreen = mMap.getProjection()
+                .getVisibleRegion().latLngBounds;
+        ArrayList<VehicleData> currentVehicles= new ArrayList<VehicleData>();
 
+        for (VehicleData vehicle:nextBus.nextBusData) {
+
+            if(vehicle.lat<curScreen.northeast.latitude && vehicle.lat>curScreen.southwest.latitude &&
+                    vehicle.lng<curScreen.northeast.longitude&& vehicle.lng>curScreen.southwest.longitude){
+                currentVehicles.add(vehicle);
+            }
+        }
+        return currentVehicles;
+    }
+    public ArrayList<BikeShareItem> lookupOnScreenBikess(){
+        LatLngBounds curScreen = mMap.getProjection()
+                .getVisibleRegion().latLngBounds;
+        ArrayList<BikeShareItem> currentStations= new ArrayList<BikeShareItem>();
+
+        for (BikeShareItem station:bikeShare.bikeShareItems) {
+
+            if(station.lat<curScreen.northeast.latitude && station.lat>curScreen.southwest.latitude &&
+                    station.lng<curScreen.northeast.longitude&& station.lng>curScreen.southwest.longitude){
+                currentStations.add(station);
+            }
+        }
+        return currentStations;
+    }
     public void setupDash(Location mCurrentLocation){
         LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         if (mMap != null) {
@@ -358,24 +435,27 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
             @Override
             public void OnGetVehicles(ArrayList<VehicleData> vehicleData) {
-                LatLngBounds curScreen = mMap.getProjection()
-                        .getVisibleRegion().latLngBounds;
-                ArrayList<VehicleData>  currentVehicles= new ArrayList<VehicleData>();
 
-                for (VehicleData vehicle:vehicleData) {
-
-                    if(vehicle.lat<curScreen.northeast.latitude && vehicle.lat>curScreen.southwest.latitude &&
-                            vehicle.lng<curScreen.northeast.longitude&& vehicle.lng>curScreen.southwest.longitude){
-                        currentVehicles.add(vehicle);
-                    }
-                }
-
-                nextBus.drawMarkers(currentVehicles, mMap);
+                drawNextBus();
             }
         });
         nextBus.getPredictionLocation(String.valueOf(loc.getLatitude()), String.valueOf(loc.getLongitude()));
     }
+    public void getBikeshare(){
+        bikeShare.getStations();
+        bikeShare.setBikeShareListener(new BikeShare.BikeShareListener(){
 
+
+            @Override
+            public void OnGetBikes(ArrayList<BikeShareItem> bikeData) {
+/*
+                mMap.clear();
+                bikeShare.drawMarkers(bikeData, mMap);*/
+            }
+
+
+        });
+    }
     public void getPlaces(Location loc){
         MainActivity caller = (MainActivity) getActivity();
 
@@ -483,7 +563,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 View view4 = getActivity().getLayoutInflater().inflate(R.layout.dash_people, null);
                 int squareNum = j +6;
                 int resID = getResources().getIdentifier(String.valueOf("square"+squareNum), "id", "luan.localmotion");
-
+                Log.d(MainActivity.TAG, "Luan-getContacts: square"+squareNum);
                 RelativeLayout layout = (RelativeLayout) view.findViewById(resID);
                 ViewGroup.LayoutParams lpGl4 = layout.getLayoutParams();
                 lpGl4.height = squareSize;

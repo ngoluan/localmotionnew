@@ -1,14 +1,11 @@
 <resources>
     <string name="app_name">localMotion</string>
-    <string name="title_activity_tab_test">TabTest</string>
     <string name="action_settings">Settings</string>
-    <string name="section_format">Hello World from section: %1$d</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_schedule_view">ScheduleView</string>
-    <string name="title_activity_scheduler2">SchedulerActivity2</string>
     <string name="facebook_app_id">531634470231247</string>
     <string name="title_activity_schedule_actvity2">ScheduleActvity2</string>
 </resources>

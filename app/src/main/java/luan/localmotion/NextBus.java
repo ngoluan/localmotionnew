@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -74,7 +75,7 @@ public class NextBus {
                 ArrayList<String> dirArr = new ArrayList<String>();
                 ArrayList<NextBusDashItem> nextBusItems = new ArrayList<NextBusDashItem>();
                 ArrayList<DashItem> rowItemLocal = new ArrayList<DashItem>();
-
+                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+input);
                 try {
                     data = new JSONObject(input);
 
@@ -217,8 +218,6 @@ public class NextBus {
 
             }
 
-            protected void publishProgress(String... progress) {
-            }
         }.execute("", "ttc", lat, lng);
     }
     void createMarkers() {
@@ -422,6 +421,7 @@ public class NextBus {
                 int heading = Math.round(vehicle.heading/10);
                 googleMapMarkers.add(mMap.addMarker(new MarkerOptions()
                         .position(loc)
+                        .anchor(0.5f,0.5f)
                         .icon(BitmapDescriptorFactory.fromBitmap(nextBusIcons.get(heading)))));
 
             }
@@ -429,6 +429,7 @@ public class NextBus {
                 BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.ttcircle);
                 googleMapMarkers.add(mMap.addMarker(new MarkerOptions()
                         .position(loc)
+                        .anchor(0.5f,0.5f)
                         .icon(icon)));
             }
 

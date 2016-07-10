@@ -8,6 +8,5 @@
     <color name="colorTertiary">#9C27B0</color>
     <color name="colorTertiaryClear">#af9c27b0</color>
     <color name="colorAccent">#E91E63</color>
-    <color name="colorDark">#607D8B</color>
     <color name="colorDarkClear">#af607d8b</color>
 </resources>

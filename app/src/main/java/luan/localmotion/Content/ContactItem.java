@@ -10,12 +10,13 @@ public class ContactItem {
     public final String name;
     public final String phoneNumber;
     public final Bitmap profilePic;
-
-    public ContactItem(String id, String name, String phoneNumber, Bitmap profilePic) {
+    public final String profilePicURI;
+    public ContactItem(String id, String name, String phoneNumber, Bitmap profilePic, String profilePicURI) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.profilePic=profilePic;
+        this.profilePicURI=profilePicURI;
     }
 
     @Override
