@@ -95,7 +95,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
             contactRecyclerViewAdapter= new ContactRecyclerViewAdapter(contacts, mListener);
             AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(contactRecyclerViewAdapter);
             recyclerView.setAdapter(alphaInAnimationAdapter);
-            getAllContacts();
+
         }
 
 /*
@@ -105,7 +105,15 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
         return view;
     }
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
 
+        if (isVisibleToUser)
+            getAllContacts();
+        else
+            Log.d("MyFragment", "Fragment is not visible.");
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -129,7 +137,9 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
             public void run() {
 
                 ContactsProvider contactsProvider = new ContactsProvider(getContext());
+
                 List<Contact> contactsList =  contactsProvider.getContacts().getList();
+                Log.d(MainActivity.TAG, "Luan-run: "+contactsList.size());
                 HashMap<String, Contact> contactsMap= new HashMap<String, Contact>();
                 for (Contact contact:contactsList) {
 

@@ -12,7 +12,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragment.OnFragmentInteractionListener{
+
+import com.activeandroid.ActiveAndroid;
+import com.activeandroid.Configuration;
+import com.orm.SugarContext;
+
+import luan.localmotion.dummy.DummyContent;
+
+public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragment.OnFragmentInteractionListener, ChatFragment.OnListFragmentInteractionListener{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -26,6 +33,8 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
     Contacts contacts;
     Places places;
     Bundle extras=null;
+    public long eventId;
+    public Event event=null;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -49,7 +58,11 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
         contacts = new Contacts(this);
         places = new Places(this);
         extras = intent.getExtras();
+        SugarContext.init(this);
 
+        Configuration.Builder config = new Configuration.Builder(this);
+        config.addModelClasses(Category.class, Item.class, Event.class, Message.class);
+        ActiveAndroid.initialize(config.create());
     }
 
 
@@ -82,6 +95,11 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
 
     }
 
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
+    }
+
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private final FragmentManager mFragmentManager;
 
@@ -98,7 +116,7 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
                 case 0: // Fragment # 0 - This will show FirstFragment
                     return ScheduleFragment.newInstance();
                 case 1: // Fragment # 0 - This will show FirstFragment
-                    return ChatFragment.newInstance(1);
+                    return ChatFragment.newInstance();
 
                 default:
                     return ScheduleFragment.newInstance();
@@ -135,3 +153,4 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
         }
     }
 }
+

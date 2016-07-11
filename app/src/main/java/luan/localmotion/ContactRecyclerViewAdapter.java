@@ -43,29 +43,35 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        //holder.mItem = mValues.get(position);
         holder.nameView.setText(mValues.get(position).name);
         ViewGroup.LayoutParams param = holder.profilePicView.getLayoutParams();
-        param.height = holder.profilePicView.getWidth();
+        param.height = param.width;
         holder.profilePicView.setLayoutParams(param);
-        if(mValues.get(position).profilePic!=null){
+        Picasso.with(parent.getContext()).load(mValues.get(position).profilePicURI)
+                .error(R.drawable.personicon)
+                .placeholder(R.drawable.personicon)
+                .into(holder.profilePicView);
+        /*if(mValues.get(position).profilePic!=null){
             Picasso.with(parent.getContext()).load(mValues.get(position).profilePicURI).into(holder.profilePicView);
             //holder.profilePicView.setImageBitmap((mValues.get(position).profilePic));
         }else{
 
-/*            Drawable res = holder.getResources().getDrawable(R.drawable.personicon);
-            holder.profilePicView.setImageDrawable(res);*/
-            Picasso.with(parent.getContext()).load(mValues.get(position).profilePicURI).into(holder.profilePicView);
-        }
+*//*            Drawable res = holder.getResources().getDrawable(R.drawable.personicon);
+            holder.profilePicView.setImageDrawable(res);*//*
+            Picasso.with(parent.getContext()).load(R.drawable.personicon).into(holder.profilePicView);
+        }*/
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
+                    ViewHolder holder = (ViewHolder) v.getTag();
+                    int position = holder.getPosition();
 
-                    mListener.onContactFragmentInteraction("PICK_CONTACT", holder.mItem);
+                    mListener.onContactFragmentInteraction("PICK_CONTACT", mValues.get(position));
                 }
             }
         });
@@ -121,11 +127,11 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView nameView;/*
+        protected View mView;
+        protected TextView nameView;/*
         public final TextView phoneNumberView;*/
-        public final CircularImageView profilePicView;
-        public ContactItem mItem;
+        protected CircularImageView profilePicView;
+        //public ContactItem mItem;
 
         public ViewHolder(View view) {
             super(view);

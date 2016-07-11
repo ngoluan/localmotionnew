@@ -33,6 +33,7 @@ import android.widget.TextView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -210,9 +211,9 @@ drawBikeShare();
                     if (isSpeakButtonLongPressed) {
                         // Do something when the button is released.
                         isSpeakButtonLongPressed = false;
-                        ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
+ /*                       ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
                         mMap.clear();
-                        nextBus.drawMarkers(currentVehicles, mMap);
+                        nextBus.drawMarkers(currentVehicles, mMap);*/
                     }
                 }
                 return false;
@@ -647,14 +648,17 @@ drawBikeShare();
      **** app will crash ****/
     @Override
     public void onDestroyView() {
+        try{
+            SupportMapFragment f = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.map);
+            if (f != null){
+                getChildFragmentManager().beginTransaction().remove(f).commit();
 
-        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
-        if (f != null){
-            getFragmentManager().beginTransaction().remove(f).commit();
+                mMap=null;
+            }
+            getActivity().unregisterReceiver(locationReceiver);
 
-            mMap=null;
+        }catch(Exception e){
         }
-        getActivity().unregisterReceiver(locationReceiver);
         super.onDestroyView();
     }
 }

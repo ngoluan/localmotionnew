@@ -75,7 +75,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
     View view;
     private boolean loading;
     int offset = 0;
-    int numberofItems = 18;
+    int numberofItems = 9;
     Places places;
     Location mCurrentLocation=null;
     ArrayList<Marker> markers;
@@ -154,7 +154,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
                 });
             }
             places = new Places(getActivity());
-            getPlaces();
+
             recycleViewAdapter = new PlacesRecyclerViewAdapter(placesItems, mListener, getActivity());
             AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(recycleViewAdapter);
             recyclerView.setAdapter(alphaInAnimationAdapter);
@@ -199,7 +199,6 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
-        getYelpCategories();
 
         return view;
     }
@@ -286,7 +285,17 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
 
         getActivity().unregisterReceiver(locationReceiver);
     }
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
 
+        if (isVisibleToUser) {
+            getPlaces();
+            getYelpCategories();
+        }
+        else
+            Log.d("MyFragment", "Fragment is not visible.");
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;

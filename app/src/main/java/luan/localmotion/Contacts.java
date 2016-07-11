@@ -89,9 +89,9 @@ public class Contacts {
         if(cursor.moveToFirst()) {
             contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup._ID));
             contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-            contactPicUri = cursor
+            /*contactPicUri = cursor
                     .getString(cursor
-                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
+                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));*/
 /*
             if(contactId!=null){
                 inputStream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(), ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, new Long(contactId)));
@@ -136,7 +136,7 @@ public class Contacts {
         }
     }
 
-    public  int getContactIDFromNumber(String contactNumber,Context context)
+    public static int getContactIDFromNumber(String contactNumber,Context context)
     {
         contactNumber = Uri.encode(contactNumber);
         int phoneContactID = new Random().nextInt();

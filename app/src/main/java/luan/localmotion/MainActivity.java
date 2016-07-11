@@ -146,6 +146,10 @@ public class MainActivity extends AppCompatActivity implements
             prefs.edit().putString("lastProvider", "provider").apply();
         }
         Utils.serverUserCheckIn(FirebaseInstanceId.getInstance().getToken(), getApplicationContext());
+
+/*        Category restaurants = new Category();
+        restaurants.name = "Restaurants";
+        restaurants.save();*/
     }
 
 

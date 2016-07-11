@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
 import luan.localmotion.Content.PlacesItem;
 
@@ -42,7 +44,11 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
         holder.mItem = mValues.get(position);
         holder.nameView.setText(mValues.get(position).name);
         holder.typeView.setText(mValues.get(position).type);
-        imageLoader.DisplayImage(mValues.get(position).imgUrl, holder.placesImg);
+        //imageLoader.DisplayImage(mValues.get(position).imgUrl, holder.placesImg);
+        Picasso.with(activity).load(mValues.get(position).imgUrl)
+                .error(R.drawable.personicon)
+                .placeholder(R.drawable.personicon)
+                .into(holder.placesImg);
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,5 +85,6 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
         public String toString() {
             return super.toString() + " '" + typeView.getText() + "'";
         }
+
     }
 }

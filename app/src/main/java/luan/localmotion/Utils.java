@@ -9,6 +9,8 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.activeandroid.serializer.TypeSerializer;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -18,6 +20,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -71,7 +76,7 @@ public class Utils {
 
                 try{
                     String url =
-                            "http://www.local-motion.ca/server/users.php";
+                            "http://www.local-motion.ca/server/users.php?command=checkin";
                     RequestBody formBody = new FormBody.Builder()
                             .add("phoneNumber", mPhoneNumber)
                             .add("regIDFCM", regIDFCM)
@@ -98,5 +103,11 @@ public class Utils {
 
         }.execute();
     }
+    public static int getPixelfromDP(int size, Context context){
+        final float scale = context.getResources().getDisplayMetrics().density;
+        int pixels = (int) (250 * scale + 0.5f);
+        return pixels;
+    }
+
 
 }

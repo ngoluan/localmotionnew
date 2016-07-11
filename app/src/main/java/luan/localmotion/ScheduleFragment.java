@@ -31,6 +31,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -85,8 +89,13 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     private OnFragmentInteractionListener mListener;
     public static final int PICK_CONTACT_REQUEST = 1;
     public static final int PICK_PLACE_REQUEST = 2;
+    /** Standard activity result: operation canceled. */
+    public static final int RESULT_CANCELED    = 0;
+    /** Standard activity result: operation succeeded. */
+    public static final int RESULT_OK           = -1;
 
-    String placeName=null;
+/*    public long eventId;*/
+            String placeName=null;
     String placeAddress="";
 
     MaterialCalendarView calendarView;
@@ -128,6 +137,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         view= inflater.inflate(R.layout.fragment_schedule, container, false);
         scheduleActvity2 = (ScheduleActvity2) getActivity();
         this.extras = scheduleActvity2.extras;
+        scheduleActvity2.event= new Event();
         if(mCurrentLocation==null){
 
             SharedPreferences prefs =getActivity().getSharedPreferences(
@@ -151,9 +161,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         Log.d(MainActivity.TAG, "onCreateView: "+extras.toString());
 
         if(extras.getString("contactPhone")!=null){
+
             fillContact(extras.getString("contactPhone"));
         }
         if(extras.getString("placeId")!=null){
+
             fillYelpPlace(extras.getString("placeId"));
         }
 
@@ -182,13 +194,13 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         doneFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final ContentValues event = new ContentValues();
-                event.put(CalendarContract.Events.CALENDAR_ID, 1);
+                //final ContentValues event = new ContentValues();
+                //event.put(CalendarContract.Events.CALENDAR_ID, 1);
                 String title = "Hangout";
                 if(contact!=null){
                     title+= " with " +contact.name;
                 }
-                event.put(CalendarContract.Events.TITLE, title);
+                /*event.put(CalendarContract.Events.TITLE, title);
                 //event.put(CalendarContract.Events.DESCRIPTION, description);
 
 
@@ -203,7 +215,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                     baseUri = Uri.parse("content://com.android.calendar/events");
                 } else {
                     baseUri = Uri.parse("content://calendar/events");
-                }
+                }*/
                 //getActivity().getContentResolver().insert(baseUri, event);
 
 
@@ -222,6 +234,10 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                 }
 
                 Log.d(MainActivity.TAG, "event"+intent.getExtras().toString());
+                scheduleActvity2.event.beginTime = beginTime;
+                scheduleActvity2.event.endTime = endTime;
+                scheduleActvity2.event.title=title;
+                scheduleActvity2.eventId=scheduleActvity2.event.save();
                 startActivity(intent);
             }
         });
@@ -239,7 +255,32 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
 
         setupListview();
 
+
+
+        Category restaurants = new Category();
+        restaurants.name = "Restaurants";
+        restaurants.save();
+
+        Item item = new Item();
+        item.category = restaurants;
+        item.name = "Outback Steakhouse";
+        item.save();
+        getAll(restaurants);
+        Log.d(MainActivity.TAG, "Luan-onCreateView: "+getAll(restaurants).get(0));
         return  view;
+    }
+    public static List<Event> getAllEvents() {
+        return new Select()
+                .from(Event.class)
+                .orderBy("PhoneNumber ASC")
+                .execute();
+    }
+    public static List<Item> getAll(Category category) {
+        return new Select()
+                .from(Item.class)
+                .where("Category = ?", category.getId())
+                .orderBy("Name ASC")
+                .execute();
     }
     public String getSelectedDateTime(String firstOrLast){
         CalendarDay date=  calendarView.getSelectedDate();
@@ -448,6 +489,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         }
         ViewGroup.LayoutParams params = listView.getLayoutParams();
         Log.d(MainActivity.TAG, "setListViewHeightBasedOnChildren: "+calendarView.getHeight());
+        //TODO get pixel from height in utilities
         final float scale = getContext().getResources().getDisplayMetrics().density;
         int pixels = (int) (250 * scale + 0.5f);
         params.height = pixels;
@@ -483,7 +525,9 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     };
 
     public void fillContact(String phoneNumber){
-         contact = scheduleActvity2.contacts.getContactItem(getActivity(),phoneNumber);
+        scheduleActvity2.event.addPhone(phoneNumber);
+        scheduleActvity2.eventId=scheduleActvity2.event.save();
+        contact = scheduleActvity2.contacts.getContactItem(getActivity(),phoneNumber);
 
         TextView nameView = (TextView) view.findViewById(R.id.nameView);
         nameView.setText(contact.name);
@@ -495,9 +539,16 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         if(contact.profilePic!=null){
             img.setImageBitmap(contact.profilePic);
         }
+        List<Event> events = getAllEvents();
+        for (Event event:events
+             ) {
+
+            Log.d(MainActivity.TAG, "Luan-onCreateView: "+event.contactsPhone);
+        }
     }
     public void fillYelpPlace(String id){
-        Log.i(MainActivity.TAG, "Got business " + id);
+        scheduleActvity2.event.yelpPlaceId=id;
+        scheduleActvity2.eventId=scheduleActvity2.event.save();
         scheduleActvity2.places.searchBusiness(getActivity(), id);
         scheduleActvity2.places.setYelpListener(new Places.YelpListener() {
             @Override
@@ -537,7 +588,21 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
             mListener.onFragmentInteraction(uri);
         }
     }
-
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == PICK_CONTACT_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                fillContact(data.getStringExtra("contactPhoneNumber"));
+            }
+        }
+        else if(requestCode == PICK_PLACE_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                fillYelpPlace(data.getStringExtra("placeId"));
+            }
+        }
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -594,3 +659,4 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         void onFragmentInteraction(Uri uri);
     }
 }
+

@@ -23,7 +23,7 @@ public class PickContact extends AppCompatActivity implements OnFragmentInteract
 
         intent.putExtra("id",item.id  );
         intent.putExtra("name",item.name);
-        intent.putExtra("phoneNumber",item.phoneNumber );
+        intent.putExtra("contactPhone",item.phoneNumber );
         intent.putExtra("profilePic",item.profilePic);
         setResult(Activity.RESULT_OK, intent);
         finish();
