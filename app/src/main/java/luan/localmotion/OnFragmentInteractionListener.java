@@ -17,4 +17,5 @@ public interface OnFragmentInteractionListener<T> {
     // TODO: Update argument type and name
     void onContactFragmentInteraction(String TAG, ContactItem item);
     void OnPlacesFragmentListener(String TAG, PlacesItem item);
+
 }

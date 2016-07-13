@@ -1,11 +1,14 @@
 package luan.localmotion;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.util.TypedValue;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -22,7 +25,9 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -103,10 +108,64 @@ public class Utils {
 
         }.execute();
     }
-    public static int getPixelfromDP(int size, Context context){
-        final float scale = context.getResources().getDisplayMetrics().density;
-        int pixels = (int) (250 * scale + 0.5f);
-        return pixels;
+    public static void sendMessage(final HashMap<String, String> data, Context context){
+        TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
+        final String mPhoneNumber = tMgr.getLine1Number();
+        new AsyncTask<Void, Void, String>() {
+
+            @Override
+            protected void onPreExecute() {
+            }
+            @Override
+            protected String doInBackground(Void... params) {
+
+                String result = postData();
+
+
+
+                return "";
+            }
+            public String postData()  {
+
+                try{
+                    String url =
+                            "http://www.local-motion.ca/server/sendFCM.php";
+                    FormBody.Builder builder = new FormBody.Builder();
+
+                    for (Map.Entry<String, String> entry :data.entrySet()
+                         ) {
+                        builder.add(entry.getKey(), entry.getValue());
+                    }
+                    RequestBody formBody = builder.build();
+                    OkHttpClient client = new OkHttpClient();
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .post(formBody)
+                            .build();
+
+
+                    Response response = client.newCall(request).execute();
+                    return response.body().string();
+                }catch(IOException exception){
+                    exception.printStackTrace();
+                    return null;
+                }
+
+            }
+            @Override
+            protected void onPostExecute(String msg) {
+                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+msg);
+            }
+
+
+        }.execute();
+    }
+    public static float getPixelfromDP(int size, Context context){
+/*        final float scale = context.getResources().getDisplayMetrics().density;
+        int pixels = (int) (250 * scale + 0.5f);*/
+        Resources r = context.getResources();
+        float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, size, r.getDisplayMetrics());
+        return px;
     }
 
 

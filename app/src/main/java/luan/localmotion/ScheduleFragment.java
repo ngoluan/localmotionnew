@@ -266,7 +266,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         item.name = "Outback Steakhouse";
         item.save();
         getAll(restaurants);
-        Log.d(MainActivity.TAG, "Luan-onCreateView: "+getAll(restaurants).get(0));
+        //Log.d(MainActivity.TAG, "Luan-onCreateView: "+getAll(restaurants).get(0));
         return  view;
     }
     public static List<Event> getAllEvents() {
@@ -539,12 +539,12 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         if(contact.profilePic!=null){
             img.setImageBitmap(contact.profilePic);
         }
-        List<Event> events = getAllEvents();
+/*        List<Event> events = getAllEvents();
         for (Event event:events
              ) {
 
             Log.d(MainActivity.TAG, "Luan-onCreateView: "+event.contactsPhone);
-        }
+        }*/
     }
     public void fillYelpPlace(String id){
         scheduleActvity2.event.yelpPlaceId=id;

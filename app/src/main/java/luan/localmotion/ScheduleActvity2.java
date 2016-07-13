@@ -11,13 +11,12 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.Configuration;
 import com.orm.SugarContext;
-
-import luan.localmotion.dummy.DummyContent;
 
 public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragment.OnFragmentInteractionListener, ChatFragment.OnListFragmentInteractionListener{
 
@@ -95,11 +94,21 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
 
     }
 
+
+
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+    public void onListFragmentInteraction(Message item) {
 
     }
 
+    @Override
+    public void OnChatFragmentListener(String TAG, Message item) {
+
+    }
+    @Override
+    protected void onNewIntent (Intent intent){
+        Toast.makeText(ScheduleActvity2.this, intent.getExtras().toString(), Toast.LENGTH_SHORT).show();
+    }
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private final FragmentManager mFragmentManager;
 

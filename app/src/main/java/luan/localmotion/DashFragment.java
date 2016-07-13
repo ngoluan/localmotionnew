@@ -38,9 +38,15 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.uber.sdk.android.core.UberSdk;
+import com.uber.sdk.core.auth.Scope;
+import com.uber.sdk.rides.auth.OAuth2Credentials;
+import com.uber.sdk.rides.client.ServerTokenSession;
+import com.uber.sdk.rides.client.SessionConfiguration;
 import com.yelp.clientlib.entities.Business;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -189,10 +195,10 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 @Override
                 public void onClick(View v) {
                     Log.d(MainActivity.TAG, "Luan-onClick: viewBike");
-drawBikeShare();
+                    drawBikeShare();
                 }
             });
-        viewBike.setOnLongClickListener(new View.OnLongClickListener() {
+        /*viewBike.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 isSpeakButtonLongPressed = true;
@@ -211,14 +217,14 @@ drawBikeShare();
                     if (isSpeakButtonLongPressed) {
                         // Do something when the button is released.
                         isSpeakButtonLongPressed = false;
- /*                       ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
+ *//*                       ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
                         mMap.clear();
-                        nextBus.drawMarkers(currentVehicles, mMap);*/
+                        nextBus.drawMarkers(currentVehicles, mMap);*//*
                     }
                 }
                 return false;
             }
-        });
+        });*/
         nextBus = new NextBus(getActivity());
         bikeShare = new BikeShare(getActivity());
         contacts = new Contacts(getActivity());
@@ -230,6 +236,40 @@ drawBikeShare();
         }
 
         getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
+
+        SessionConfiguration config = new SessionConfiguration.Builder()
+                .setClientId("AGHkbAzvvw5i0dxzJw75Tdv2ZA8iN6L0") //This is necessary
+                .setRedirectUri("EYFoUMRpm4eBXmhQ6HrBBXU1inOJv9LU8kDA83Lk") //This is necessary if you'll be using implicit grant
+                .setEnvironment(SessionConfiguration.Environment.SANDBOX) //Useful for testing your app in the sandbox environment
+                .setScopes(Arrays.asList(Scope.PROFILE, Scope.RIDE_WIDGETS)) //Your scopes for authentication here
+                .build();
+
+//This is a convenience method and will set the default config to be used in other components without passing it directly.
+        UberSdk.initialize(config);
+
+/*UBER
+        SessionConfiguration config = new SessionConfiguration.Builder()
+                .setClientId("YOUR_CLIENT_ID")
+                .setServerToken("YOUR_SERVER_TOKEN")
+                .build();
+
+        ServerTokenSession session = new ServerTokenSession(config);
+        SessionConfiguration config = new SessionConfiguration.Builder()
+                .setClientId("YOUR_CLIENT_ID")
+                .setClientSecret("YOUR_CLIENT_SECRET")
+                .setScopes(yourScopes)
+                .setRedirectUri(redirectUri)
+                .build();
+
+        OAuth2Credentials credentials = new OAuth2Credentials.Builder()
+                .setSessionConfiguration(config)
+                .build();
+*/
+
+
+
+
+
         return view;
     }
     public void drawNextBus(){
@@ -242,7 +282,7 @@ drawBikeShare();
         mapMarkerType = BIKESHARE;
         mMap.clear();
         ArrayList<BikeShareItem> currenStations= lookupOnScreenBikess();
-        bikeShare.findNearestBikeShare(mCurrentLocation,mMap);
+        //bikeShare.findNearestBikeShare(mCurrentLocation,mMap);
         bikeShare.drawMarkers(currenStations, mMap);
     }
     @Override

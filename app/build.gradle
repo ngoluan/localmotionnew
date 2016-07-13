@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 repositories {
     mavenCentral()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://jitpack.io" }
 }
 android {
     compileSdkVersion 23
@@ -52,6 +53,10 @@ dependencies {
     compile 'com.prolificinteractive:material-calendarview:1.4.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
-    compile 'com.github.satyan:sugar:1.4'
+    compile 'com.github.satyan:sugar:1.4'/*
+    compile 'com.neno0o.ubersdk:ubersdk:0.2'
+    compile 'com.uber.sdk:rides:0.5.2'*/
+    compile 'com.uber.sdk:rides-android:0.5.1'
+    compile 'com.github.scribejava:scribejava-apis:2.8.1'
     apply plugin: 'com.google.gms.google-services'
 }
