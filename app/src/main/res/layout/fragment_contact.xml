@@ -10,10 +10,10 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="fill_parent">
         <com.mikhaellopez.circularimageview.CircularImageView
             android:layout_width="fill_parent"
-            android:layout_height="128dp"
+            android:layout_height="96dp"
             android:src="@drawable/personicon"
             android:id="@+id/profilePic"
             app:civ_border_color="@color/colorSecondary"

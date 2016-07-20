@@ -60,12 +60,13 @@
 
             <TextView
                 style="@style/MediumTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_marginBottom="@dimen/label_margin"
                 android:layout_marginTop="@dimen/label_margin"
                 android:text="Date and Time"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_weight="1" />
         <LinearLayout
             android:layout_width="match_parent"
             android:orientation="horizontal"
@@ -154,15 +155,23 @@
                         android:text="Small Text"
                         android:textAppearance="?android:attr/textAppearanceSmall" />
 
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Details" />
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
 
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Change" />
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:id="@+id/openDetails"
+                            android:src="@drawable/ic_info_outline_white_48dp" />
+
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:id="@+id/changePlace"
+                            android:src="@drawable/ic_search_white_48dp" />
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -173,17 +182,29 @@
                 android:layout_height="wrap_content" />
 
             <fragment
-                android:id="@+id/map"
+                android:id="@+id/placesMap"
                 class="luan.localmotion.CustomMapView"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_column="0"
                 android:layout_columnSpan="2"
                 android:layout_margin="1dp"
                 android:layout_row="1"
                 android:layout_rowSpan="2"
-                tools:context="luan.localmotion.MapsActivity"
-                tools:layout="@layout/square" />
+                tools:context="luan.localmotion.MapsActivity" />
+
+            <android.support.v7.widget.RecyclerView app:layoutManager="GridLayoutManager"
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/schedulerDirectionsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Space
+                android:layout_width="fill_parent"
+                android:layout_height="48dp" />
+
         </LinearLayout>
 
     </ScrollView>

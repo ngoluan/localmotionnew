@@ -13,14 +13,17 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
@@ -30,6 +33,8 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -39,9 +44,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.uber.sdk.android.core.UberSdk;
+import com.uber.sdk.android.rides.RideRequestButton;
 import com.uber.sdk.core.auth.Scope;
-import com.uber.sdk.rides.auth.OAuth2Credentials;
-import com.uber.sdk.rides.client.ServerTokenSession;
 import com.uber.sdk.rides.client.SessionConfiguration;
 import com.yelp.clientlib.entities.Business;
 
@@ -50,7 +54,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
+import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.NextBusDashItem;
+import luan.localmotion.Content.PlacesItem;
 
 
 /**
@@ -61,7 +69,7 @@ import luan.localmotion.Content.NextBusDashItem;
  * Use the {@link DashFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeRefreshLayout.OnRefreshListener {
+public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeRefreshLayout.OnRefreshListener, YourFragmentInterface {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     public View view;
@@ -89,6 +97,17 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
     public int mapMarkerType;
     public int NEXTBUS=0;
     public int BIKESHARE=0;
+
+    private ArrayList<ContactItem> contactList = new ArrayList<ContactItem>();
+    RecyclerView contactRecyclerView;
+    ContactRecyclerViewAdapter contactRecyclerViewAdapter;
+
+    RecyclerView placesRecyclerView;
+    PlacesRecyclerViewAdapter placesRecyclerViewAdapter;
+
+    OnContactListListener onContactListListerner;
+
+    public ArrayList<PlacesItem> placesItems = new ArrayList<PlacesItem>();
     public DashFragment() {
         // Required empty public constructor
     }
@@ -148,14 +167,14 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         grid = (GridLayout) view.findViewById(R.id.grid);
 
         if (mMap == null) {
-            View mapView = view.findViewById(R.id.map);
+            View mapView = view.findViewById(R.id.dashMap);
             ViewGroup.LayoutParams mapLayout = mapView.getLayoutParams();
             mapLayout.height = squareSize * 2;
             mapLayout.width = squareSize * 2;
             mapView.setLayoutParams(mapLayout);
 
             CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
-                    .findFragmentById(R.id.map);
+                    .findFragmentById(R.id.dashMap);
             mapFragment.getMapAsync(this);
             mapFragment.setListener(new CustomMapView.OnTouchListener() {
                 @Override
@@ -198,33 +217,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     drawBikeShare();
                 }
             });
-        /*viewBike.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                isSpeakButtonLongPressed = true;
-                Log.d(MainActivity.TAG, "Luan-onLongClick: ");
-drawBikeShare();
-                return true;
-            }
-        });
-        viewBike.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                v.onTouchEvent(event);
-                // We're only interested in when the button is released.
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                    // We're only interested in anything if our speak button is currently pressed.
-                    if (isSpeakButtonLongPressed) {
-                        // Do something when the button is released.
-                        isSpeakButtonLongPressed = false;
- *//*                       ArrayList<VehicleData> currentVehicles= lookupOnScreenVehicles();
-                        mMap.clear();
-                        nextBus.drawMarkers(currentVehicles, mMap);*//*
-                    }
-                }
-                return false;
-            }
-        });*/
+
         nextBus = new NextBus(getActivity());
         bikeShare = new BikeShare(getActivity());
         contacts = new Contacts(getActivity());
@@ -267,7 +260,12 @@ drawBikeShare();
 */
 
 
+        onContactListListerner= new OnContactListListener() {
+            @Override
+            public void OnContactClickListener(String TAG, ContactItem item) {
 
+            }
+        };
 
 
         return view;
@@ -297,7 +295,7 @@ drawBikeShare();
 
 
         }
-
+        nextBus.getVehicleLocations();
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -357,42 +355,12 @@ drawBikeShare();
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));*/
 
         }
-        getTransit(mCurrentLocation);
-        nextBus.getVehicleLocations();
+
+
         getPlaces(mCurrentLocation);
-    }
-/*
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnMapInteractionListener) {
-            mListener = (OnMapInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnMapInteractionListener");
-        }
+        getTransit(mCurrentLocation);
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    *//**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     *//*
-    public interface OnMapInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }*/
     public Point getDisplaySize() {
         Display display = getActivity().getWindowManager().getDefaultDisplay();
         String displayName = display.getName();  // minSdkVersion=17+
@@ -411,66 +379,117 @@ drawBikeShare();
 
     }
 
+    @Override
+    public void fragmentBecameVisible() {
+
+    }
+
+    @Override
+    public void fragmentBecameInvisible() {
+        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
+        try{
+            SupportMapFragment f = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.dashMap);
+            if (f != null){
+                getChildFragmentManager().beginTransaction().remove(f).commit();
+                mMap=null;
+            }
+            if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
+
+        }catch(Exception e){
+        }
+    }
+
+    public class PredictionDraw implements Runnable {
+        ArrayList<ArrayList<NextBusDashItem>> routesArr;
+        public PredictionDraw(ArrayList<ArrayList<NextBusDashItem>> routesArr){
+            this.routesArr=routesArr;
+        }
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+
+            final RelativeLayout transitView = (RelativeLayout) view.findViewById(R.id.transitView);
+            final LinearLayout innerLayoutRow1 = new LinearLayout(getContext());
+            innerLayoutRow1.setOrientation(LinearLayout.HORIZONTAL);
+
+
+            final LinearLayout innerLayoutRow2 = new LinearLayout(getContext());
+            innerLayoutRow2.setOrientation(LinearLayout.HORIZONTAL);
+            RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            param.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            innerLayoutRow2.setLayoutParams(param);
+
+
+
+            int width = transitView.getWidth()/4;
+            int x=0;
+            for (int i = 0; i < routesArr.size(); i++) {
+
+                for (int j = 0; j < routesArr.get(i).size(); j++) {
+                    routesArr.get(i).get(j);
+
+
+                    //getting the direction heading
+                    int c = routesArr.get(i).get(j).dirTitle.indexOf("-");
+                    int d=routesArr.get(i).get(0).routeTitle.length();
+                    String dirTitle = routesArr.get(i).get(j).dirTitle.substring(0, c) + " to " + routesArr.get(i).get(j).dirTitle.substring(d + 8);
+                    String dirShortTitle= routesArr.get(i).get(j).dirTitle.substring(0, c);
+
+
+                    //getting only the route name
+                    c = routesArr.get(i).get(0).routeTitle.indexOf("-")+1;
+                    d = routesArr.get(i).get(0).routeTitle.indexOf(" ",c);
+                    if(d ==-1){d=routesArr.get(i).get(0).routeTitle.length();}
+                    String routeTitle =routesArr.get(i).get(0).routeTitle.substring(c, d);
+
+                    View icon = getActivity().getLayoutInflater().inflate(R.layout.view_transit,null);
+                    LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(width,width);
+                    icon.setLayoutParams(param2);
+                    TextView route = (TextView) icon.findViewById(R.id.route);
+                    route.setText(routeTitle + "-"+dirShortTitle);
+                    TextView eta = (TextView) icon.findViewById(R.id.eta);
+                    eta.setText(String.valueOf(routesArr.get(i).get(j).eta) + " mins");
+
+                    if(x<=3){
+                        innerLayoutRow1.addView(icon);
+                    }
+                    else if(x>=3){
+                        innerLayoutRow2.addView(icon);
+                    }
+                    else if(x>7){
+                        return;
+                    }
+                    x++;
+                }
+
+            }
+
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    transitView.addView(innerLayoutRow1);
+                    transitView.addView(innerLayoutRow2);
+
+                    YoYo.with(Techniques.SlideInDown)
+                            .duration(700)
+                            .playOn(innerLayoutRow1);
+                    YoYo.with(Techniques.SlideInDown)
+                            .duration(700)
+                            .playOn(innerLayoutRow2);
+                }
+            });
+        }
+
+    }
     public void getTransit(Location loc){
         nextBus.setNextBusListener(new NextBus.NextBusListener(){
 
             @Override
             public void OnGetPredictions(ArrayList<ArrayList<NextBusDashItem>> routesArr) {
-                RelativeLayout transitView = (RelativeLayout) view.findViewById(R.id.transitView);
-                LinearLayout innerLayoutRow1 = new LinearLayout(getContext());
-                innerLayoutRow1.setOrientation(LinearLayout.HORIZONTAL);
-                transitView.addView(innerLayoutRow1);
 
-                LinearLayout innerLayoutRow2 = new LinearLayout(getContext());
-                innerLayoutRow2.setOrientation(LinearLayout.HORIZONTAL);
-                RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                param.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                innerLayoutRow2.setLayoutParams(param);
-                transitView.addView(innerLayoutRow2);
+                Thread t = new Thread(new PredictionDraw(routesArr));
+                t.start();
 
-
-                int width = transitView.getWidth()/4;
-                int x=0;
-                for (int i = 0; i < routesArr.size(); i++) {
-
-                    for (int j = 0; j < routesArr.get(i).size(); j++) {
-                        routesArr.get(i).get(j);
-
-
-                        //getting the direction heading
-                        int c = routesArr.get(i).get(j).dirTitle.indexOf("-");
-                        int d=routesArr.get(i).get(0).routeTitle.length();
-                        String dirTitle = routesArr.get(i).get(j).dirTitle.substring(0, c) + " to " + routesArr.get(i).get(j).dirTitle.substring(d + 8);
-                        String dirShortTitle= routesArr.get(i).get(j).dirTitle.substring(0, c);
-
-
-                        //getting only the route name
-                        c = routesArr.get(i).get(0).routeTitle.indexOf("-")+1;
-                        d = routesArr.get(i).get(0).routeTitle.indexOf(" ",c);
-                        if(d ==-1){d=routesArr.get(i).get(0).routeTitle.length();}
-                        String routeTitle =routesArr.get(i).get(0).routeTitle.substring(c, d);
-
-                        View icon = getActivity().getLayoutInflater().inflate(R.layout.dash_transit,null);
-                        LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(width,width);
-                        icon.setLayoutParams(param2);
-                        TextView route = (TextView) icon.findViewById(R.id.route);
-                        route.setText(routeTitle + "-"+dirShortTitle);
-                        TextView eta = (TextView) icon.findViewById(R.id.eta);
-                        eta.setText(String.valueOf(routesArr.get(i).get(j).eta) + " mins");
-
-                        if(x<=3){
-                            innerLayoutRow1.addView(icon);
-                        }
-                        else if(x>=3){
-                            innerLayoutRow2.addView(icon);
-                        }
-                        else if(x>7){
-                            return;
-                        }
-                        x++;
-                    }
-
-                }
 
             }
 
@@ -498,6 +517,7 @@ drawBikeShare();
         });
     }
     public void getPlaces(Location loc){
+        //getPlaces_v2(loc);
         MainActivity caller = (MainActivity) getActivity();
 
         Map<String, String> params = new HashMap<>();
@@ -516,16 +536,62 @@ drawBikeShare();
         ImageView img = (ImageView) view2.findViewById(R.id.imageView);
         img.setImageDrawable(getResources().getDrawable(R.drawable.placesicon));
 
+        final TextView name = (TextView) view2.findViewById(R.id.name);
+        final TextView category = (TextView) view2.findViewById(R.id.category);
+
+/*        (new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                Looper.prepare();
+                YoYo.with(Techniques.FadeOutLeft)
+                        .duration(700)
+                        .playOn(name);
+                Looper.loop();
+            }
+        })).start();*/
+
+        final Handler handler = new Handler();
+        final int[] count = {1};
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+
+                YoYo.with(Techniques.FadeOutLeft)
+                        .duration(700)
+                        .playOn(name);
+                YoYo.with(Techniques.FadeInRight)
+                        .duration(700)
+                        .playOn(category);
+
+                if(count[0] %2==0)  { //trigger on alternate counts }
+                    YoYo.with(Techniques.FadeInRight)
+                            .duration(700)
+                            .playOn(name);
+                    YoYo.with(Techniques.FadeOutLeft)
+                            .duration(700)
+                            .playOn(category);
+
+                }
+                count[0]++;
+                handler.postDelayed(this,5000);
+            }
+        });
+
         caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
         caller.places.setYelpListener(new Places.YelpListener() {
             @Override
             public void OnGetSearch(final ArrayList<Business> businesses, View view) {
 
                 String businessName = businesses.get(0).name();  // "JapaCurry Truck"
+                String categoryName= businesses.get(0).categories().get(0).name();  // "JapaCurry Truck"
 
                 TextView name = (TextView) view.findViewById(R.id.name);
                 name.setText(businessName);
-
+                TextView category = (TextView) view.findViewById(R.id.category);
+                category.setText(categoryName);
 
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -557,6 +623,37 @@ drawBikeShare();
         lpGl3.height = squareSize;
         lpGl3.width = squareSize;
         layout2.setLayoutParams(lpGl3);
+        final TextView name2 = (TextView) view3.findViewById(R.id.name);
+        final TextView category2 = (TextView) view3.findViewById(R.id.category);
+
+        final Handler handler2 = new Handler();
+        final int[] count2= {1};
+        handler2.post(new Runnable() {
+            @Override
+            public void run() {
+
+
+                YoYo.with(Techniques.FadeOutLeft)
+                        .duration(700)
+                        .playOn(name2);
+                YoYo.with(Techniques.FadeInRight)
+                        .duration(700)
+                        .playOn(category2);
+
+                if(count2[0] %2==0)  { //trigger on alternate counts }
+                    YoYo.with(Techniques.FadeInRight)
+                            .duration(700)
+                            .playOn(name2);
+                    YoYo.with(Techniques.FadeOutLeft)
+                            .duration(700)
+                            .playOn(category2);
+
+                }
+                count2[0]++;
+                handler2.postDelayed(this,5000);
+            }
+        });
+
 
         layout2.addView(view3);
         img = (ImageView) view3.findViewById(R.id.imageView);
@@ -564,8 +661,74 @@ drawBikeShare();
 
         caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
     }
+    public void getContacts_v2(){
 
+
+        HashMap<String, String> contactsMap= new HashMap<String, String>();
+        String[] projection= {
+                ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
+                ContactsContract.Contacts.PHOTO_URI,
+                ContactsContract.Contacts.TIMES_CONTACTED,
+                ContactsContract.Contacts.LAST_TIME_CONTACTED,
+                ContactsContract.Contacts.STARRED};
+
+        Cursor cursor = getActivity().getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projection, null ,null, ContactsContract.Contacts.TIMES_CONTACTED+" desc LIMIT 6"  );
+        cursor.moveToFirst();
+
+
+        if( cursor.getCount() > 0 ) {
+            while( cursor.moveToNext() ) {
+                String id = cursor.getString(
+                        cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                String displayName = cursor.getString(cursor.getColumnIndex(projection[1]));
+                String uriPhoto = cursor.getString(cursor.getColumnIndex(projection[2]));
+                String timesContacted = cursor.getString(cursor.getColumnIndex(projection[3]));
+                String lastTimeContacted = cursor.getString(cursor.getColumnIndex(projection[4]));
+                String starred = cursor.getString(cursor.getColumnIndex(projection[5]));
+
+
+                Cursor pCur =  getActivity().getContentResolver().query(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                        null,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",
+                        new String[]{id}, null);
+                while (pCur.moveToNext()) {
+                    String phoneNo = pCur.getString(pCur.getColumnIndex(
+                            ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER ));
+                    Log.d(MainActivity.TAG, "Luan-getContacts_v2: "+phoneNo+","+timesContacted+","+lastTimeContacted+","+starred+","+uriPhoto);
+
+
+                    if (!contactsMap.containsKey(phoneNo)) {
+                        contactsMap.put(phoneNo, id);
+                        contactList.add(new ContactItem(id, displayName, phoneNo,null, uriPhoto));
+                    }
+
+                }
+                pCur.close();
+
+            }
+            cursor.close();
+            contactRecyclerView = (RecyclerView) view.findViewById(R.id.contactList);
+            // Set the adapter
+            if (contactRecyclerView instanceof RecyclerView) {
+                Context context = view.getContext();
+
+                contactRecyclerView.setItemAnimator(new SlideInLeftAnimator());
+                contactRecyclerView.setLayoutManager(new GridLayoutManager(context, 3));
+
+                contactRecyclerViewAdapter= new ContactRecyclerViewAdapter(contactList, onContactListListerner);
+                AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(contactRecyclerViewAdapter);
+                contactRecyclerView.setAdapter(alphaInAnimationAdapter);
+
+            }
+        }
+
+    }
     public void getContacts(){
+
+        getContacts_v2();
+
         ArrayList<String> conversation = new ArrayList<>();
 
 
@@ -647,7 +810,29 @@ drawBikeShare();
 
         cursor.close();
     }
+    public void getPlaces_v2(Location loc){
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", String.valueOf(6));
+        fillPlacesList(loc, params);
+    }
+    public void fillPlacesList(Location loc, Map<String, String> params) {
+        MainActivity caller = (MainActivity) getActivity();
+        Places places = new Places(getActivity());
+        places.setYelpListener(new Places.YelpListener() {
+            @Override
+            public void OnGetSearch(ArrayList<Business> businesses, View view) {
+                placesRecyclerViewAdapter.notifyDataSetChanged();
+            }
 
+            @Override
+            public void OnGetBusiness(Activity caller, Business business) {
+
+            }
+        });
+        places.searchNearby(loc.getLatitude(), loc.getLongitude(), params, null);
+
+
+    }
     public static boolean isInteger(String str) {
         try
         {
@@ -676,29 +861,22 @@ drawBikeShare();
         super.onDetach();
 
         mListener = null;
-        getActivity().unregisterReceiver(locationReceiver);
+        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
     }
+
+
     public interface OnDashFragmentInteractionListener {
         // TODO: Update argument type and name
         void onDashFragmentInteraction(Map<String, String> param);
         void onDashFragmentInteraction(Uri uri);
     }
+
     /**** The mapfragment's id must be removed from the FragmentManager
      **** or else if the same it is passed on the next time then
      **** app will crash ****/
     @Override
     public void onDestroyView() {
-        try{
-            SupportMapFragment f = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.map);
-            if (f != null){
-                getChildFragmentManager().beginTransaction().remove(f).commit();
 
-                mMap=null;
-            }
-            getActivity().unregisterReceiver(locationReceiver);
-
-        }catch(Exception e){
-        }
         super.onDestroyView();
     }
 }

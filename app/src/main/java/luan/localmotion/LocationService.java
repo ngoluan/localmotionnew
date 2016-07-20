@@ -89,7 +89,7 @@ public class LocationService extends Service implements LocationListener,GoogleA
         intent.putExtra("lat", location.getLatitude());
         intent.putExtra("lng", location.getLongitude());
         intent.putExtra("provider", location.getProvider());
-        sendBroadcast(intent);
+        //sendBroadcast(intent);
         intent.setClass(this, LocationReceiver.class);
         mLocalBroadcastManager.sendBroadcast(intent);
 

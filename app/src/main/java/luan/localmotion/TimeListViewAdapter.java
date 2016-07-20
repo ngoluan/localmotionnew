@@ -1,7 +1,6 @@
 package luan.localmotion;
 
 import android.content.Context;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,13 +14,13 @@ import java.util.List;
 /**
  * Created by luann on 2016-07-07.
  */
-public class CustomAdapter extends ArrayAdapter<String> {
+public class TimeListViewAdapter extends ArrayAdapter<String> {
     public SparseBooleanArray mSelectedItemsIds;
     private LayoutInflater inflater;
     private Context mContext;
     public List<String> list;
 
-    public CustomAdapter (Context context, int resourceId, List<String> list) {
+    public TimeListViewAdapter(Context context, int resourceId, List<String> list) {
         super(context, resourceId, list);
         mSelectedItemsIds = new SparseBooleanArray();
         mContext = context;
@@ -37,7 +36,7 @@ public class CustomAdapter extends ArrayAdapter<String> {
         final ViewHolder holder;
         if (view == null) {
             holder = new ViewHolder();
-            view = inflater.inflate(R.layout.custom_textview, null);
+            view = inflater.inflate(R.layout.view_time, null);
             holder.itemName = (TextView) view.findViewById(R.id.custom_tv);
 
             view.setTag(holder);

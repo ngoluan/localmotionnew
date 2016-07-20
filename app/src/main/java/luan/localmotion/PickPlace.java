@@ -14,6 +14,9 @@ public class PickPlace extends AppCompatActivity implements OnFragmentInteractio
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_get_places);
+        PlacesFragment placesFragment = (PlacesFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.placesActivityFragment);
+        placesFragment.fragmentBecameVisible();
     }
 
     @Override

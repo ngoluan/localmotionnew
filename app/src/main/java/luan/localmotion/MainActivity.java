@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.app.Fragment;
@@ -21,6 +22,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
@@ -33,26 +36,26 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.uber.sdk.android.core.UberSdk;
+import com.uber.sdk.core.auth.Scope;
+import com.uber.sdk.rides.client.SessionConfiguration;
 
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.PlacesItem;
-import me.everything.providers.android.calendar.Calendar;
-import me.everything.providers.android.calendar.CalendarProvider;
-import me.everything.providers.android.contacts.Contact;
-import me.everything.providers.android.contacts.ContactsProvider;
+
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener,
         OnFragmentInteractionListener,
         DashFragment.OnDashFragmentInteractionListener,
-        MapFragment.OnMapInteractionListener {
+        MapFragment.OnMapInteractionListener
+        , OnContactListListener, View.OnClickListener {
     //FOR location
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
@@ -65,7 +68,8 @@ public class MainActivity extends AppCompatActivity implements
     protected GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
     public Location mCurrentLocation;
-
+    private DrawerLayout mDrawerLayout;
+    private RelativeLayout drawer;
     /**
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
@@ -98,7 +102,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer= (RelativeLayout) findViewById(R.id.drawer);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -106,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
+        mViewPager.addOnPageChangeListener(onPageChangeListener);
 
         setBottomBar();
 
@@ -140,19 +145,50 @@ public class MainActivity extends AppCompatActivity implements
         AppEventsLogger.activateApp(this);
         SharedPreferences prefs = this.getSharedPreferences(
                 "luan.localmotion", Context.MODE_PRIVATE);
-        if(prefs.getString("lastLat","").equals("")){
-            prefs.edit().putString("lastLat","43.6532").apply();
+        if (prefs.getString("lastLat", "").equals("")) {
+            prefs.edit().putString("lastLat", "43.6532").apply();
             prefs.edit().putString("lastLng", "-79.3832").apply();
             prefs.edit().putString("lastProvider", "provider").apply();
         }
         Utils.serverUserCheckIn(FirebaseInstanceId.getInstance().getToken(), getApplicationContext());
 
-/*        Category restaurants = new Category();
-        restaurants.name = "Restaurants";
-        restaurants.save();*/
+        SessionConfiguration config = new SessionConfiguration.Builder()
+                .setClientId("AGHkbAzvvw5i0dxzJw75Tdv2ZA8iN6L0") //This is necessary
+                .setRedirectUri("YOUR_REDIRECT_URI") //This is necessary if you'll be using implicit grant
+                .setEnvironment(SessionConfiguration.Environment.SANDBOX) //Useful for testing your app in the sandbox environment
+                .setScopes(Arrays.asList(Scope.PROFILE, Scope.RIDE_WIDGETS)) //Your scopes for authentication here
+                .build();
+
+//This is a convenience method and will set the default config to be used in other components without passing it directly.
+        UberSdk.initialize(config);
     }
 
+    ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
+        int lastPosition;
 
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            YourFragmentInterface fragmentIn = (YourFragmentInterface) mSectionsPagerAdapter.instantiateItem(mViewPager, position);
+            if (fragmentIn != null) {
+                fragmentIn.fragmentBecameVisible();
+            }
+            YourFragmentInterface fragmentOut = (YourFragmentInterface) mSectionsPagerAdapter.instantiateItem(mViewPager, lastPosition);
+            if (fragmentOut != null) {
+                fragmentOut.fragmentBecameInvisible();
+            }
+            lastPosition = position;
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+    };
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
 
@@ -179,6 +215,8 @@ public class MainActivity extends AppCompatActivity implements
             }
             //updateUI();
         }
+
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -325,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             SharedPreferences prefs = this.getSharedPreferences(
                     "luan.localmotion", Context.MODE_PRIVATE);
-            Log.d(TAG,"Putting location shared preferences"+mCurrentLocation.toString());
+            Log.d(TAG, "Putting location shared preferences" + mCurrentLocation.toString());
             prefs.edit().putString("lastLat", String.valueOf(mCurrentLocation.getLatitude())).apply();
             prefs.edit().putString("lastLng", String.valueOf(mCurrentLocation.getLongitude())).apply();
             prefs.edit().putString("lastProvider", String.valueOf(mCurrentLocation.getProvider())).apply();
@@ -349,6 +387,8 @@ public class MainActivity extends AppCompatActivity implements
         if (mRequestingLocationUpdates) {
             startLocationUpdates();
         }
+
+
     }
 
     @Override
@@ -391,33 +431,37 @@ public class MainActivity extends AppCompatActivity implements
         savedInstanceState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mRequestingLocationUpdates);
         savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
         savedInstanceState.putString(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
-        super.onSaveInstanceState(savedInstanceState);
+        try {
+            super.onSaveInstanceState(savedInstanceState);
+        } catch (IllegalStateException e) {
+            Log.d(MainActivity.TAG, "Luan-onSaveInstanceState: " + e.toString());
+        }
+
     }
 
     @Override
     public void onContactFragmentInteraction(String TAG, ContactItem item) {
         Toast.makeText(MainActivity.this, item.toString(), Toast.LENGTH_SHORT).show();
     }
+
     @Override
     public void OnPlacesFragmentListener(String TAG, PlacesItem item) {
 
     }
 
 
-
     @Override
     public void onDashFragmentInteraction(Map<String, String> param) {
         Intent scheduleIntent = new Intent(this, ScheduleActvity2.class);
-        Log.d(MainActivity.TAG, "onDashFragmentInteraction: "  +param.get("type"));
-        scheduleIntent.putExtra("type",param.get("type"));
-        if(param.get("type").equals("contact")){
+        Log.d(MainActivity.TAG, "onDashFragmentInteraction: " + param.get("type"));
+        scheduleIntent.putExtra("type", param.get("type"));
+        if (param.get("type").equals("contact")) {
             scheduleIntent.putExtra("contactPhone", param.get("contactPhone"));
-        }
-        else if(param.get("type").equals("place")){
+        } else if (param.get("type").equals("place")) {
             scheduleIntent.putExtra("placeId", param.get("placeId"));
         }
-        scheduleIntent.putExtra("lat",String.valueOf(mCurrentLocation.getLatitude()));
-        scheduleIntent.putExtra("lng",String.valueOf(mCurrentLocation.getLongitude()));
+        scheduleIntent.putExtra("lat", String.valueOf(mCurrentLocation.getLatitude()));
+        scheduleIntent.putExtra("lng", String.valueOf(mCurrentLocation.getLongitude()));
         startActivity(scheduleIntent);
     }
 
@@ -430,7 +474,7 @@ public class MainActivity extends AppCompatActivity implements
         AHBottomNavigation bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
 
 // Create items
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Dash", R.drawable.dashicon,getResources().getColor(R.color.colorPrimary));
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Dash", R.drawable.dashicon, getResources().getColor(R.color.colorPrimary));
         AHBottomNavigationItem item2 = new AHBottomNavigationItem("Friends", R.drawable.friendsicon, getResources().getColor(R.color.colorSecondary));
         AHBottomNavigationItem item3 = new AHBottomNavigationItem("Places", R.drawable.placesicon, getResources().getColor(R.color.colorTertiary));
         AHBottomNavigationItem item4 = new AHBottomNavigationItem("More", R.drawable.ic_more_horiz_white_48dp, getResources().getColor(R.color.colorAccent));
@@ -476,8 +520,9 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onTabSelected(int position, boolean wasSelected) {
                 Log.d(MainActivity.TAG, "onTabSelected: " + position);
-                if(position==3){
-                    openOptionsMenu();
+                if (position == 3)
+                {
+                    mDrawerLayout.openDrawer(drawer);
                     return;
                 }
                 mViewPager.setCurrentItem(position);
@@ -488,6 +533,16 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void OnContactClickListener(String TAG, ContactItem item) {
+
+    }
+
+    @Override
+    public void onClick(View v) {
 
     }
 
@@ -504,6 +559,7 @@ public class MainActivity extends AppCompatActivity implements
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
+            Log.d(MainActivity.TAG, "Luan-getItem: " + position);
             switch (position) {
                 case 0: // Fragment # 0 - This will show FirstFragment
                     return DashFragment.newInstance("0", "Page # 1");
@@ -512,10 +568,10 @@ public class MainActivity extends AppCompatActivity implements
                     return ContactFragment.newInstance(3);
                 case 2:
 
-                    return PlacesFragment.newInstance(3 );
+                    return PlacesFragment.newInstance(3);
                 case 3:
 
-                    return MapFragment.newInstance("test","test");
+                    return MapFragment.newInstance("test", "test");
                 default:
                     return DashFragment.newInstance("0", "Page # 1");
             }

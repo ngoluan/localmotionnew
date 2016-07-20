@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -20,19 +19,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.Spinner;
 
-import com.github.aakira.expandablelayout.ExpandableLinearLayout;
-import com.google.android.gms.maps.CameraUpdate;
+import com.github.aakira.expandablelayout.*;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.ui.IconGenerator;
+import com.squareup.picasso.Picasso;
 import com.yelp.clientlib.entities.Business;
 
 import org.json.JSONArray;
@@ -58,7 +60,7 @@ import okhttp3.Response;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class PlacesFragment extends Fragment implements OnMapReadyCallback {
+public class PlacesFragment extends Fragment implements OnMapReadyCallback,YourFragmentInterface {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -79,6 +81,12 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
     Places places;
     Location mCurrentLocation=null;
     ArrayList<Marker> markers;
+    GridLayoutManager mLayoutManager;
+
+    String category_filter="";
+    String term="";
+
+    CustomMapView mapFragment;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -115,23 +123,16 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             mCurrentLocation.setLatitude(intent.getExtras().getDouble("lat"));
         }
     };
-//test
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_places_list, container, false);
 
-        if(mCurrentLocation==null){
-
-            SharedPreferences prefs = getActivity().getSharedPreferences(
-                    "luan.localmotion", Context.MODE_PRIVATE);
-            mCurrentLocation=new Location(prefs.getString("lastProvider",""));
-            mCurrentLocation.setLongitude(Double.valueOf(prefs.getString("lastLng","")));
-            mCurrentLocation.setLatitude(Double.valueOf(prefs.getString("lastLat","")));
-        }
         markers=new ArrayList<Marker>();
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
-        final GridLayoutManager mLayoutManager;
+
+        mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.placesMap);
+
         // Set the adapter
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
@@ -144,16 +145,8 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
                 mLayoutManager = new GridLayoutManager(getContext(), mColumnCount);
                 recyclerView.setLayoutManager(mLayoutManager);
             }
-            if (mMap == null) {
-                CustomMapView mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(this);
-                mapFragment.setListener(new CustomMapView.OnTouchListener() {
-                    @Override
-                    public void onTouch() {
-                    }
-                });
-            }
-            places = new Places(getActivity());
+
+
 
             recycleViewAdapter = new PlacesRecyclerViewAdapter(placesItems, mListener, getActivity());
             AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(recycleViewAdapter);
@@ -161,7 +154,23 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
 
 
             recyclerView.addOnScrollListener(new EndlessOnScrollListener(mLayoutManager) {
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
 
+                    if (!recyclerView.canScrollVertically(1)) {
+                        onScrolledToEnd();
+                    }
+
+                }
+
+
+                public void onScrollStateChanged(RecyclerView recyclerView, int newState){
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        Log.i("a", "scrolling stopped...");
+                        mapShownBusinesses(placesItems);
+                    }
+                }
                 @Override
                 public void onScrolledToEnd() {
                     if (!loading) {
@@ -178,15 +187,30 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
 
         }
         getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
-        expandableLayout
-                = (ExpandableLinearLayout) view.findViewById(R.id.expandableLayout);
+        expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayout);
 
-        SearchView search = (SearchView) view.findViewById(R.id.searchView);
+        final SearchView search = (SearchView) view.findViewById(R.id.searchView);
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 expandableLayout.expand();
+            }
+        });
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if(!search.getQuery().toString().equals("")){
+                    term=search.getQuery().toString();
+                }
+                placesItems.clear();
+                fillPlacesFragment(null);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
             }
         });
 
@@ -195,45 +219,98 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onClick(View v) {
                 expandableLayout.collapse();
+                Spinner categorySpinner = (Spinner) view.findViewById(R.id.categorySpinner);
 
+                Map<String, String> params = new HashMap<>();
+                params.put("limit", String.valueOf(numberofItems));
+                params.put("offset", String.valueOf(offset));
+                if(!categorySpinner.getSelectedItem().toString().equals("All")){
+                    int pos=categorySpinner.getSelectedItemPosition();
+                    category_filter = yelpCategoryItems.get(pos).alias;
+                }
+                if(!search.getQuery().toString().equals("")){
+                    term=search.getQuery().toString();
+                }
+                placesItems.clear();
+                fillPlacesFragment(null);
             }
         });
-
+        final ImageView expandMapButton = (ImageView) view.findViewById(R.id.expandMapButton);
+        expandMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ExpandableLinearLayout expandableMapLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayoutMap);
+                expandableMapLayout.toggle();
+                if(expandableMapLayout.isExpanded()==true){
+                    Picasso.with(getContext()).load(R.drawable.downicon)
+                            .into(expandMapButton);
+                }
+                else{
+                    Picasso.with(getContext()).load(R.drawable.upicon)
+                            .into(expandMapButton);
+                }
+            }
+        });
 
         return view;
     }
 
     public void getPlaces() {
+
+        LatLng loc=null;
+        if(mCurrentLocation==null){
+            mCurrentLocation= Utils.getLocationFromHistory(getContext());
+            loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+
+        }
+
+        Log.d(MainActivity.TAG,"Place location"+mCurrentLocation.toString());
+        if(places==null){
+            places = new Places(getActivity());
+        }
+        fillPlacesFragment(loc);
+    }
+
+    public void fillPlacesFragment(LatLng loc) {
         Map<String, String> params = new HashMap<>();
         params.put("limit", String.valueOf(numberofItems));
         params.put("offset", String.valueOf(offset));
+        params.put("category_filter", category_filter);
+        params.put("term", term);
 
-        Log.d(MainActivity.TAG,"Place location"+mCurrentLocation.toString());
-        fillPlacesFragment(mCurrentLocation, params);
-    }
+        Log.d(MainActivity.TAG, "Luan-fillPlacesFragment: "+params.toString());
+        if(loc==null){
+            mCurrentLocation= Utils.getLocationFromHistory(getContext());
+            loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        }
 
-    public void fillPlacesFragment(Location loc, Map<String, String> params) {
         places.setYelpListener(new Places.YelpListener() {
             @Override
             public void OnGetSearch(ArrayList<Business> businesses, View view) {
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-                builder.include(loc);
+                int i=0;
                 for (Business business :
                         businesses) {
-                    placesItems.add(new PlacesItem(business.id(), business.name(), business.categories().get(0).name(), business.imageUrl()));
-                    LatLng placeLoc = new LatLng(business.location().coordinate().latitude(),business.location().coordinate().longitude());
+                    Log.d(MainActivity.TAG, "Luan-OnGetSearch: "+(i%4));
+                    placesItems.add(new PlacesItem(
+                            business.id(),
+                            business.name(),
+                            business.categories().get(0).name(),
+                            business.imageUrl(),
+                            business.location().coordinate().latitude(),
+                            business.location().coordinate().longitude()));
+/*                    LatLng placeLoc = new LatLng(business.location().coordinate().latitude(),business.location().coordinate().longitude());
+
                     markers.add(mMap.addMarker(new MarkerOptions()
                             .title(business.categories().get(0).name())
-                            .position(placeLoc)));
-                    builder.include(placeLoc);
+                            .position(placeLoc)));*/
+                    i++;
                 }
 
                 recycleViewAdapter.notifyDataSetChanged();
 
 
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
-                mMap.moveCamera(cameraUpdate);
+
+                mapShownBusinesses(placesItems);
 
 
             }
@@ -243,11 +320,43 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
 
             }
         });
-        places.searchNearby(loc.getLatitude(), loc.getLongitude(), params, null);
+        places.searchNearby(loc.latitude, loc.longitude, params, null);
 
 
     }
+    public void mapShownBusinesses(ArrayList<PlacesItem> places){
+        int first = mLayoutManager.findFirstVisibleItemPosition();
+        int last = mLayoutManager.findLastVisibleItemPosition();
+        if(mMap!=null)
+            mMap.clear();
 
+        markers.clear();
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        builder.include(loc);
+
+        IconGenerator iconFactory = new IconGenerator(getContext());
+        for (int i = first; i < last; i++) {
+
+
+            PlacesItem place = places.get(i);
+            LatLng placeLoc = new LatLng(place.lat,place.lng);
+
+            MarkerOptions markerOptions = new MarkerOptions().
+                    icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(String.valueOf(i)))).
+                    position(placeLoc).
+                    anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+
+            markers.add(mMap.addMarker(markerOptions));
+            /*markers.add(mMap.addMarker(new MarkerOptions()
+                    .title(place.name)
+                    .position(placeLoc)))*/;
+            builder.include(placeLoc);
+
+        }
+        //CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
+        //mMap.moveCamera(cameraUpdate);
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -264,37 +373,34 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        getActivity().unregisterReceiver(locationReceiver);
+        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        try{
-            Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
-            if (f != null) {
-                getFragmentManager().beginTransaction().remove(f).commit();
+        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
 
-                mMap = null;
-            }
-        }
-        catch (RuntimeException e){
-            
-        }
-
-
-        getActivity().unregisterReceiver(locationReceiver);
     }
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
 
-        if (isVisibleToUser) {
+        /*if (isVisibleToUser) {
+            if (mMap == null) {
+
+                mapFragment.getMapAsync(this);
+                mapFragment.setListener(new CustomMapView.OnTouchListener() {
+                    @Override
+                    public void onTouch() {
+                    }
+                });
+            }
             getPlaces();
             getYelpCategories();
         }
         else
-            Log.d("MyFragment", "Fragment is not visible.");
+            Log.d("MyFragment", "Fragment is not visible.");*/
     }
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -309,11 +415,24 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        if(mCurrentLocation==null){
+            mCurrentLocation= Utils.getLocationFromHistory(getContext());
+        }
         LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 16));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 14));
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
+
+        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                //cameraPosition.target.latitude
+                placesItems.clear();
+                fillPlacesFragment(cameraPosition.target);
+            }
+        });
     }
+
     public void getYelpCategories(){
         new AsyncTask<Void, Void, String>() {
 
@@ -352,7 +471,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
                 JSONObject category;
                 ArrayList<JSONObject> categoryArr = null;
                 yelpCategoryItems = new ArrayList<YelpCategoryItem>();
-
+                yelpCategoryItems.add(new YelpCategoryItem("All",new JSONArray(),"All"));
                 try {
                     categories =  new JSONArray(msg);
                     for (int i = 0; i < categories.length(); i++) {
@@ -384,6 +503,39 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback {
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(dataAdapter);
     }
+
+    @Override
+    public void fragmentBecameVisible() {
+        if (mMap == null) {
+
+            mapFragment.getMapAsync(this);
+            mapFragment.setListener(new CustomMapView.OnTouchListener() {
+                @Override
+                public void onTouch() {
+                }
+            });
+        }
+        getPlaces();
+        getYelpCategories();
+    }
+
+    @Override
+    public void fragmentBecameInvisible() {
+        try{
+            Fragment f = getChildFragmentManager().findFragmentById(R.id.placesMap);
+            if (f != null) {
+                getFragmentManager().beginTransaction().remove(f).commit();
+
+                mMap = null;
+            }
+        }
+        catch (RuntimeException e){
+
+        }
+
+
+        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
+    }
 }
 
 class YelpCategoryItem {
@@ -407,16 +559,9 @@ abstract class EndlessOnScrollListener extends RecyclerView.OnScrollListener {
     public EndlessOnScrollListener(GridLayoutManager sglm) {
         this.lm = sglm;
     }
-
-    @Override
-    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        super.onScrolled(recyclerView, dx, dy);
-
-        if (!recyclerView.canScrollVertically(1)) {
-            onScrolledToEnd();
-        }
-    }
-
+    public void onScrollStateChanged(RecyclerView recyclerView, int newState){}
     public abstract void onScrolledToEnd();
+
+
 }
 

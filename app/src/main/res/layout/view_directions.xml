@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="1dp"
+    android:background="@color/colorAccent">
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Route"
+            android:id="@+id/typeView"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="10dp"
+            android:layout_gravity="top|center_horizontal"
+            style="@style/SmallTitle" />
+
+
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:id="@+id/imgView"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/busicon"
+            android:layout_weight="1"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Mins"
+            android:id="@+id/etaView"
+            android:layout_gravity="bottom|center_horizontal"
+            android:textSize="10dp"
+            style="@style/SmallTitle"  />
+    </LinearLayout>
+
+
+
+</RelativeLayout>

@@ -27,6 +27,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -44,7 +45,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // If the application is in the foreground handle both data and notification messages here.
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
-        sendNotification(remoteMessage.getData());
+        if (!Utils.isAppIsInBackground(getApplicationContext())) {
+            Map<String,String> data=remoteMessage.getData();
+            // app is in foreground, broadcast the push message
+            Intent pushNotification = new Intent("NEW_MESSAGE");
+            pushNotification.putExtra("message", data.get("message"));
+            pushNotification.putExtra("title", data.get("title"));
+            pushNotification.putExtra("type", data.get("type"));
+            pushNotification.putExtra("place", data.get("place"));
+            pushNotification.putExtra("placeId", data.get("placeId"));
+            pushNotification.putExtra("address", data.get("address"));
+            pushNotification.putExtra("contactName", data.get("contactName"));
+            pushNotification.putExtra("contactPhone", data.get("contactPhone"));
+            pushNotification.putExtra("dateTime", data.get("dateTime"));
+            pushNotification.putExtra("type", data.get("type"));
+            pushNotification.putExtra("type", data.get("type"));
+            pushNotification.setClass(this, LocationReceiver.class);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
+            // play notification sound
+/*            NotificationUtils notificationUtils = new NotificationUtils();
+            notificationUtils.playNotificationSound();*/
+        } else {
+
+            sendNotification(remoteMessage.getData());
+        }
+
+
     }
     // [END receive_message]
 
@@ -54,22 +80,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      *  FCM message body received.
      */
     private void sendNotification(Map<String,String> data) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
-
-        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
 
-        Bitmap image=null;
+        if(data.get("type").equals("event")){
+            sendEventNotification(data);
+        }
+        else if(data.get("type").equals("message")){
+            sendMessageNotification(data);
+        }
+/*        Bitmap image=null;
         String urldisplay = "https://maps.googleapis.com/maps/api/staticmap?center=2+bloor+west+Toronto&markers=2+bloor+west+Toronto&zoom=13.5&size=100x100&key=AIzaSyDanfrkNLdf5vDKb861Z3Et-z2BiLzZPc0";
         try {
             InputStream in = new java.net.URL(urldisplay).openStream();
             image = BitmapFactory.decodeStream(in);
         } catch (Exception e) {
             image = null;
-        }
+        }*/
+
+
+    }
+    public void sendMessageNotification(Map<String,String> data){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ttcinner)
@@ -81,15 +117,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
 
-        if(image!=null){
-/*            notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle()
-                    .bigPicture(image)
-                    .setBigContentTitle(data.get("message"))
-                    .setSummaryText(data.get("message")));*/
-            notificationBuilder.setLargeIcon(image);
-            notificationBuilder.setStyle(new NotificationCompat.BigTextStyle()
-                    .bigText(data.get("message")));
-        }
+
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
+    public void sendEventNotification(Map<String,String> data){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ttcinner)
+                .setContentTitle(data.get("title"))
+                .setContentText(data.get("message"))
+                .setAutoCancel(true)
+                .setPriority(Notification.PRIORITY_HIGH)
+                .setCategory(Notification.CATEGORY_EVENT)
+                .setSound(defaultSoundUri)
+                .setContentIntent(pendingIntent)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                .bigText(data.get("message")));
         //Yes intent
         Intent yesReceive = new Intent();
         yesReceive.setAction("EVENT_INTENT");

@@ -1,19 +1,18 @@
 package luan.localmotion;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,12 +28,12 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.model.Leg;
+import com.akexorcist.googledirection.model.Route;
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -50,16 +49,16 @@ import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.yelp.clientlib.entities.Business;
 
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
+import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 import luan.localmotion.Content.ContactItem;
+import me.everything.providers.android.calendar.CalendarProvider;
 
 
 /**
@@ -101,8 +100,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     MaterialCalendarView calendarView;
     ContactItem contact=null;
 
-    ListView listView;
-    CustomAdapter mAdapter;
+    ListView timeListView;
+    RecyclerView directionsRecyclerView;
+    TimeListViewAdapter mTimeAdapter;
+    DirectionsRecyclerViewAdapter mDirectionsAdapter;
+    private DirectionsRecyclerViewAdapter.OnDirectionsListener onDirectionsListener;
     public ScheduleFragment() {
         // Required empty public constructor
     }
@@ -138,6 +140,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         scheduleActvity2 = (ScheduleActvity2) getActivity();
         this.extras = scheduleActvity2.extras;
         scheduleActvity2.event= new Event();
+        scheduleActvity2.event.uniqueId=String.valueOf(System.currentTimeMillis())+"-"+Utils.getPhoneNumber(getContext());
         if(mCurrentLocation==null){
 
             SharedPreferences prefs =getActivity().getSharedPreferences(
@@ -149,7 +152,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         //mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
         if (mMap == null) {
-            CustomMapView mapFragment = (CustomMapView)  getChildFragmentManager().findFragmentById(R.id.map);
+            CustomMapView mapFragment = (CustomMapView)  getChildFragmentManager().findFragmentById(R.id.placesMap);
             mapFragment.getMapAsync(this);
             mapFragment.setListener(new CustomMapView.OnTouchListener() {
                 @Override
@@ -238,6 +241,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                 scheduleActvity2.event.endTime = endTime;
                 scheduleActvity2.event.title=title;
                 scheduleActvity2.eventId=scheduleActvity2.event.save();
+                Log.d(MainActivity.TAG, "Luan-onClick: "+scheduleActvity2.event.toString());
                 startActivity(intent);
             }
         });
@@ -254,7 +258,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         calendarView.setSelectedDate(today);
 
         setupListview();
-
+        setupDirectionsListview();
 
 
         Category restaurants = new Category();
@@ -267,7 +271,18 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         item.save();
         getAll(restaurants);
         //Log.d(MainActivity.TAG, "Luan-onCreateView: "+getAll(restaurants).get(0));
+        getCalender();
+
         return  view;
+    }
+    public void getCalender(){
+        CalendarProvider calendarProvider = new CalendarProvider(getContext());
+        List<me.everything.providers.android.calendar.Calendar> calendars = calendarProvider.getCalendars().getList();
+        Log.d(MainActivity.TAG, "Luan-getCalender: "+calendars.toString());
+        for (me.everything.providers.android.calendar.Calendar calendar:calendars
+                ) {
+
+        }
     }
     public static List<Event> getAllEvents() {
         return new Select()
@@ -286,7 +301,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         CalendarDay date=  calendarView.getSelectedDate();
         DateFormat FORMATTER = SimpleDateFormat.getDateInstance();
         String dateStr = calendarView.getSelectedDate().getYear()+"-"+(calendarView.getSelectedDate().getMonth()+1)+"-"+calendarView.getSelectedDate().getDay();
-        CustomAdapter adapter = (CustomAdapter) listView.getAdapter();
+        TimeListViewAdapter adapter = (TimeListViewAdapter) timeListView.getAdapter();
         if(firstOrLast.equals("first")){
 
             for (int i = 0; i < adapter.list.size(); i++) {
@@ -318,8 +333,38 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
             selected=false;
         }
     }
+    public class DirectionsObject{
+        String type="";
+        String ETA="";
+        String description="";
+        Direction direction=null;
+        DirectionsObject(String type, String ETA){
+            this.type = type;
+            this.ETA = ETA;
+        }
+    }
+    public void setupDirectionsListview(){
+
+        directionsRecyclerView = (RecyclerView) view.findViewById(R.id.schedulerDirectionsRecyclerView);
+        //ArrayList<TimeObject> timeList = new ArrayList<TimeObject>();
+        ArrayList<DirectionsObject> list = new ArrayList<DirectionsObject>();
+        directionsRecyclerView.setItemAnimator(new SlideInLeftAnimator());
+        directionsRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 4));
+        onDirectionsListener = new DirectionsRecyclerViewAdapter.OnDirectionsListener() {
+            @Override
+            public void OnDirectionsClickListener(DirectionsObject item) {
+
+            }
+        };
+        mDirectionsAdapter = new DirectionsRecyclerViewAdapter(list,onDirectionsListener );
+
+        directionsRecyclerView.setAdapter(mDirectionsAdapter);
+
+
+
+    }
     public void setupListview(){
-        listView = (ListView)view.findViewById(R.id.timeListView);
+        timeListView = (ListView)view.findViewById(R.id.timeListView);
         //ArrayList<TimeObject> timeList = new ArrayList<TimeObject>();
         List<String> list = new ArrayList<String>();
         list.add("12:00 am");
@@ -371,20 +416,20 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
         list.add("11:30 pm");
         list.add("11:00 pm");
 
-        mAdapter = new CustomAdapter(getContext(),R.layout.custom_textview, list);
+        mTimeAdapter = new TimeListViewAdapter(getContext(),R.layout.view_time, list);
 
-        listView.setAdapter(mAdapter);
+        timeListView.setAdapter(mTimeAdapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        timeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //String string = (String) parent.getAdapter().getItem(position);
                 //Toast.makeText(getContext(), string, Toast.LENGTH_SHORT).show();
-                mAdapter.toggleSelection(position);
+                mTimeAdapter.toggleSelection(position);
             }
         });
-        setListViewHeightBasedOnChildren(listView);
-        listView.setOnTouchListener(new View.OnTouchListener() {
+        setListViewHeightBasedOnChildren(timeListView);
+        timeListView.setOnTouchListener(new View.OnTouchListener() {
             // Setting on Touch Listener for handling the touch inside ScrollView
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -393,22 +438,22 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                 return false;
             }
         });
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        timeListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+                timeListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
                 // Capture ListView item click
-                listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+                timeListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
 
                     @Override
                     public void onItemCheckedStateChanged(ActionMode mode,
                                                           int position, long id, boolean checked) {
 
                         // Prints the count of selected Items in title
-                        mode.setTitle(listView.getCheckedItemCount() + " Selected");
+                        mode.setTitle(timeListView.getCheckedItemCount() + " Selected");
 
                         // Toggle the state of item after every click on it
-                        mAdapter.toggleSelection(position);
+                        mTimeAdapter.toggleSelection(position);
                     }
 
                     /**
@@ -419,12 +464,12 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                     @Override
                     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                        /* if (item.getItemId() == R.id.delete){
-                            SparseBooleanArray selected = mAdapter.getSelectedIds();
+                            SparseBooleanArray selected = mTimeAdapter.getSelectedIds();
                             short size = (short)selected.size();
                             for (byte I = 0; I<size; I++){
                                 if (selected.valueAt(I)) {
-                                    String selectedItem = mAdapter.getItem(selected.keyAt(I));
-                                    mAdapter.remove(selectedItem);
+                                    String selectedItem = mTimeAdapter.getItem(selected.keyAt(I));
+                                    mTimeAdapter.remove(selectedItem);
                                 }
                             }
 
@@ -455,7 +500,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
                      */
                     @Override
                     public void onDestroyActionMode(ActionMode mode) {
-                        //  mAdapter.removeSelection();
+                        //  mTimeAdapter.removeSelection();
                     }
 
                     /**
@@ -525,8 +570,9 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     };
 
     public void fillContact(String phoneNumber){
-        scheduleActvity2.event.addPhone(phoneNumber);
+        scheduleActvity2.event.contactsPhone.add(phoneNumber);
         scheduleActvity2.eventId=scheduleActvity2.event.save();
+        Log.d(MainActivity.TAG, "Luan-onClick: "+scheduleActvity2.event.toString());
         contact = scheduleActvity2.contacts.getContactItem(getActivity(),phoneNumber);
 
         TextView nameView = (TextView) view.findViewById(R.id.nameView);
@@ -549,6 +595,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     public void fillYelpPlace(String id){
         scheduleActvity2.event.yelpPlaceId=id;
         scheduleActvity2.eventId=scheduleActvity2.event.save();
+        Log.d(MainActivity.TAG, "Luan-onClick: "+scheduleActvity2.event.toString());
         scheduleActvity2.places.searchBusiness(getActivity(), id);
         scheduleActvity2.places.setYelpListener(new Places.YelpListener() {
             @Override
@@ -579,6 +626,25 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
 // Set the camera to the greatest possible zoom level that includes the
 // bounds
                 mMap.moveCamera(cameraUpdate);
+
+                Utils.OnGetDirections onGetDirections = new Utils.OnGetDirections() {
+                    @Override
+                    public void onGetDirections(Direction direction, String type) {
+                        Route route = direction.getRouteList().get(0);
+                        Leg leg = route.getLegList().get(0);
+
+                        DirectionsObject directionObj = new DirectionsObject(type,leg.getDuration().getText() );
+
+                        mDirectionsAdapter.addItem(mDirectionsAdapter.mValues.size(), directionObj);
+
+                    }
+                };
+
+                Utils.getDirections(null, loc, TransportMode.TRANSIT, getContext(), onGetDirections);
+                Utils.getDirections(null, loc, TransportMode.DRIVING, getContext(), onGetDirections);
+                Utils.getDirections(null, loc, TransportMode.WALKING, getContext(), onGetDirections);
+                Utils.getDirections(null, loc, TransportMode.BICYCLING, getContext(), onGetDirections);
+
             }
         });
     }
@@ -616,7 +682,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Fragment f = getChildFragmentManager().findFragmentById(R.id.map);
+        Fragment f = getChildFragmentManager().findFragmentById(R.id.placesMap);
         if (f != null) {
             getFragmentManager().beginTransaction().remove(f).commit();
 

@@ -1,5 +1,7 @@
 package luan.localmotion;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -105,10 +108,14 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
     public void OnChatFragmentListener(String TAG, Message item) {
 
     }
+
     @Override
-    protected void onNewIntent (Intent intent){
-        Toast.makeText(ScheduleActvity2.this, intent.getExtras().toString(), Toast.LENGTH_SHORT).show();
+    protected void onNewIntent(Intent intent) {
+        Bundle extras = intent.getExtras();
+        Log.d(MainActivity.TAG, "Luan-onNewIntent: "+extras.toString());
     }
+
+
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private final FragmentManager mFragmentManager;
 
@@ -161,5 +168,6 @@ public class ScheduleActvity2 extends AppCompatActivity implements ScheduleFragm
             return null;
         }
     }
+
 }
 

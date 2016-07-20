@@ -2,13 +2,9 @@ package luan.localmotion;
 
 import android.app.Activity;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,7 +19,6 @@ import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 import luan.localmotion.Content.ContactItem;
 import me.everything.providers.android.contacts.Contact;
 import me.everything.providers.android.contacts.ContactsProvider;
-import me.everything.providers.core.Data;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,13 +32,13 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class ContactFragment extends Fragment implements SearchView.OnQueryTextListener{
+public class ContactFragment extends Fragment implements SearchView.OnQueryTextListener, YourFragmentInterface {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
     // TODO: Customize parameters
     private int mColumnCount = 4;
-    private OnFragmentInteractionListener mListener;
+    private OnContactListListener mListener;
     private ArrayList<ContactItem> contacts = new ArrayList<ContactItem>();
     private ArrayList<ContactItem> originalContacts=new ArrayList<ContactItem>();
     ContactRecyclerViewAdapter contactRecyclerViewAdapter;
@@ -118,8 +113,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnContactListListener) {
+            mListener = (OnContactListListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnContactFragmentInteractionListener");
@@ -203,4 +198,13 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         return true;
     }
 
+    @Override
+    public void fragmentBecameVisible() {
+
+    }
+
+    @Override
+    public void fragmentBecameInvisible() {
+
+    }
 }

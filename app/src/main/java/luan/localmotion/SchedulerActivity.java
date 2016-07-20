@@ -1,13 +1,12 @@
 package luan.localmotion;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -63,7 +62,7 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
         }
         mScrollView = (ScrollView) findViewById(R.id.scrollView);
         if (mMap == null) {
-            CustomMapView mapFragment = (CustomMapView) getSupportFragmentManager().findFragmentById(R.id.map);
+            CustomMapView mapFragment = (CustomMapView) getSupportFragmentManager().findFragmentById(R.id.placesMap);
             mapFragment.getMapAsync(this);
             mapFragment.setListener(new CustomMapView.OnTouchListener() {
                 @Override
@@ -145,9 +144,11 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
 // Set the camera to the greatest possible zoom level that includes the
 // bounds
                 mMap.moveCamera(cameraUpdate);
+
             }
         });
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -176,5 +177,28 @@ public class SchedulerActivity extends AppCompatActivity implements OnMapReadyCa
                 fillYelpPlace(data.getStringExtra("placeId"));
             }
         }
+    }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Bundle extras = intent.getExtras();
+        Log.d(MainActivity.TAG, "Luan-onNewIntent: "+extras.toString());
+    }
+    public class MessageReceiver extends BroadcastReceiver {
+        OnReceiveMessage onReceiveMessage;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(MainActivity.TAG, "New Message received:" +intent.toString());
+            if(onReceiveMessage!=null)
+            {
+                Message Message = (Message) intent.getExtras().get("Message");
+                onReceiveMessage.onReceiveMessage(Message);
+            }
+        }
+        public void setListener(OnReceiveMessage listener) {
+            onReceiveMessage= listener;
+        }
+    }
+    interface OnReceiveMessage{
+        void onReceiveMessage(Message Message);
     }
 }

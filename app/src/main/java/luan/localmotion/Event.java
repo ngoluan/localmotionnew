@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "Events")
 public class Event extends Model {
     @Column(name = "PhoneNumber")
-    public String contactsPhone="";
+    public List<String> contactsPhone= new ArrayList<String>();
     @Column(name = "YelpId")
     public String yelpPlaceId="";
     @Column(name = "Title")
@@ -25,18 +25,29 @@ public class Event extends Model {
     Calendar beginTime=null;
     @Column(name = "EndTime")
     Calendar endTime=null;
+    @Column(name = "UniqueId")
+    public String uniqueId="";
     public Event(){}
-    public void addPhone(String phone){
+
+    /*public void addPhone(String phone){
         if(phone.equals(""))
             return;
         List<String> phones = getPhones();
         phones.add(phone);
         UtilListSerializer serializer = new UtilListSerializer();
         contactsPhone = serializer.serialize(phones);
-    }
-    public List<String> getPhones(){
+    }*/
+/*    public List<String> getPhones(){
         UtilListSerializer serializer = new UtilListSerializer();
         List<String> phones = serializer.deserialize(contactsPhone);
         return phones;
+    }    */
+    public String getPhones(){
+        UtilListSerializer serializer = new UtilListSerializer();
+        String phones= serializer.serialize(contactsPhone);
+        return phones;
+    }
+    public String toString(){
+        return "UniqueId="+uniqueId+";"+"yelpPlaceId="+yelpPlaceId+";"+"beginTime="+beginTime+";"+"endTime="+endTime+";"+"contactsPhone="+contactsPhone.toString();
     }
 }

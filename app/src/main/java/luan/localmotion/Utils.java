@@ -1,30 +1,28 @@
 package luan.localmotion;
 
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Bundle;
+import android.os.Build;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
-import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.activeandroid.serializer.TypeSerializer;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.model.Direction;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,9 +58,37 @@ public class Utils {
         }
         catch(Exception ex){}
     }
+    public static String normalizeNumber(String phoneNumber) {
+        if (TextUtils.isEmpty(phoneNumber)) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        int len = phoneNumber.length();
+        for (int i = 0; i < len; i++) {
+            char c = phoneNumber.charAt(i);
+            // Character.digit() supports ASCII and Unicode digits (fullwidth, Arabic-Indic, etc.)
+            int digit = Character.digit(c, 10);
+            if (digit != -1) {
+                sb.append(digit);
+            } else if (sb.length() == 0 && c == '+') {
+                sb.append(c);
+            } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                return normalizeNumber(PhoneNumberUtils.convertKeypadLettersToDigits(phoneNumber));
+            }
+        }
+        return sb.toString();
+    }
+    public static String  getPhoneNumber(Context context){
+        TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
+        String mPhoneNumber = tMgr.getLine1Number();
+        final String normalizePhoneNumber = normalizeNumber(mPhoneNumber);
+        return normalizePhoneNumber;
+    }
     public static void serverUserCheckIn( final String regIDFCM, Context context){
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
-        final String mPhoneNumber = tMgr.getLine1Number();
+        String mPhoneNumber = tMgr.getLine1Number();
+        final String normalizePhoneNumber = normalizeNumber(mPhoneNumber);
         new AsyncTask<Void, Void, String>() {
 
             @Override
@@ -75,15 +101,16 @@ public class Utils {
 
 
 
-                return "";
+                return result;
             }
             public String postData()  {
 
                 try{
                     String url =
-                            "http://www.local-motion.ca/server/users.php?command=checkin";
+                            "http://www.local-motion.ca/server/user.php";
                     RequestBody formBody = new FormBody.Builder()
-                            .add("phoneNumber", mPhoneNumber)
+                            .add("command", "checkin")
+                            .add("phoneNumber", normalizePhoneNumber)
                             .add("regIDFCM", regIDFCM)
                             .build();
                     OkHttpClient client = new OkHttpClient();
@@ -91,18 +118,19 @@ public class Utils {
                             .url(url)
                             .post(formBody)
                             .build();
-
+                    Log.d(MainActivity.TAG, "Luan-checkin: "+url);
                     Response response = client.newCall(request).execute();
                     return response.body().string();
                 }catch(IOException exception){
                     exception.printStackTrace();
+                    Log.d(MainActivity.TAG, "Luan-checkin: "+exception.getMessage());
                     return null;
                 }
 
             }
             @Override
             protected void onPostExecute(String msg) {
-                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+msg);
+                Log.d(MainActivity.TAG, "Luan-checkin: "+msg);
             }
 
 
@@ -123,7 +151,7 @@ public class Utils {
 
 
 
-                return "";
+                return result;
             }
             public String postData()  {
 
@@ -147,14 +175,14 @@ public class Utils {
                     Response response = client.newCall(request).execute();
                     return response.body().string();
                 }catch(IOException exception){
-                    exception.printStackTrace();
+                    Log.d(MainActivity.TAG, "Luan-msg send: "+exception.getMessage());
                     return null;
                 }
 
             }
             @Override
             protected void onPostExecute(String msg) {
-                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+msg);
+                Log.d(MainActivity.TAG, "Luan-msg send: "+msg);
             }
 
 
@@ -167,6 +195,80 @@ public class Utils {
         float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, size, r.getDisplayMetrics());
         return px;
     }
+    public static Location getLocationFromHistory(Context context){
+        Location mCurrentLocation;
+        SharedPreferences prefs = context.getSharedPreferences(
+                "luan.localmotion", Context.MODE_PRIVATE);
+        mCurrentLocation=new Location(prefs.getString("lastProvider",""));
+        mCurrentLocation.setLongitude(Double.valueOf(prefs.getString("lastLng","")));
+        mCurrentLocation.setLatitude(Double.valueOf(prefs.getString("lastLat","")));
+        Log.d(MainActivity.TAG, "Luan-getLocationFromHistory: "+mCurrentLocation.toString());
+        return mCurrentLocation;
+    }
+    public static int getColor(int i, Context context){
+        int color=0;
+        switch (i){
+            case 0: color = context.getResources().getColor(R.color.colorPrimary);
+            case 1: color = context.getResources().getColor(R.color.colorSecondary);
+            case 2: color = context.getResources().getColor(R.color.colorTertiary);
+            case 3: color = context.getResources().getColor(R.color.colorAccent);
+        }
 
+        return color;
+    }
+    public static void getDirections(LatLng from, LatLng to, final String type, Context context, final OnGetDirections mListener){
 
+        if(from==null){
+            Location mCurrentLocation = getLocationFromHistory(context);
+            from = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        }
+        GoogleDirection.withServerKey("AIzaSyDFaWQ80f68t72jnT4QVC3_Q-fiiYprAr4")
+                .from(from)
+                .to(to)
+                .transportMode(type)
+                .execute(new DirectionCallback() {
+                    @Override
+                    public void onDirectionSuccess(Direction direction, String rawBody) {
+                        if(direction.isOK()) {
+                            if (mListener != null)
+                                mListener.onGetDirections(direction, type);
+                        } else {
+                            // Do something
+                        }
+                    }
+
+                    @Override
+                    public void onDirectionFailure(Throwable t) {
+                        // Do something
+                    }
+                });
+    }
+    public static boolean isAppIsInBackground(Context context) {
+        boolean isInBackground = true;
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT_WATCH) {
+            List<ActivityManager.RunningAppProcessInfo> runningProcesses = am.getRunningAppProcesses();
+            for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
+                if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                    for (String activeProcess : processInfo.pkgList) {
+                        if (activeProcess.equals(context.getPackageName())) {
+                            isInBackground = false;
+                        }
+                    }
+                }
+            }
+        } else {
+            List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
+            ComponentName componentInfo = taskInfo.get(0).topActivity;
+            if (componentInfo.getPackageName().equals(context.getPackageName())) {
+                isInBackground = false;
+            }
+        }
+
+        return isInBackground;
+    }
+    public interface OnGetDirections {
+
+        void onGetDirections(Direction direction, String type);
+    }
 }

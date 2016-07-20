@@ -64,134 +64,148 @@ public class NextBus {
                 return result;
             }
 
-            protected void onPostExecute(String input) {
-                JSONObject data;
-                JSONObject route;
-                JSONArray routes;
-                JSONObject prediction;
-                ArrayList<JSONObject> predictionsArr = null;
-                ArrayList<JSONObject> directionsArr = null;
-                ArrayList<String> stopsArr = new ArrayList<String>();
-                ArrayList<String> dirArr = new ArrayList<String>();
-                ArrayList<NextBusDashItem> nextBusItems = new ArrayList<NextBusDashItem>();
-                ArrayList<DashItem> rowItemLocal = new ArrayList<DashItem>();
-                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+input);
-                try {
-                    data = new JSONObject(input);
+            protected void onPostExecute(final String input) {
 
-                    routes = data.getJSONObject("result").getJSONArray("predictions");
 
-                    for (int i = 0; i < routes.length(); i++) {
-                        route = routes.getJSONObject(i);
-                        if (route.has("direction") == true) {
-                            directionsArr = new ArrayList<JSONObject>();
-                            if (route.get("direction") instanceof JSONObject) {
-                                directionsArr.add(route.getJSONObject("direction"));
-                            } else {
-                                JSONArray tempArray = route.getJSONArray("direction");
-                                for (int x = 0; x < tempArray.length(); x++) {
-                                    directionsArr.add(tempArray.getJSONObject(x));
+
+
+
+
+                Runnable runnable = new Runnable() {
+                    public void run() {
+
+                        JSONObject data;
+                        JSONObject route;
+                        JSONArray routes;
+                        JSONObject prediction;
+                        ArrayList<JSONObject> predictionsArr = null;
+                        ArrayList<JSONObject> directionsArr = null;
+                        ArrayList<String> stopsArr = new ArrayList<String>();
+                        ArrayList<String> dirArr = new ArrayList<String>();
+                        ArrayList<NextBusDashItem> nextBusItems = new ArrayList<NextBusDashItem>();
+                        ArrayList<DashItem> rowItemLocal = new ArrayList<DashItem>();
+                        try {
+                            data = new JSONObject(input);
+
+                            routes = data.getJSONObject("result").getJSONArray("predictions");
+
+                            for (int i = 0; i < routes.length(); i++) {
+                                route = routes.getJSONObject(i);
+                                if (route.has("direction") == true) {
+                                    directionsArr = new ArrayList<JSONObject>();
+                                    if (route.get("direction") instanceof JSONObject) {
+                                        directionsArr.add(route.getJSONObject("direction"));
+                                    } else {
+                                        JSONArray tempArray = route.getJSONArray("direction");
+                                        for (int x = 0; x < tempArray.length(); x++) {
+                                            directionsArr.add(tempArray.getJSONObject(x));
+                                        }
+                                    }
+
+                                    for (int j = 0; j < directionsArr.size(); j++) {
+                                        JSONObject direction = directionsArr.get(j);
+                                        if (dirArr.indexOf(direction.getString("title")) != -1) {
+                                            break;
+                                        }
+                                        stopsArr.add(route.getString("stopTitle"));
+                                        dirArr.add(direction.getString("title"));
+
+                                        predictionsArr = new ArrayList<JSONObject>();
+                                        if (direction.get("prediction") instanceof JSONObject) {
+                                            predictionsArr.add(direction.getJSONObject("prediction"));
+                                        } else {
+                                            JSONArray tempArray2 = direction.getJSONArray("prediction");
+                                            for (int x = 0; x < tempArray2.length(); x++) {
+                                                predictionsArr.add(tempArray2.getJSONObject(x));
+                                            }
+                                        }
+
+                                        for (int k = 0; k < predictionsArr.size(); k++) {
+                                            prediction = predictionsArr.get(k);
+
+                                            nextBusItems.add(
+                                                    new NextBusDashItem(
+                                                            route.getString("routeTag"),
+                                                            route.getString("routeTitle"),
+                                                            direction.getString("title"),
+                                                            route.getString("stopTitle"),
+                                                            prediction.getInt("minutes")
+                                                    )
+                                            );
+                                            if (k == 1) {
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
-                            for (int j = 0; j < directionsArr.size(); j++) {
-                                JSONObject direction = directionsArr.get(j);
-                                if (dirArr.indexOf(direction.getString("title")) != -1) {
-                                    break;
-                                }
-                                stopsArr.add(route.getString("stopTitle"));
-                                dirArr.add(direction.getString("title"));
+                            Collections.sort(nextBusItems, new Comparator<NextBusDashItem>() {
+                                @Override
+                                public int compare(NextBusDashItem nextBusItem1, NextBusDashItem nextBusItem2) {
 
-                                predictionsArr = new ArrayList<JSONObject>();
-                                if (direction.get("prediction") instanceof JSONObject) {
-                                    predictionsArr.add(direction.getJSONObject("prediction"));
+                                    return nextBusItem1.routeTag.compareTo(nextBusItem2.routeTag);
+                                }
+                            });
+                            ArrayList<ArrayList<NextBusDashItem>> routesArr = new ArrayList<ArrayList<NextBusDashItem>>();
+                            ArrayList<NextBusDashItem> tempArr = new ArrayList<NextBusDashItem>();
+                            for (int i = 0; i < nextBusItems.size(); i++) {
+                                if (tempArr.size() > 0 && !tempArr.get(tempArr.size() - 1).routeTag.equals(nextBusItems.get(i).routeTag)) {
+                                    Collections.sort(tempArr, new Comparator<NextBusDashItem>() {
+                                        @Override
+                                        public int compare(NextBusDashItem nextBusItem1, NextBusDashItem nextBusItem2) {
+
+                                            return nextBusItem1.eta.compareTo(nextBusItem2.eta);
+                                        }
+                                    });
+                                    routesArr.add(tempArr);
+                                    tempArr = new ArrayList<NextBusDashItem>();
+                                    tempArr.add(nextBusItems.get(i));
+
+
                                 } else {
-                                    JSONArray tempArray2 = direction.getJSONArray("prediction");
-                                    for (int x = 0; x < tempArray2.length(); x++) {
-                                        predictionsArr.add(tempArray2.getJSONObject(x));
-                                    }
+
+                                    tempArr.add(nextBusItems.get(i));
+                                }
+                                if (i == (nextBusItems.size() - 1)) {
+                                    Collections.sort(tempArr, new Comparator<NextBusDashItem>() {
+                                        @Override
+                                        public int compare(NextBusDashItem nextBusItem1, NextBusDashItem nextBusItem2) {
+
+                                            return nextBusItem1.eta.compareTo(nextBusItem2.eta);
+                                        }
+                                    });
+                                    routesArr.add(tempArr);
                                 }
 
-                                for (int k = 0; k < predictionsArr.size(); k++) {
-                                    prediction = predictionsArr.get(k);
-
-                                    nextBusItems.add(
-                                            new NextBusDashItem(
-                                                    route.getString("routeTag"),
-                                                    route.getString("routeTitle"),
-                                                    direction.getString("title"),
-                                                    route.getString("stopTitle"),
-                                                    prediction.getInt("minutes")
-                                            )
-                                    );
-                                    if (k == 1) {
-                                        break;
-                                    }
-                                }
                             }
+
+                            //not needed
+                            for (int i = 0; i < routesArr.size(); i++) {
+                                rowItemLocal.add(
+                                        new DashItem(
+                                                routesArr.get(i).get(0).routeTitle,
+                                                "",
+                                                "",
+                                                "header",
+                                                "",
+                                                ""
+                                        )
+                                );
+
+                            }
+                            if (listener != null)
+                                listener.OnGetPredictions(routesArr);
+                        } catch (JSONException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
                         }
                     }
-
-                    Collections.sort(nextBusItems, new Comparator<NextBusDashItem>() {
-                        @Override
-                        public int compare(NextBusDashItem nextBusItem1, NextBusDashItem nextBusItem2) {
-
-                            return nextBusItem1.routeTag.compareTo(nextBusItem2.routeTag);
-                        }
-                    });
-                    ArrayList<ArrayList<NextBusDashItem>> routesArr = new ArrayList<ArrayList<NextBusDashItem>>();
-                    ArrayList<NextBusDashItem> tempArr = new ArrayList<NextBusDashItem>();
-                    for (int i = 0; i < nextBusItems.size(); i++) {
-                        if (tempArr.size() > 0 && !tempArr.get(tempArr.size() - 1).routeTag.equals(nextBusItems.get(i).routeTag)) {
-                            Collections.sort(tempArr, new Comparator<NextBusDashItem>() {
-                                @Override
-                                public int compare(NextBusDashItem nextBusItem1, NextBusDashItem nextBusItem2) {
-
-                                    return nextBusItem1.eta.compareTo(nextBusItem2.eta);
-                                }
-                            });
-                            routesArr.add(tempArr);
-                            tempArr = new ArrayList<NextBusDashItem>();
-                            tempArr.add(nextBusItems.get(i));
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
 
 
-                        } else {
-
-                            tempArr.add(nextBusItems.get(i));
-                        }
-                        if (i == (nextBusItems.size() - 1)) {
-                            Collections.sort(tempArr, new Comparator<NextBusDashItem>() {
-                                @Override
-                                public int compare(NextBusDashItem nextBusItem1, NextBusDashItem nextBusItem2) {
-
-                                    return nextBusItem1.eta.compareTo(nextBusItem2.eta);
-                                }
-                            });
-                            routesArr.add(tempArr);
-                        }
-
-                    }
-
-                    //not needed
-                    for (int i = 0; i < routesArr.size(); i++) {
-                        rowItemLocal.add(
-                                new DashItem(
-                                        routesArr.get(i).get(0).routeTitle,
-                                        "",
-                                        "",
-                                        "header",
-                                        "",
-                                        ""
-                                )
-                        );
-
-                    }
-                    if (listener != null)
-                        listener.OnGetPredictions(routesArr);
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
             }
 
             public String postData(String email, String service, String lat, String lng) {

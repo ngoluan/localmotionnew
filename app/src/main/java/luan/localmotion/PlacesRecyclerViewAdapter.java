@@ -19,7 +19,7 @@ import luan.localmotion.Content.PlacesItem;
  * TODO: Replace the implementation with code for your data type.
  */
 public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecyclerViewAdapter.ViewHolder> {
-
+    public boolean showCategory = false;
     private final ArrayList<PlacesItem> mValues;
     private final OnFragmentInteractionListener mListener;
     public ImageLoader imageLoader;
@@ -42,7 +42,7 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.nameView.setText(mValues.get(position).name);
+        holder.nameView.setText(position+". "+mValues.get(position).name);
         holder.typeView.setText(mValues.get(position).type);
         //imageLoader.DisplayImage(mValues.get(position).imgUrl, holder.placesImg);
         Picasso.with(activity).load(mValues.get(position).imgUrl)
@@ -79,6 +79,8 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
             nameView = (TextView) view.findViewById(R.id.name);
             typeView = (TextView) view.findViewById(R.id.category);
             placesImg = (ImageView) view.findViewById(R.id.placesImg);
+
+            if(showCategory==false){typeView.setVisibility(View.INVISIBLE);}
         }
 
         @Override

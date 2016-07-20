@@ -1,7 +1,11 @@
 package luan.localmotion;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.sqlite.SQLiteException;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -46,6 +50,12 @@ public class ChatFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
+    BroadcastReceiver messagingReceiver= new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(MainActivity.TAG, "Luan-onReceiveFragment: "+intent.getExtras().toString());
+        }
+    };
     public ChatFragment() {
     }
 
@@ -65,6 +75,7 @@ public class ChatFragment extends Fragment {
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
+        getActivity().registerReceiver(messagingReceiver, new IntentFilter("NEW_MESSAGE"));
     }
 
     @Override
@@ -90,7 +101,7 @@ public class ChatFragment extends Fragment {
 
             //recyclerView.setAdapter(new ChatRecyclerViewAdapter(Messages.ITEMS, mListener));
         }
-
+        getActivity().registerReceiver(messagingReceiver, new IntentFilter("NEW_MESSAGE"));
 
         View sendButtonView= view.findViewById(R.id.sendButton);
         sendButtonView.setOnClickListener(new View.OnClickListener() {
@@ -111,7 +122,7 @@ public class ChatFragment extends Fragment {
 
                 HashMap<String,String> sendData = new HashMap<String, String>();
                 sendData.put("type","message");
-                sendData.put("toPhone",message.event.contactsPhone);
+                sendData.put("toPhone",message.event.getPhones());
                 sendData.put("message",message.message);
                 /*sendData.put("senderName",senderName);*/
                 sendData.put("senderPhone",mPhoneNumber);
@@ -148,7 +159,7 @@ public class ChatFragment extends Fragment {
             ContactsProvider contactsProvider = new ContactsProvider(getContext());
 
             LinearLayout layout=(LinearLayout)view.findViewById(R.id.contactImgList);
-            for (String contactPhone:event.get(0).getPhones()) {
+            for (String contactPhone:event.get(0).contactsPhone) {
                 if(contactPhone.equals(""))
                     continue;
                 Log.d(MainActivity.TAG, "Luan-retrieveContacts: "+contactPhone);
@@ -192,6 +203,7 @@ public class ChatFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        if(messagingReceiver!=null){getActivity().unregisterReceiver(messagingReceiver); messagingReceiver=null;}
     }
 
     /**

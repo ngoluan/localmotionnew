@@ -51,6 +51,7 @@
         <activity
             android:name=".SchedulerActivity"
             android:label="@string/title_activity_schedule_view"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme" />
         <activity android:name=".PickContact" />
         <activity android:name=".PickPlace" />
