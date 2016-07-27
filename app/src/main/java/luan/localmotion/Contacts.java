@@ -9,14 +9,31 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.mikhaellopez.circularimageview.CircularImageView;
+import com.squareup.picasso.Picasso;
+
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import luan.localmotion.Content.ContactItem;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Created by luann on 2016-06-29.
@@ -71,7 +88,7 @@ public class Contacts {
 
         return photo;
     }
-    public ContactItem getContactItem(Context context, String phoneNumber){
+    public static ContactItem getContactItem(Context context, String phoneNumber){
         ContactItem contact=null;
         String contactName = null;
         String contactId=null;
@@ -89,19 +106,7 @@ public class Contacts {
         if(cursor.moveToFirst()) {
             contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup._ID));
             contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-            /*contactPicUri = cursor
-                    .getString(cursor
-                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));*/
-/*
-            if(contactId!=null){
-                inputStream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(), ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, new Long(contactId)));
-            }
 
-
-            if(inputStream!=null){
-                profilePic = BitmapFactory.decodeStream(inputStream);
-            }
-*/
             profilePic=null;
 
             contact=new ContactItem(contactId, contactName,phoneNumber,profilePic, contactPicUri);
@@ -113,6 +118,54 @@ public class Contacts {
 
         return contact;
     }
+    public static void isMember(final ContactItem contactItem, final ContactListener listener  ){
+        new AsyncTask<Void, Void, String>() {
+
+            @Override
+            protected void onPreExecute() {
+            }
+            @Override
+            protected String doInBackground(Void... params) {
+
+                String result = postData();
+
+
+
+                return result;
+            }
+            public String postData()  {
+
+                try{
+                    String url =
+                            "http://www.local-motion.ca/server/user.php";
+                    RequestBody formBody = new FormBody.Builder()
+                            .add("command", "isUser")
+                            .add("phoneNumber", contactItem.phoneNumber)
+                            .build();
+                    OkHttpClient client = new OkHttpClient();
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .post(formBody)
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    return response.body().string();
+                }catch(IOException exception){
+                    exception.printStackTrace();
+                    Log.d(MainActivity.TAG, "Luan-checkin: "+exception.getMessage());
+                    return null;
+                }
+
+            }
+            @Override
+            protected void onPostExecute(String msg) {
+                Log.d(MainActivity.TAG, "Luan-checkin: "+msg);
+                listener.OnReceiveIsMember(contactItem, true);
+            }
+
+
+        }.execute();
+    }
+
     public String getContactName(Context context, String phoneNumber) {
         ContentResolver cr = context.getContentResolver();
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
@@ -147,5 +200,33 @@ public class Contacts {
         contactLookupCursor.close();
 
         return phoneContactID;
+    }
+    public static void fillView(Context context, ContactItem contact, ViewGroup view){
+        Log.d(MainActivity.TAG, "Luan-fillView: "+contact.toString());
+        LayoutInflater layoutInflater  = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View contactView = layoutInflater.inflate(R.layout.fragment_contact, null);
+        contactView.setTag(contact.phoneNumber);
+        float size= Utils.getPixelfromDP(48, view.getContext());
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(Math.round(size), Math.round(size));
+        contactView.setLayoutParams(layoutParams);
+
+        CircularImageView img = (CircularImageView) contactView.findViewById(R.id.profilePic);
+        Picasso.with(context).load(contact.profilePicURI)
+                .error(R.drawable.personicon)
+                .placeholder(R.drawable.personicon)
+                .into(img);
+
+        TextView name = (TextView) contactView.findViewById(R.id.name);
+        name.setText(contact.name);
+        contactView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        view.addView(contactView);
+    }
+    public interface ContactListener {
+        void OnReceiveIsMember(ContactItem contact, Boolean result);
     }
 }

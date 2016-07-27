@@ -6,17 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import luan.localmotion.Message;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class ChatRecyclerViewAdapter extends RecyclerView.Adapter<ChatRecyclerViewAdapter.ViewHolder> {
 
-    private final ArrayList<Message> mValues;
+    private final ArrayList<Chat> mValues;
     private final ChatFragment.OnListFragmentInteractionListener mListener;
 
-    public ChatRecyclerViewAdapter(ArrayList<Message> items, ChatFragment.OnListFragmentInteractionListener listener) {
+    public ChatRecyclerViewAdapter(ArrayList<Chat> items, ChatFragment.OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
@@ -49,12 +46,57 @@ public class ChatRecyclerViewAdapter extends RecyclerView.Adapter<ChatRecyclerVi
     public int getItemCount() {
         return mValues.size();
     }
+    public void removeItem(int position) {
+        mValues.remove(position);
+        notifyItemRemoved(position);
+    }
 
+    public void addItem(int position, Chat item) {
+        mValues.add(position, item);
+        notifyItemInserted(position);
+    }
+
+    public void moveItem(int fromPosition, int toPosition) {
+        final Chat item = mValues.remove(fromPosition);
+        mValues.add(toPosition, item);
+        notifyItemChanged(fromPosition, toPosition);
+    }
+    public void animateTo(ArrayList<Chat> contactItems) {
+        applyAndAnimateRemovals(contactItems);
+        applyAndAnimateAdditions(contactItems);
+        applyAndAnimateMovedItems(contactItems);
+
+    }
+    private void applyAndAnimateRemovals(ArrayList<Chat> newModels) {
+        for (int i = mValues.size() - 1; i >= 0; i--) {
+            final Chat model = mValues.get(i);
+            if (!newModels.contains(model)) {
+                removeItem(i);
+            }
+        }
+    }
+    private void applyAndAnimateAdditions(ArrayList<Chat> newModels) {
+        for (int i = 0, count = newModels.size(); i < count; i++) {
+            final Chat model = newModels.get(i);
+            if (!mValues.contains(model)) {
+                addItem(i, model);
+            }
+        }
+    }
+    private void applyAndAnimateMovedItems(ArrayList<Chat> newModels) {
+        for (int toPosition = newModels.size() - 1; toPosition >= 0; toPosition--) {
+            final Chat model = newModels.get(toPosition);
+            final int fromPosition = mValues.indexOf(model);
+            if (fromPosition >= 0 && fromPosition != toPosition) {
+                moveItem(fromPosition, toPosition);
+            }
+        }
+    }
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         public final TextView mContentView;
         public final TextView nameView;
-        public Message mItem;
+        public Chat mItem;
 
         public ViewHolder(View view) {
             super(view);

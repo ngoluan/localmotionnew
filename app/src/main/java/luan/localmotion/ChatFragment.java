@@ -1,14 +1,11 @@
 package luan.localmotion;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.sqlite.SQLiteException;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,13 +17,11 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.activeandroid.query.Select;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import jp.wasabeef.recyclerview.animators.FadeInRightAnimator;
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 import me.everything.providers.android.contacts.ContactsProvider;
 
 import java.util.ArrayList;
@@ -34,7 +29,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-public class ChatFragment extends Fragment {
+public class ChatFragment extends Fragment implements FragmentInterface {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -42,18 +37,27 @@ public class ChatFragment extends Fragment {
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
     View view;
-    ScheduleActvity2 scheduleActvity2;
-    private ArrayList<Message> messages = new ArrayList<Message>();
+    ScheduleActvity scheduleActvity;
+    private ArrayList<Chat> chats = new ArrayList<Chat>();
     RecyclerView recyclerView;
     ChatRecyclerViewAdapter chatRecyclerViewAdapter;
+    static String TYPE_MESSAGE="chat";
+    static String TYPE_EVENT="calendarEvent";
+    LinearLayoutManager linearLayoutManager;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    BroadcastReceiver messagingReceiver= new BroadcastReceiver() {
+    MessageReceiver messagingReceiver= new MessageReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(MainActivity.TAG, "Luan-onReceiveFragment: "+intent.getExtras().toString());
+            String type = intent.getExtras().getString("type");
+            String id = intent.getExtras().getString("id");
+            Chat chat = Chat.findById(Chat.class,Integer.parseInt(id));
+            chats.add(chat);
+            chatRecyclerViewAdapter.animateTo(chats);
+            linearLayoutManager.scrollToPosition(chats.size());
         }
     };
     public ChatFragment() {
@@ -75,7 +79,8 @@ public class ChatFragment extends Fragment {
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
-        getActivity().registerReceiver(messagingReceiver, new IntentFilter("NEW_MESSAGE"));
+
+        getActivity().registerReceiver(messagingReceiver, new IntentFilter(ChatFragment.TYPE_MESSAGE));
     }
 
     @Override
@@ -85,81 +90,95 @@ public class ChatFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_chat_list, container, false);
         recyclerView = (RecyclerView) view.findViewById(R.id.list);
 
-        scheduleActvity2 = (ScheduleActvity2) getActivity();
+        scheduleActvity = (ScheduleActvity) getActivity();
+
+        if(scheduleActvity.calendarEvent.getId()!=null){
+            List<Chat> chatList = Chat.find(Chat.class, "event_unique_id=?", scheduleActvity.calendarEvent.eventUniqueId.toString());
+            if(chatList!=null) chats.addAll(chatList);
+        }
+
         // Set the adapter
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
             recyclerView.setItemAnimator(new FadeInRightAnimator());
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, 1));
-            }
-            chatRecyclerViewAdapter = new ChatRecyclerViewAdapter(messages, mListener);
+            linearLayoutManager = new LinearLayoutManager(context);
+            linearLayoutManager.setStackFromEnd(true);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            chatRecyclerViewAdapter = new ChatRecyclerViewAdapter(chats, mListener);
             AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(chatRecyclerViewAdapter);
             recyclerView.setAdapter(alphaInAnimationAdapter);
-
+            linearLayoutManager.scrollToPosition(chats.size());
             //recyclerView.setAdapter(new ChatRecyclerViewAdapter(Messages.ITEMS, mListener));
         }
-        getActivity().registerReceiver(messagingReceiver, new IntentFilter("NEW_MESSAGE"));
+
 
         View sendButtonView= view.findViewById(R.id.sendButton);
-        sendButtonView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText messageEditText = (EditText) view.findViewById(R.id.messageEditText);
-                luan.localmotion.Message message = new luan.localmotion.Message();
-                message.message = messageEditText.getText().toString();
-                message.event = scheduleActvity2.event;
-                message.time =  Calendar.getInstance();
-                message.save();
-                messages.add(message);
-                Log.d(MainActivity.TAG, "Luan-onClick size: "+messages.size());
-                //chatRecyclerViewAdapter.notifyDataSetChanged();
-                chatRecyclerViewAdapter.notifyItemInserted(messages.size()-1);
-                TelephonyManager tMgr = (TelephonyManager)  getContext().getSystemService(Context.TELEPHONY_SERVICE);
-                final String mPhoneNumber = tMgr.getLine1Number();
-
-                HashMap<String,String> sendData = new HashMap<String, String>();
-                sendData.put("type","message");
-                sendData.put("toPhone",message.event.getPhones());
-                sendData.put("message",message.message);
-                /*sendData.put("senderName",senderName);*/
-                sendData.put("senderPhone",mPhoneNumber);
-                sendData.put("dateTime",String.valueOf(message.time.getTimeInMillis()));
-                Utils.sendMessage(sendData, getContext());
-            }
-        });
+        sendButtonView.setOnClickListener(onSendButtonClick);
         return view;
     }
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
 
-        if (isVisibleToUser)
-            retrieveContacts();
-        else
-            Log.d("MyFragment", "Fragment is not visible.");
+    android.view.View.OnClickListener onSendButtonClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            EditText messageEditText = (EditText) view.findViewById(R.id.messageEditText);
+            Chat chat = new Chat(
+                    Utils.getPhoneNumber(getContext()),
+                    Calendar.getInstance().getTimeInMillis(),messageEditText.getText().toString(),
+                    scheduleActvity.calendarEvent.eventUniqueId);
+            long chatId= chat.save();
+            Log.d(MainActivity.TAG, "Luan-onClick size: "+ chats.size());
+            //chatRecyclerViewAdapter.notifyDataSetChanged();
+            chatRecyclerViewAdapter.notifyItemInserted(chats.size()-1);
+            TelephonyManager tMgr = (TelephonyManager)  getContext().getSystemService(Context.TELEPHONY_SERVICE);
+            final String mPhoneNumber = tMgr.getLine1Number();
+
+            HashMap<String,String> sendData = new HashMap<String, String>();
+
+            scheduleActvity.calendarEvent.save();
+
+
+            sendData.put("type",TYPE_MESSAGE);
+            sendData.put("contactsPhone",scheduleActvity.calendarEvent.contactsPhone);
+            sendData.put("message",chat.message);
+            sendData.put("senderPhone",chat.senderPhone);
+            sendData.put("dateTime",String.valueOf(chat.dateTime));
+            Utils.sendMessage(sendData, getContext());
+            scheduleActvity.calendarEvent.save();
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getActivity().registerReceiver(messagingReceiver, new IntentFilter(ChatFragment.TYPE_MESSAGE));
+
+    }
+    @Override
+    public void onPause() {
+        // Unregister since the activity is not visible
+        getActivity().unregisterReceiver(messagingReceiver);
+        super.onPause();
     }
     public void retrieveContacts(){
-        ScheduleActvity2 activity = (ScheduleActvity2) getActivity();
+        ScheduleActvity activity = (ScheduleActvity) getActivity();
         long eventId = activity.eventId;
-        if(scheduleActvity2.event==null){
+        if(scheduleActvity.calendarEvent ==null){
             return;
         }
 
         Log.d(MainActivity.TAG, "Luan-retrieveContacts: "+eventId);
-        List<Event> event= new Select()
-                .from(Event.class)
-                .where("id  = ?", scheduleActvity2.event.getId())
+
+/*        List<CalendarEvent> calendarEvent= new Select()
+                .from(CalendarEvent.class)
+                .where("id  = ?", scheduleActvity.calendarEvent.getId())
                 .orderBy("PhoneNumber ASC")
-                .execute();
+                .execute();*/
         try{
 
             ContactsProvider contactsProvider = new ContactsProvider(getContext());
 
             LinearLayout layout=(LinearLayout)view.findViewById(R.id.contactImgList);
-            for (String contactPhone:event.get(0).contactsPhone) {
+            for (String contactPhone:scheduleActvity.calendarEvent.getPhones()) {
                 if(contactPhone.equals(""))
                     continue;
                 Log.d(MainActivity.TAG, "Luan-retrieveContacts: "+contactPhone);
@@ -187,7 +206,23 @@ public class ChatFragment extends Fragment {
 
 
     }
+    @Override
+    public void fragmentBecameVisible() {
+        retrieveContacts();
+        List<Chat> chatList = Chat.find(Chat.class, "event_unique_id=?", scheduleActvity.calendarEvent.eventUniqueId.toString());
+        if(chatList!=null) {
+            chats.clear();
+            chats.addAll(chatList);
+            chatRecyclerViewAdapter.animateTo(chats);
+            linearLayoutManager.scrollToPosition(chats.size());
+        }
+    }
 
+    @Override
+    public void fragmentBecameInvisible() {
+        //if(messagingReceiver!=null){getActivity().unregisterReceiver(messagingReceiver);}
+
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -203,7 +238,7 @@ public class ChatFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        if(messagingReceiver!=null){getActivity().unregisterReceiver(messagingReceiver); messagingReceiver=null;}
+        //if(messagingReceiver!=null){getActivity().unregisterReceiver(messagingReceiver);}
     }
 
     /**
@@ -218,7 +253,7 @@ public class ChatFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(Message item);
-        void OnChatFragmentListener(String TAG, Message item);
+        void onListFragmentInteraction(Chat item);
+        void OnChatFragmentListener(String TAG, Chat item);
     }
 }

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -23,8 +24,8 @@ import com.google.android.gms.location.LocationServices;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class LocationService extends Service implements LocationListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-    LocationServiceListener mListener=null;
+public class LocationService extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    LocationServiceListener mListener = null;
     LocalBroadcastManager mLocalBroadcastManager;
     protected GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
@@ -34,13 +35,22 @@ public class LocationService extends Service implements LocationListener,GoogleA
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
     protected Boolean mRequestingLocationUpdates;
+    private final IBinder mBinder = new LocalBinder();
     // Keys for storing activity state in the Bundle.
     protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
     protected final static String LOCATION_KEY = "location-key";
     protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key";
+
     public LocationService() {
 
     }
+    public class LocalBinder extends Binder {
+        LocationService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return LocationService.this;
+        }
+    }
+
     protected synchronized void buildGoogleApiClient() {
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -50,13 +60,15 @@ public class LocationService extends Service implements LocationListener,GoogleA
                 .build();
         createLocationRequest();
     }
+
     @Override
     public void onCreate() {
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
-        mRequestingLocationUpdates=true;
+        mRequestingLocationUpdates = true;
         buildGoogleApiClient();
         mGoogleApiClient.connect();
     }
+
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
 
@@ -72,11 +84,12 @@ public class LocationService extends Service implements LocationListener,GoogleA
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
     }
+
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return mBinder;
     }
+
 
     @Override
     public void onLocationChanged(Location location) {
@@ -102,8 +115,19 @@ public class LocationService extends Service implements LocationListener,GoogleA
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mListener != null)
-            mListener.OnConnected(bundle);
+            mListener.OnConnected(bundle,mCurrentLocation);
         if (mRequestingLocationUpdates) {
             startLocationUpdates();
         }
@@ -153,6 +177,6 @@ public class LocationService extends Service implements LocationListener,GoogleA
     }
 }
 interface LocationServiceListener {
-    public void OnConnected(@Nullable Bundle bundle);
+    public void OnConnected(@Nullable Bundle bundle, Location location);
     public void onLocationChanged(Location location);
 }

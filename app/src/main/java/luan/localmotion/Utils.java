@@ -1,18 +1,22 @@
 package luan.localmotion;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Point;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
@@ -77,7 +81,10 @@ public class Utils {
                 return normalizeNumber(PhoneNumberUtils.convertKeypadLettersToDigits(phoneNumber));
             }
         }
-        return sb.toString();
+        String number = sb.toString();
+        number=number.replace("+","");
+        number=number.replace("+","");
+        return number;
     }
     public static String  getPhoneNumber(Context context){
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -89,6 +96,11 @@ public class Utils {
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
         String mPhoneNumber = tMgr.getLine1Number();
         final String normalizePhoneNumber = normalizeNumber(mPhoneNumber);
+
+        //Used in case regIDFCM not available, like during first installation.
+        if(regIDFCM==null){
+            return;
+        }
         new AsyncTask<Void, Void, String>() {
 
             @Override
@@ -199,10 +211,14 @@ public class Utils {
         Location mCurrentLocation;
         SharedPreferences prefs = context.getSharedPreferences(
                 "luan.localmotion", Context.MODE_PRIVATE);
-        mCurrentLocation=new Location(prefs.getString("lastProvider",""));
-        mCurrentLocation.setLongitude(Double.valueOf(prefs.getString("lastLng","")));
-        mCurrentLocation.setLatitude(Double.valueOf(prefs.getString("lastLat","")));
-        Log.d(MainActivity.TAG, "Luan-getLocationFromHistory: "+mCurrentLocation.toString());
+        if(!prefs.getString("lastLng","").equals("")){
+            mCurrentLocation=new Location(prefs.getString("lastProvider",""));
+            mCurrentLocation.setLongitude(Double.valueOf(prefs.getString("lastLng","")));
+            mCurrentLocation.setLatitude(Double.valueOf(prefs.getString("lastLat","")));
+        }
+        else{
+            mCurrentLocation=null;
+        }
         return mCurrentLocation;
     }
     public static int getColor(int i, Context context){
@@ -266,6 +282,30 @@ public class Utils {
         }
 
         return isInBackground;
+    }
+    public static Point getDisplaySize(Context context) {
+/*
+        Display display = ((Activity)context).getWindowManager().getDefaultDisplay();
+        String displayName = display.getName();  // minSdkVersion=17+
+*/
+
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+
+
+// display size in pixels
+/*        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;*/
+
+        return new Point(width, height);
+    }
+    static int getResFromInt (Context context, String basename, int index){
+        Resources r = context.getResources();
+        String name = context.getPackageName();
+        return r.getIdentifier(basename + index, "id", name);
     }
     public interface OnGetDirections {
 

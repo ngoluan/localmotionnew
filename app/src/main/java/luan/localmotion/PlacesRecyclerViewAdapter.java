@@ -46,8 +46,8 @@ public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecycl
         holder.typeView.setText(mValues.get(position).type);
         //imageLoader.DisplayImage(mValues.get(position).imgUrl, holder.placesImg);
         Picasso.with(activity).load(mValues.get(position).imgUrl)
-                .error(R.drawable.personicon)
-                .placeholder(R.drawable.personicon)
+                .error(R.drawable.placesicon)
+                .placeholder(R.drawable.placesicon)
                 .into(holder.placesImg);
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

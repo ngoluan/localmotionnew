@@ -15,7 +15,7 @@ public class MessageReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(MainActivity.TAG, "New Message received:" + intent.toString());
         if (onReceiveMessage != null) {
-            Message Message = (Message) intent.getExtras().get("Message");
+            Chat Message = (Chat) intent.getExtras().get("Message");
             onReceiveMessage.onReceiveMessage(Message);
         }
     }
@@ -24,6 +24,6 @@ public class MessageReceiver extends BroadcastReceiver {
         onReceiveMessage = listener;
     }
     interface OnReceiveMessage{
-        void onReceiveMessage(Message Message);
+        void onReceiveMessage(Chat Message);
     }
 }

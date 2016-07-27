@@ -8,5 +8,7 @@
     <color name="colorTertiary">#9c27b0</color>
     <color name="colorTertiaryClear">#af9c27b0</color>
     <color name="colorAccent">#e91e63</color>
+    <color name="colorDark">#607d8b</color>
     <color name="colorDarkClear">#af607d8b</color>
+    <color name="colorDeepDark">#424242</color>
 </resources>

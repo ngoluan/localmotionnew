@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <RelativeLayout
+            <!--<RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp">
 
@@ -56,8 +56,29 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="@color/abc_primary_text_material_dark" />
 
-            </RelativeLayout>
+            </RelativeLayout>-->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/scheduleContactsLayout">
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <include
+                        android:id="@+id/contactAdd"
+                        layout="@layout/fragment_contact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Add"
+                        android:layout_centerHorizontal="true"
+                        android:layout_alignParentBottom="true" />
+                </RelativeLayout>
 
+            </LinearLayout>
             <TextView
                 style="@style/MediumTitle"
                 android:layout_width="match_parent"
@@ -83,7 +104,7 @@
                     app:mcv_arrowColor="?attr/colorPrimary"
                     app:mcv_dateTextAppearance="@style/TextAppearance.AppCompat.Small"
                     app:mcv_headerTextAppearance="?android:attr/textAppearanceMedium"
-                    app:mcv_leftArrowMask="@drawable/ic_keyboard_arrow_left_white_24dp"
+                    app:mcv_leftArrowMask="@drawable/left"
                     app:mcv_rightArrowMask="@drawable/ic_keyboard_arrow_right_white_24dp"
                     app:mcv_selectionColor="#00F"
                     app:mcv_showOtherDates="all"
@@ -104,21 +125,28 @@
                 android:text="Place"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+            <GridLayout
+                android:layout_width="fill_parent"
+                android:layout_height="match_parent"
+                android:columnCount="4"
+                android:rowCount="1">
 
-                <RelativeLayout
-                    android:layout_width="200dp"
-                    android:layout_height="200dp">
+                <ImageView
+                    android:id="@+id/placePic"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="#d5d5d5"
+                    android:src="@drawable/placesicon"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="0"
+                    android:layout_gravity="fill" />
 
-                    <ImageView
-                        android:id="@+id/placePic"
-                        android:layout_width="fill_parent"
-                        android:layout_height="200dp"
-                        android:background="#d5d5d5"
-                        android:src="@drawable/placesicon" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_columnSpan="2"
+                    android:layout_columnWeight="0">
 
                     <TextView
                         android:id="@+id/placeName"
@@ -128,19 +156,6 @@
                         android:text="Large Text"
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:textColor="#ffffff" />
-
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Medium Text"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/placeAddress"
@@ -153,33 +168,33 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Small Text"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:id="@+id/placeSnippet" />
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
 
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:id="@+id/openDetails"
-                            android:src="@drawable/ic_info_outline_white_48dp" />
-
-                        <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:id="@+id/changePlace"
-                            android:src="@drawable/ic_search_white_48dp" />
-                    </LinearLayout>
 
                 </LinearLayout>
 
-            </LinearLayout>
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="0">
 
-            <SeekBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:id="@+id/openDetails"
+                        android:src="@drawable/ic_info_outline_white_48dp" />
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:id="@+id/changePlace"
+                        android:src="@drawable/ic_search_white_48dp" />
+                </LinearLayout>
+            </GridLayout>
 
             <fragment
                 android:id="@+id/placesMap"
@@ -209,7 +224,7 @@
 
     </ScrollView>
 
-    <com.github.clans.fab.FloatingActionMenu
+    <!--<com.github.clans.fab.FloatingActionMenu
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -278,5 +293,5 @@
             fab:fab_label="Menu item 1"
             fab:fab_size="mini" />
     </com.github.clans.fab.FloatingActionMenu>
-
+-->
 </RelativeLayout>

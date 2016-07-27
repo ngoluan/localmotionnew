@@ -60,7 +60,7 @@ import okhttp3.Response;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class PlacesFragment extends Fragment implements OnMapReadyCallback,YourFragmentInterface {
+public class PlacesFragment extends Fragment implements OnMapReadyCallback,FragmentInterface {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";

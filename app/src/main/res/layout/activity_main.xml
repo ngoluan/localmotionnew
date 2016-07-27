@@ -11,9 +11,10 @@ android:layout_height="match_parent">
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <android.support.v4.view.ViewPager
-            android:id="@+id/container"
+            android:id="@+id/main_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_above="@+id/bottom_navigation"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
@@ -45,8 +46,8 @@ android:layout_height="match_parent">
         <ImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:id="@+id/imageView5"
-            android:src="@drawable/ic_today_white_48dp"
+            android:id="@+id/calendarButton"
+            android:src="@drawable/calendaricon"
             android:layout_margin="12dp" />
         <ImageView
             android:layout_width="48dp"

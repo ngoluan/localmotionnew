@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:uber="http://schemas.android.com/apk/res-auto"
-    tools:context=".DashFragment">
+    tools:context=".DashFragment"
+    android:background="@color/colorDeepDark">
 
     <ScrollView
         android:layout_width="wrap_content"
@@ -15,221 +16,237 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <ImageView
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:id="@+id/imageView"
-                android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"
-                android:src="@drawable/background1"
-                android:scaleType="centerCrop" />
-
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" >
-
-                    <TextView
-                        style="@style/MediumTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:text="Dashboard"
-                        android:layout_marginTop="@dimen/label_margin"
-                        android:layout_marginBottom="@dimen/label_margin"
-                        android:layout_centerVertical="true"
-                        android:layout_alignParentRight="false" />
-
-                    <SearchView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_alignParentRight="true"
-                        android:maxWidth="250dp" />
-
-                </RelativeLayout>
-
-                <GridLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:verticalSpacing="2dp"
-                    android:horizontalSpacing="2dp"
-                    android:clipChildren="true"
-                    android:columnCount="3"
-                    android:rowCount="5"
-                    android:id="@+id/grid"
-                    android:useDefaultMargins="false">
-
-                    <RelativeLayout
-                        android:layout_width="100dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="2"
-                        android:layout_column="0"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square1"></RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="1"
-                        android:layout_column="2"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square2"
-                        android:background="@color/colorDarkClear">
-                        <com.uber.sdk.android.rides.RideRequestButton
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            uber:ub__style="black"/>
-                        <!--<ImageView
-                            android:layout_width="fill_parent"
-                            android:layout_height="fill_parent"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_weight="1"
-                            android:scaleType="fitCenter"
-                            style="@style/SmallTitle"
-                            android:src="@drawable/ubericon" />
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_weight="4">
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_weight="2"
+                            android:layout_margin="2dp"
+                            android:id="@+id/square1"></RelativeLayout>
 
                         <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:id="@+id/square2"
+                            android:layout_weight="2"
+                            android:background="@color/colorDarkClear">
+                            <com.uber.sdk.android.rides.RideRequestButton
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                uber:ub__style="black"/>
 
-                            <TextView
-                                android:layout_width="fill_parent"
-                                android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceSmall"
-                                android:layout_gravity="bottom|center_horizontal"
-                                android:layout_centerHorizontal="true"
-                                android:layout_alignParentBottom="true"
-                                android:textAlignment="center"
-                                style="@style/SmallTitle"
-                                android:text="Call Uber" />
-
-                        </RelativeLayout>-->
-                    </RelativeLayout>
-
-                    <fragment
-                        android:layout_height="100dp"
-                        android:id="@+id/dashMap"
-                        android:layout_row="1"
-                        android:layout_columnSpan="2"
-                        android:layout_column="0"
-                        android:layout_rowSpan="2"
-                        class="luan.localmotion.CustomMapView"
-                        tools:context="luan.localmotion.MapsActivity"
-                        android:layout_margin="2dp"
-                        android:layout_width="100dp" />
-
-                    <RelativeLayout
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="1"
-                        android:layout_column="2"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square3"
-                        android:background="@color/colorSecondaryClear">
-                        <ImageView
-                            android:layout_width="fill_parent"
-                            android:layout_height="fill_parent"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_weight="1"
-                            android:scaleType="fitCenter"
-                            android:layout_marginBottom="@dimen/img_sq_margin"
-                            android:layout_marginTop="@dimen/img_sq_margin_sm"
-                            android:layout_marginRight="@dimen/img_sq_margin_sm"
-                            android:layout_marginLeft="@dimen/img_sq_margin_sm"
-                            style="@style/SmallTitle"
-                            android:src="@drawable/bikeshareicon" />
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-                            <TextView
-                                android:layout_width="fill_parent"
-                                android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceSmall"
-                                android:layout_gravity="bottom|center_horizontal"
-                                android:layout_centerHorizontal="true"
-                                android:layout_alignParentBottom="true"
-                                android:textAlignment="center"
-                                style="@style/SmallTitle"
-                                android:text="Find Bikeshare" />
 
                         </RelativeLayout>
-                    </RelativeLayout>
 
-                    <RelativeLayout
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="1"
-                        android:layout_column="2"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square4" />
 
-                    <RelativeLayout
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="1"
-                        android:layout_column="0"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square5" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_weight="4">
+                        <fragment
+                            android:layout_height="100dp"
+                            android:id="@+id/dashMap"
+                            android:layout_weight="3"
+                            class="luan.localmotion.CustomMapView"
+                            tools:context="luan.localmotion.MapsActivity"
+                            android:layout_margin="2dp"
+                            android:layout_width="0dp" />
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1">
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:layout_margin="2dp"
+                                android:id="@+id/square3"
+                                android:background="@color/colorSecondaryClear">
+                                <ImageView
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent"
+                                    android:layout_gravity="center_horizontal"
+                                    android:scaleType="fitCenter"
+                                    android:layout_marginBottom="@dimen/img_sq_margin"
+                                    android:layout_marginTop="@dimen/img_sq_margin_sm"
+                                    android:layout_marginRight="@dimen/img_sq_margin_sm"
+                                    android:layout_marginLeft="@dimen/img_sq_margin_sm"
+                                    style="@style/SmallTitle"
+                                    android:src="@drawable/bikeshareicon" />
 
-                    <RelativeLayout
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="1"
-                        android:layout_column="1"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square6" />
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
 
-                    <RelativeLayout
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_columnSpan="1"
-                        android:layout_column="2"
-                        android:layout_margin="2dp"
-                        android:id="@+id/square7" />
+                                    <TextView
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="wrap_content"
+                                        android:textAppearance="?android:attr/textAppearanceSmall"
+                                        android:layout_gravity="bottom|center_horizontal"
+                                        android:layout_centerHorizontal="true"
+                                        android:layout_alignParentBottom="true"
+                                        android:textAlignment="center"
+                                        style="@style/SmallTitle"
+                                        android:text="Find Bikeshare" />
 
-                </GridLayout>
+                                </RelativeLayout>
+                            </RelativeLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="Contacts"
-                    style="@style/MediumTitle"
-                    android:layout_marginTop="@dimen/label_margin"
-                    android:layout_marginBottom="@dimen/label_margin" />
-                <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-                    xmlns:app="http://schemas.android.com/apk/res-auto"
-                    xmlns:tools="http://schemas.android.com/tools"
-                    android:id="@+id/contactList"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:layoutManager="LinearLayoutManager" />
 
-                <TextView
-                    style="@style/MediumTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="Places"
-                    android:layout_marginTop="@dimen/label_margin"
-                    android:layout_marginBottom="@dimen/label_margin"
-                    android:id="@+id/textView" />
 
-                <android.support.v7.widget.RecyclerView app:layoutManager="LinearLayoutManager"
-                    xmlns:android="http://schemas.android.com/apk/res/android"
-                    xmlns:app="http://schemas.android.com/apk/res-auto"
-                    xmlns:tools="http://schemas.android.com/tools"
-                    android:id="@+id/placesList"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </LinearLayout>
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:layout_margin="2dp"
+                                android:id="@+id/square4"
+                                android:background="@color/colorDark">
+                                <ImageView
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="fill_parent"
+                                    android:layout_gravity="center_horizontal"
+                                    android:scaleType="fitCenter"
+                                    android:layout_marginBottom="@dimen/img_sq_margin"
+                                    android:layout_marginTop="@dimen/img_sq_margin_sm"
+                                    android:layout_marginRight="@dimen/img_sq_margin_sm"
+                                    android:layout_marginLeft="@dimen/img_sq_margin_sm"
+                                    style="@style/SmallTitle"
+                                    android:src="@drawable/mapicon" />
+
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+
+                                    <TextView
+                                        android:layout_width="fill_parent"
+                                        android:layout_height="wrap_content"
+                                        android:textAppearance="?android:attr/textAppearanceSmall"
+                                        android:layout_gravity="bottom|center_horizontal"
+                                        android:layout_centerHorizontal="true"
+                                        android:layout_alignParentBottom="true"
+                                        android:textAlignment="center"
+                                        style="@style/SmallTitle"
+                                        android:text="Map Options" />
+
+                                </RelativeLayout>
+                            </RelativeLayout>
+
+
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_weight="4">
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square5" />
+
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square6" />
+
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square7" />
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square8" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_weight="4">
+                       <!-- <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square9" />
+
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square10" />
+
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square11" />
+                        <RelativeLayout
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:id="@+id/square12" />-->
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1">
+                            <RelativeLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:id="@+id/square9"
+                                android:layout_margin="2dp"/>
+                            <RelativeLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:id="@+id/square10"
+                                android:layout_margin="2dp"/>
+                            </LinearLayout>
+
+                        <HorizontalScrollView
+                            android:layout_width="0dp"
+                            android:id="@+id/square11"
+                            android:layout_weight="3"
+                            android:layout_height="100dp">
+
+<!--                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:layout_width="wrap_content"
+                                android:id="@+id/square9"
+                                android:layout_height="50dp"></LinearLayout>-->
+                        </HorizontalScrollView>
+
+                    </LinearLayout>
+                    </LinearLayout>
+
+
+                </LinearLayout>
 
         </RelativeLayout>
     </ScrollView>

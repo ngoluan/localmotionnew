@@ -8,12 +8,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.akexorcist.googledirection.constant.TransportMode;
-import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-import luan.localmotion.ScheduleFragment.DirectionsObject;
+import luan.localmotion.ScheduleFragment.DirectionObject;
 
 /**
  * {@link RecyclerView.Adapter} that can display a  and makes a call to the
@@ -22,16 +21,16 @@ import luan.localmotion.ScheduleFragment.DirectionsObject;
  */
 public class DirectionsRecyclerViewAdapter extends RecyclerView.Adapter<DirectionsRecyclerViewAdapter.ViewHolder> {
 
-    public ArrayList<DirectionsObject>  mValues;
+    public ArrayList<DirectionObject>  mValues;
     private final OnDirectionsListener mListener;
     private ViewGroup parent;
-    public DirectionsRecyclerViewAdapter(ArrayList<DirectionsObject> DirectionsObjects, OnDirectionsListener listener) {
-        mValues = DirectionsObjects;
+    public DirectionsRecyclerViewAdapter(ArrayList<DirectionObject> directionObjects, OnDirectionsListener listener) {
+        mValues = directionObjects;
 
         mListener = listener;
     }
-    public void setData(ArrayList<DirectionsObject> DirectionsObjects){
-        mValues=DirectionsObjects;
+    public void setData(ArrayList<DirectionObject> directionObjects){
+        mValues= directionObjects;
     }
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -92,40 +91,40 @@ public class DirectionsRecyclerViewAdapter extends RecyclerView.Adapter<Directio
         notifyItemRemoved(position);
     }
 
-    public void addItem(int position, DirectionsObject item) {
+    public void addItem(int position, DirectionObject item) {
         mValues.add(position, item);
         notifyItemInserted(position);
     }
 
     public void moveItem(int fromPosition, int toPosition) {
-        final DirectionsObject item = mValues.remove(fromPosition);
+        final DirectionObject item = mValues.remove(fromPosition);
         mValues.add(toPosition, item);
         notifyItemChanged(fromPosition, toPosition);
     }
-    public void animateTo(ArrayList<DirectionsObject> DirectionsObjects) {
-        applyAndAnimateRemovals(DirectionsObjects);
-        applyAndAnimateAdditions(DirectionsObjects);
-        applyAndAnimateMovedItems(DirectionsObjects);
+    public void animateTo(ArrayList<DirectionObject> directionObjects) {
+        applyAndAnimateRemovals(directionObjects);
+        applyAndAnimateAdditions(directionObjects);
+        applyAndAnimateMovedItems(directionObjects);
     }
-    private void applyAndAnimateRemovals(ArrayList<DirectionsObject> newModels) {
+    private void applyAndAnimateRemovals(ArrayList<DirectionObject> newModels) {
         for (int i = mValues.size() - 1; i >= 0; i--) {
-            final DirectionsObject model = mValues.get(i);
+            final DirectionObject model = mValues.get(i);
             if (!newModels.contains(model)) {
                 removeItem(i);
             }
         }
     }
-    private void applyAndAnimateAdditions(ArrayList<DirectionsObject> newModels) {
+    private void applyAndAnimateAdditions(ArrayList<DirectionObject> newModels) {
         for (int i = 0, count = newModels.size(); i < count; i++) {
-            final DirectionsObject model = newModels.get(i);
+            final DirectionObject model = newModels.get(i);
             if (!mValues.contains(model)) {
                 addItem(i, model);
             }
         }
     }
-    private void applyAndAnimateMovedItems(ArrayList<DirectionsObject> newModels) {
+    private void applyAndAnimateMovedItems(ArrayList<DirectionObject> newModels) {
         for (int toPosition = newModels.size() - 1; toPosition >= 0; toPosition--) {
-            final DirectionsObject model = newModels.get(toPosition);
+            final DirectionObject model = newModels.get(toPosition);
             final int fromPosition = mValues.indexOf(model);
             if (fromPosition >= 0 && fromPosition != toPosition) {
                 moveItem(fromPosition, toPosition);
@@ -158,7 +157,7 @@ public class DirectionsRecyclerViewAdapter extends RecyclerView.Adapter<Directio
         }
     }
     public interface OnDirectionsListener {
-        void OnDirectionsClickListener(DirectionsObject item);
+        void OnDirectionsClickListener(DirectionObject item);
     }
 
 }

@@ -20,7 +20,7 @@ android:layout_width="50dp"
             android:scrollHorizontally="true"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textSize="10dp"
+            android:textSize="8dp"
             android:layout_gravity="top|center_horizontal"
             style="@style/SmallTitle" />
 

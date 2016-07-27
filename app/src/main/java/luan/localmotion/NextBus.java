@@ -41,6 +41,7 @@ import okhttp3.Response;
  * Created by luann on 2016-05-28.
  */
 public class NextBus {
+    //TODO move to http://restbus.info/
     private NextBusListener listener = null;
     private Activity caller;
     public  ArrayList<Bitmap> nextBusIcons = new ArrayList<Bitmap>();
@@ -235,48 +236,56 @@ public class NextBus {
         }.execute("", "ttc", lat, lng);
     }
     void createMarkers() {
-        int backDrawable = 0;
-        int innerDrawable = 0;
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                int backDrawable = 0;
+                int innerDrawable = 0;
 
-        backDrawable = R.drawable.ttcback;
-        innerDrawable = R.drawable.ttcinner;
+                backDrawable = R.drawable.ttcback;
+                innerDrawable = R.drawable.ttcinner;
 
-        Bitmap backBitmap = BitmapFactory.decodeResource(caller.getApplicationContext().getResources(),
-                R.drawable.ttcback);
-        Bitmap innerBitmap = BitmapFactory.decodeResource(caller.getApplicationContext().getResources(),
-                R.drawable.ttcinner);
+                Bitmap backBitmap = BitmapFactory.decodeResource(caller.getApplicationContext().getResources(),
+                        R.drawable.ttcback);
+                Bitmap innerBitmap = BitmapFactory.decodeResource(caller.getApplicationContext().getResources(),
+                        R.drawable.ttcinner);
 
-        for (int i = 0; i <= 360; i = i + 10) {
-            Matrix matrix = new Matrix();
+                for (int i = 0; i <= 360; i = i + 10) {
+                    Matrix matrix = new Matrix();
 
-            float rotate = i;
-            matrix.postScale(0.4f, 0.4f);
-            matrix.postRotate(rotate, backBitmap.getWidth() / 2, backBitmap.getHeight() / 2);
-            Bitmap ttcback2 = Bitmap.createBitmap(backBitmap, 0, 0, backBitmap.getWidth(), backBitmap.getHeight(), matrix, true);
+                    float rotate = i;
+                    matrix.postScale(0.4f, 0.4f);
+                    matrix.postRotate(rotate, backBitmap.getWidth() / 2, backBitmap.getHeight() / 2);
+                    Bitmap ttcback2 = Bitmap.createBitmap(backBitmap, 0, 0, backBitmap.getWidth(), backBitmap.getHeight(), matrix, true);
 
-            rotate = i;
-            matrix = new Matrix();
-            matrix.postScale(0.3f, 0.3f);
-            Bitmap vehicle2 = Bitmap.createBitmap(innerBitmap, 0, 0, innerBitmap.getWidth(), innerBitmap.getHeight(), matrix, true);
+                    rotate = i;
+                    matrix = new Matrix();
+                    matrix.postScale(0.3f, 0.3f);
+                    Bitmap vehicle2 = Bitmap.createBitmap(innerBitmap, 0, 0, innerBitmap.getWidth(), innerBitmap.getHeight(), matrix, true);
 
-            Canvas canvasMain = new Canvas(ttcback2);
+                    Canvas canvasMain = new Canvas(ttcback2);
 
-            int leftOffset = (ttcback2.getWidth() - vehicle2.getWidth()) / 2;
-            int topOffset = (ttcback2.getHeight() - vehicle2.getHeight()) / 2;
-            Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
-            canvasMain.drawBitmap(vehicle2, leftOffset, topOffset, paint);
+                    int leftOffset = (ttcback2.getWidth() - vehicle2.getWidth()) / 2;
+                    int topOffset = (ttcback2.getHeight() - vehicle2.getHeight()) / 2;
+                    Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+                    canvasMain.drawBitmap(vehicle2, leftOffset, topOffset, paint);
 
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inJustDecodeBounds = true;
 
-            int imageHeight = ttcback2.getHeight();
-            int imageWidth = ttcback2.getWidth() ;
+                    int imageHeight = ttcback2.getHeight();
+                    int imageWidth = ttcback2.getWidth() ;
 
-            //Bitmap ttcback2sm = decodeSampledBitmapFromResource(ttcback2, )
-            nextBusIcons.add(ttcback2);
-            vehicle2.recycle();
-            vehicle2 = null;
-        }
+                    //Bitmap ttcback2sm = decodeSampledBitmapFromResource(ttcback2, )
+                    nextBusIcons.add(ttcback2);
+                    vehicle2.recycle();
+                    vehicle2 = null;
+                }
+            }
+        };
+
+        thread.start();
+
 
     }
     public static int calculateInSampleSize(

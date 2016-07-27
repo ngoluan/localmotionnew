@@ -21,19 +21,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.io.InputStream;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -42,35 +39,60 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // If the application is in the foreground handle both data and notification messages here.
-        // Also if you intend on generating your own notifications as a result of a received FCM
-        // message, here is where that should be initiated. See sendNotification method below.
-        if (!Utils.isAppIsInBackground(getApplicationContext())) {
-            Map<String,String> data=remoteMessage.getData();
-            // app is in foreground, broadcast the push message
-            Intent pushNotification = new Intent("NEW_MESSAGE");
-            pushNotification.putExtra("message", data.get("message"));
-            pushNotification.putExtra("title", data.get("title"));
-            pushNotification.putExtra("type", data.get("type"));
-            pushNotification.putExtra("place", data.get("place"));
-            pushNotification.putExtra("placeId", data.get("placeId"));
-            pushNotification.putExtra("address", data.get("address"));
-            pushNotification.putExtra("contactName", data.get("contactName"));
-            pushNotification.putExtra("contactPhone", data.get("contactPhone"));
-            pushNotification.putExtra("dateTime", data.get("dateTime"));
-            pushNotification.putExtra("type", data.get("type"));
-            pushNotification.putExtra("type", data.get("type"));
-            pushNotification.setClass(this, LocationReceiver.class);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
-            // play notification sound
-/*            NotificationUtils notificationUtils = new NotificationUtils();
-            notificationUtils.playNotificationSound();*/
-        } else {
+        Map<String,String> data=remoteMessage.getData();
+        if(data.get("type").equals(ChatFragment.TYPE_EVENT)){
+            String eventId = data.get("eventUniqueId");
+            List<CalendarEvent> calendarEvents =  CalendarEvent.find(CalendarEvent.class, "eventUniqueId=?", eventId);
+            CalendarEvent calendarEvent =null;
+            if(calendarEvents.size()==0){
+                calendarEvent = new CalendarEvent();
 
-            sendNotification(remoteMessage.getData());
+            }
+            else{
+                calendarEvent = calendarEvents.get(0);
+            }
+            calendarEvent.contactsPhone = data.get("contactsPhone");
+            calendarEvent.beginTime = Long.parseLong(data.get("beginTime"));
+            calendarEvent.endTime = Long.parseLong(data.get("endTime"));
+            calendarEvent.title = data.get("title");
+            calendarEvent.yelpPlaceId = data.get("yelpPlaceId");
+            calendarEvent.yelpBusinessName = data.get("yelpBusinessName");
+            calendarEvent.yelpsnippetText = data.get("yelpsnippetText");
+            calendarEvent.yelpcategories = data.get("yelpcategories");
+            calendarEvent.yelpcategories = data.get("yelpcategories");
+            calendarEvent.yelpImageUrl = data.get("yelpImageUrl");
+            calendarEvent.eventUniqueId = data.get("eventUniqueId");
+            calendarEvent.save();
+            readyBroadcast(data,data.get("type"), calendarEvent.eventUniqueId);
+        }
+        else if(data.get("type").equals(ChatFragment.TYPE_MESSAGE)){
+            Chat chat = new Chat(
+                    data.get("senderPhone"),
+                    Calendar.getInstance().getTimeInMillis(),
+                    data.get("message"),
+                    data.get("eventUniqueId")
+            );
+            chat.save();
+            readyBroadcast(data,data.get("type"), String.valueOf(chat.getId()));
         }
 
 
+
+
+    }
+    private void readyBroadcast(Map<String, String> data, String type, String id){
+        if (!Utils.isAppIsInBackground(getApplicationContext())) {
+
+            Intent pushNotification = new Intent(data.get("type"));
+            pushNotification.setAction(data.get("type"));
+            pushNotification.putExtra("type", type);
+            pushNotification.putExtra("id", id);/*
+            pushNotification.setClass(this, MessageReceiver.class);*/
+            sendBroadcast(pushNotification);
+        } else {
+
+            sendNotification(data);
+        }
     }
     // [END receive_message]
 
@@ -82,7 +104,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void sendNotification(Map<String,String> data) {
 
 
-        if(data.get("type").equals("event")){
+        if(data.get("type").equals("calendarEvent")){
             sendEventNotification(data);
         }
         else if(data.get("type").equals("message")){
@@ -154,7 +176,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         PendingIntent pendingIntentYes = PendingIntent.getBroadcast(this, 12345, yesReceive, PendingIntent.FLAG_UPDATE_CURRENT);
         notificationBuilder.addAction(R.drawable.doneicon, "Yes", pendingIntentYes);
 
-        Intent changeReceive = new Intent(getApplicationContext(), SchedulerActivity.class);
+        Intent changeReceive = new Intent(getApplicationContext(), ScheduleActvity.class);
         changeReceive.setAction("EVENT_EDIT");
         changeReceive.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);

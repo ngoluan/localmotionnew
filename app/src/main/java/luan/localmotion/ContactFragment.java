@@ -32,7 +32,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class ContactFragment extends Fragment implements SearchView.OnQueryTextListener, YourFragmentInterface {
+public class ContactFragment extends Fragment implements SearchView.OnQueryTextListener, FragmentInterface {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -100,15 +100,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
         return view;
     }
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
 
-        if (isVisibleToUser)
-            getAllContacts();
-        else
-            Log.d("MyFragment", "Fragment is not visible.");
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -163,9 +155,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                     }
                 });
 
-
-
-                //calendarProvider.getEvents(calendarId);
             }
         };
 
@@ -200,7 +189,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public void fragmentBecameVisible() {
-
+        getAllContacts();
     }
 
     @Override
