@@ -114,7 +114,7 @@ public abstract class  BaseRecyclerViewAdapter<T>  extends RecyclerView.Adapter<
             }
         }
     }
-    public class BaseViewHolder<T> extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class BaseViewHolder<T> extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
         private Map<Integer, View> mMapView;
         private BaseListener<T> mListener;
         private T mItem;
@@ -127,12 +127,22 @@ public abstract class  BaseRecyclerViewAdapter<T>  extends RecyclerView.Adapter<
 
             if (mListener != null)
                 view.setOnClickListener(this);
+                view.setOnLongClickListener(this);
         }
-
+        public void setItem(T item){
+            this.mItem=item;
+        }
         @Override
         public void onClick(View view) {
             if (mListener != null)
-                mListener.OnClick(mItem, view);
+                mListener.OnClick(mItem, view, getAdapterPosition());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (mListener != null)
+                mListener.OnLongClick(mItem, v,getAdapterPosition());
+            return true;
         }
 
         public void initViewList(int[] idList) {

@@ -30,12 +30,13 @@ public class CalendarActivity extends AppCompatActivity implements BaseListener<
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_events_list);
+        setContentView(R.layout.activity_calendar);
 
         createViews(R.id.event_list);
 
+        setRecyclerViewAdapter(recyclerViewAdapter);
 
-
+        getEvents();
         /*Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://www.eventbriteapi.com/v3/")
                 .build();
@@ -84,38 +85,42 @@ public class CalendarActivity extends AppCompatActivity implements BaseListener<
             recyclerView.setAdapter(alphaInAnimationAdapter);
         }
     }
+    void setRecyclerViewAdapter(CalendarRecyclerViewAdapter recyclerViewAdapter){
+        AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(recyclerViewAdapter);
+        recyclerView.setAdapter(alphaInAnimationAdapter);
+        recyclerViewAdapter.setClickListener(this);
+    }
+    void  getEvents() {
+        List<CalendarEvent> calendarEvents = CalendarEvent.listAll(CalendarEvent.class);
+        models.addAll(calendarEvents);
+
+        recyclerViewAdapter.animateTo(models);
+
+    }
+
+
 
     @Override
-    public void OnClick(CalendarEvent calendarEvent) {
+    public void OnClick(CalendarEvent item, View view, int position) {
         Intent scheduleIntent = new Intent(this, ScheduleActvity.class);
-        scheduleIntent.putExtra("eventUniqueId", calendarEvent.getId().toString());
+        scheduleIntent.putExtra("eventUniqueId", item.getId().toString());
         startActivity(scheduleIntent);
     }
 
     @Override
-    public void OnClick(CalendarEvent item, View view) {
-
-    }
-
-    @Override
-    public void OnLongClick(final CalendarEvent calendarEvent) {
+    public void OnLongClick(final CalendarEvent item, View view, final int position) {
         final FrameLayout layout = (FrameLayout) findViewById(R.id.eventLayout);
         Snackbar snackbar = Snackbar
                 .make(layout, "Delete calendarEvent?", Snackbar.LENGTH_LONG)
                 .setAction("DELETE", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        calendarEvent.delete();
+                        item.delete();
+
                         List<CalendarEvent> calendarEvents = CalendarEvent.listAll(CalendarEvent.class);
-                        recyclerViewAdapter.animateTo(calendarEvents);
+                        recyclerViewAdapter.removeItem(position);
                     }
                 });
-/*        String title = "Hangout";
-        if(contact!=null){
-            title+= " with " +contact.name;
-        }*/
         snackbar.show();
     }
-
-
 }

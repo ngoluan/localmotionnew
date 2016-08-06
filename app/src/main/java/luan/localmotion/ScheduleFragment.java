@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.akexorcist.googledirection.constant.TransportMode;
@@ -53,6 +54,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
@@ -78,6 +80,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     String placeAddress="";
 
     View view;
+    ScrollView mScrollView;
     MaterialCalendarView calendarView;
     ListView timeListView;
     RecyclerView directionsRecyclerView;
@@ -108,8 +111,8 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         view= inflater.inflate(R.layout.fragment_schedule, container, false);
         scheduleActvity = (ScheduleActvity) getActivity();
 
+        mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
-        setupMap();
 
         if(scheduleActvity.calendarEvent !=null){
             if(!scheduleActvity.calendarEvent.yelpPlaceId.equals("")){
@@ -120,10 +123,9 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             fillContact_v3(scheduleActvity.contactList);
         }
 
-        if(scheduleActvity.extras.getString("placeId")!=null){
-
+/*        if(scheduleActvity.extras.getString("placeId")!=null){
             fillYelpPlace(scheduleActvity.extras.getString("placeId"));
-        }
+        }*/
 
         View profilePicView= view.findViewById(R.id.contactAdd);
         profilePicView.setOnClickListener(new View.OnClickListener() {
@@ -144,8 +146,17 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             }
         });
 
+        CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
+                .findFragmentById(R.id.placesMap);
+        mapFragment.getMapAsync(this);
+        mapFragment.setListener(new CustomMapView.OnTouchListener() {
+            @Override
+            public void onTouch() {
+                mScrollView.requestDisallowInterceptTouchEvent(true);
+            }
+        });
 
-
+        setupMap();
         setupCalendar();
         setupDirectionsListview();
 
@@ -227,8 +238,6 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     }
 
     public String getSelectedDateTime(String firstOrLast){
-        CalendarDay date=  calendarView.getSelectedDate();
-        DateFormat FORMATTER = SimpleDateFormat.getDateInstance();
         String dateStr = calendarView.getSelectedDate().getYear()+"-"+(calendarView.getSelectedDate().getMonth()+1)+"-"+calendarView.getSelectedDate().getDay();
         TimeListViewAdapter adapter = (TimeListViewAdapter) timeListView.getAdapter();
         if(firstOrLast.equals("first")){
@@ -252,7 +261,6 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
 
         return dateStr;
-        //Toast.makeText(getContext(), dateStr, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -262,15 +270,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
     @Override
     public void fragmentBecameInvisible() {
-        try{
-            SupportMapFragment f = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.placesMap);
-            if (f != null){
-                getChildFragmentManager().beginTransaction().remove(f).commit();
-                mMap=null;
-            }
 
-        }catch(Exception e){
-        }
     }
 
     class TimeObject{
@@ -367,16 +367,20 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         mTimeAdapter = new TimeListViewAdapter(getContext(),R.layout.view_time, list);
 
         timeListView.setAdapter(mTimeAdapter);
-
+        timeListView.smoothScrollToPosition(12);
         timeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //String string = (String) parent.getAdapter().getItem(position);
                 //Toast.makeText(getContext(), string, Toast.LENGTH_SHORT).show();
                 mTimeAdapter.toggleSelection(position);
+                Calendar beginTime = getTimestamp(getSelectedDateTime("first"));
+                Calendar endTime = getTimestamp(getSelectedDateTime("last"));
+                scheduleActvity.calendarEvent.beginTime = beginTime.getTimeInMillis();
+                scheduleActvity.calendarEvent.endTime = endTime.getTimeInMillis();
             }
         });
-        setListViewHeightBasedOnChildren(timeListView);
+        //setListViewHeightBasedOnChildren(timeListView);
         timeListView.setOnTouchListener(new View.OnTouchListener() {
             // Setting on Touch Listener for handling the touch inside ScrollView
             @Override
@@ -464,6 +468,20 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             }
         });
     }
+    public Calendar getTimestamp(String time){
+        Calendar beginTime = Calendar.getInstance();
+        //beginTime.set(2016, 7,9, 12,0, 0);
+        try{
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-M-d hh:mm a");
+            Date parsedDate = dateFormat.parse(time);
+            beginTime.setTime(parsedDate);
+            return beginTime;
+            //Timestamp startTime = new java.sql.Timestamp(parsedDate.getTime());
+            //return startTime;
+        }catch(Exception e){
+        }
+        return beginTime;
+    }
     public void setListViewHeightBasedOnChildren(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
         if (listAdapter == null)
@@ -508,7 +526,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
         LinearLayout contactsLayout = (LinearLayout) view.findViewById(R.id.scheduleContactsLayout);
         for (String contact : phones) {
-            Contacts.fillView(getContext(), Contacts.getContactItem(getContext(), contact),contactsLayout);
+            Contacts.fillView(getContext(), Contacts.getContactItem(getContext(), contact),contactsLayout, 96, null);
         }
 
     }
@@ -516,11 +534,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
 
         final LinearLayout contactsLayout = (LinearLayout) view.findViewById(R.id.scheduleContactsLayout);
-
+        int children = contactsLayout.getChildCount();
         for (int i = 0; i < contacts.size(); i++) {
-            Contacts.fillView(getContext(), contacts.get(i),contactsLayout);
+            Contacts.fillView(getContext(), contacts.get(i),contactsLayout, 96, children-1);
 
-            Contacts.isMember(contacts.get(i), new Contacts.ContactListener() {
+            Contacts.isMember(contacts.get(i), getContext(), new Contacts.ContactListener() {
                 @Override
                 public void OnReceiveIsMember(ContactItem contact, Boolean result) {
                     for (int i1 = 0; i1 < scheduleActvity.contactList.size(); i1++) {
@@ -529,14 +547,13 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                             CircularImageView circularImageView = (CircularImageView) contactView.findViewById(R.id.profilePic);
                             circularImageView.setBorderColor(getResources().getColor(R.color.colorDark));
                             scheduleActvity.contactList.get(i1).isMember=result;
+                            scheduleActvity.useSMS=true;
                         }
                     }
 
                 }
             });
         }
-
-
 
     }
 
@@ -704,12 +721,15 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-/*        Fragment f = getChildFragmentManager().findFragmentById(R.id.placesMap);
-        if (f != null) {
-            getFragmentManager().beginTransaction().remove(f).commit();
+        try{
+            SupportMapFragment f = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.placesMap);
+            if (f != null){
+                getChildFragmentManager().beginTransaction().remove(f).commit();
+                mMap=null;
+            }
 
-            mMap = null;
-        }*/
+        }catch(Exception e){
+        }
     }
     @Override
     public void onDetach() {

@@ -113,20 +113,16 @@ public class EventsFragment extends BaseFragment<EventbriteEvent,EventsRecyclerV
         super.onDetach();
     }
 
+
     @Override
-    public void OnClick(EventbriteEvent item) {
+    public void OnClick(EventbriteEvent item, View view, int position) {
         Intent scheduleIntent = new Intent(getContext(), ScheduleActvity.class);
         scheduleIntent.putExtra("eventUniqueId", item.getId().toString());
         startActivity(scheduleIntent);
     }
 
     @Override
-    public void OnClick(EventbriteEvent item, View view) {
-
-    }
-
-    @Override
-    public void OnLongClick(EventbriteEvent item) {
+    public void OnLongClick(EventbriteEvent item, View view, int position) {
         final FrameLayout layout = (FrameLayout) view.findViewById(R.id.eventLayout);
         Snackbar snackbar = Snackbar
                 .make(layout, "Delete event?", Snackbar.LENGTH_LONG)

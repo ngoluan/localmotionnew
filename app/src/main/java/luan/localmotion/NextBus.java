@@ -239,12 +239,6 @@ public class NextBus {
         Thread thread = new Thread() {
             @Override
             public void run() {
-                int backDrawable = 0;
-                int innerDrawable = 0;
-
-                backDrawable = R.drawable.ttcback;
-                innerDrawable = R.drawable.ttcinner;
-
                 Bitmap backBitmap = BitmapFactory.decodeResource(caller.getApplicationContext().getResources(),
                         R.drawable.ttcback);
                 Bitmap innerBitmap = BitmapFactory.decodeResource(caller.getApplicationContext().getResources(),
@@ -254,13 +248,13 @@ public class NextBus {
                     Matrix matrix = new Matrix();
 
                     float rotate = i;
-                    matrix.postScale(0.4f, 0.4f);
+                    matrix.postScale(0.25f, 0.25f);
                     matrix.postRotate(rotate, backBitmap.getWidth() / 2, backBitmap.getHeight() / 2);
                     Bitmap ttcback2 = Bitmap.createBitmap(backBitmap, 0, 0, backBitmap.getWidth(), backBitmap.getHeight(), matrix, true);
 
                     rotate = i;
                     matrix = new Matrix();
-                    matrix.postScale(0.3f, 0.3f);
+                    matrix.postScale(0.2f, 0.2f);
                     Bitmap vehicle2 = Bitmap.createBitmap(innerBitmap, 0, 0, innerBitmap.getWidth(), innerBitmap.getHeight(), matrix, true);
 
                     Canvas canvasMain = new Canvas(ttcback2);
@@ -273,13 +267,8 @@ public class NextBus {
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inJustDecodeBounds = true;
 
-                    int imageHeight = ttcback2.getHeight();
-                    int imageWidth = ttcback2.getWidth() ;
-
-                    //Bitmap ttcback2sm = decodeSampledBitmapFromResource(ttcback2, )
                     nextBusIcons.add(ttcback2);
                     vehicle2.recycle();
-                    vehicle2 = null;
                 }
             }
         };

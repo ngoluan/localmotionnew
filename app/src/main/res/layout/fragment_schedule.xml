@@ -4,20 +4,14 @@
     xmlns:fab="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#f0f0f0">
     <!--tools:showIn="@layout/activity_schedule_view"-->
-
-    <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/background3" />
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:padding="6dp">
+        android:layout_height="fill_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -57,19 +51,25 @@
                     android:textColor="@color/abc_primary_text_material_dark" />
 
             </RelativeLayout>-->
+
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/scheduleContactsLayout">
+                android:id="@+id/scheduleContactsLayout"
+                android:background="@color/colorPrimary"
+                android:layout_margin="@dimen/grid_margin">
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
                     <include
                         android:id="@+id/contactAdd"
                         layout="@layout/fragment_contact"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentBottom="false" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -79,81 +79,75 @@
                 </RelativeLayout>
 
             </LinearLayout>
-            <TextView
-                style="@style/MediumTitle"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginBottom="@dimen/label_margin"
-                android:layout_marginTop="@dimen/label_margin"
-                android:text="Date and Time"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:layout_weight="1" />
-        <LinearLayout
+
+            <LinearLayout
             android:layout_width="match_parent"
+                android:weightSum="4"
             android:orientation="horizontal"
-            android:layout_height="wrap_content">
+            android:layout_height="275dp"
+                android:baselineAligned="false">
             <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@color/colorTertiaryClear">
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:background="@color/colorTertiary"
+                android:layout_weight="3">
 
                 <com.prolificinteractive.materialcalendarview.MaterialCalendarView xmlns:app="http://schemas.android.com/apk/res-auto"
                     android:id="@+id/calendarView2"
-                    android:layout_width="275dp"
-                    android:layout_height="250dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
                     app:mcv_arrowColor="?attr/colorPrimary"
                     app:mcv_dateTextAppearance="@style/TextAppearance.AppCompat.Small"
                     app:mcv_headerTextAppearance="?android:attr/textAppearanceMedium"
                     app:mcv_leftArrowMask="@drawable/left"
                     app:mcv_rightArrowMask="@drawable/ic_keyboard_arrow_right_white_24dp"
-                    app:mcv_selectionColor="#00F"
+                    app:mcv_selectionColor="@color/colorAccent"
                     app:mcv_showOtherDates="all"
-                    app:mcv_weekDayTextAppearance="?android:attr/textAppearanceMedium" />
+                    app:mcv_weekDayTextAppearance="?android:attr/textAppearanceMedium"
+                    android:layout_margin="@dimen/grid_margin" />
             </RelativeLayout>
             <ListView
-                android:layout_width="fill_parent"
-                android:layout_height="150dp"
-                android:id="@+id/timeListView"></ListView>
-        </LinearLayout>
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:id="@+id/timeListView"
+                android:background="@color/colorTertiaryClear"
+                android:layout_margin="@dimen/grid_margin"
+                android:layout_weight="1"></ListView>
 
-            <TextView
-                style="@style/MediumTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/label_margin"
-                android:layout_marginTop="@dimen/label_margin"
-                android:text="Place"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+            </LinearLayout>
 
-            <GridLayout
-                android:layout_width="fill_parent"
-                android:layout_height="match_parent"
-                android:columnCount="4"
-                android:rowCount="1">
+
+            <LinearLayout
+                android:weightSum="4"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
 
                 <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="96dp"
                     android:id="@+id/placePic"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="#d5d5d5"
+                    android:layout_weight="1"
                     android:src="@drawable/placesicon"
-                    android:layout_columnSpan="1"
-                    android:layout_columnWeight="0"
-                    android:layout_gravity="fill" />
+                    android:background="@color/colorDarkClear"
+                    android:layout_margin="@dimen/grid_margin" />
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
                     android:orientation="vertical"
-                    android:layout_columnSpan="2"
-                    android:layout_columnWeight="0">
+                    android:layout_weight="3"
+                    android:background="@color/colorDark"
+                    android:layout_margin="@dimen/grid_margin"
+                    android:padding="@dimen/grid_padding">
 
                     <TextView
                         android:id="@+id/placeName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:text="Large Text"
+                        android:text="Pick Place"
+
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:textColor="#ffffff" />
 
@@ -170,31 +164,8 @@
                         android:text="Small Text"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:id="@+id/placeSnippet" />
-
-
-
                 </LinearLayout>
-
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_columnSpan="1"
-                    android:layout_columnWeight="0">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:id="@+id/openDetails"
-                        android:src="@drawable/ic_info_outline_white_48dp" />
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:id="@+id/changePlace"
-                        android:src="@drawable/ic_search_white_48dp" />
-                </LinearLayout>
-            </GridLayout>
+            </LinearLayout>
 
             <fragment
                 android:id="@+id/placesMap"
@@ -216,82 +187,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <Space
-                android:layout_width="fill_parent"
-                android:layout_height="48dp" />
-
         </LinearLayout>
 
     </ScrollView>
 
-    <!--<com.github.clans.fab.FloatingActionMenu
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        fab:menu_animationDelayPerItem="50"
-        fab:menu_backgroundColor="@android:color/transparent"
-        fab:menu_buttonSpacing="0dp"
-        fab:menu_colorNormal="#DA4336"
-        fab:menu_colorPressed="#E75043"
-        fab:menu_colorRipple="#99FFFFFF"
-        fab:menu_fab_hide_animation="@anim/fab_scale_down"
-        fab:menu_fab_label="your_label_here"
-        fab:menu_fab_show_animation="@anim/fab_scale_up"
-        fab:menu_fab_size="normal"
-        fab:menu_icon="@drawable/ic_list_white_48dp"
-        fab:menu_labels_colorNormal="#333333"
-        fab:menu_labels_colorPressed="#444444"
-        fab:menu_labels_colorRipple="#66FFFFFF"
-        fab:menu_labels_cornerRadius="3dp"
-        fab:menu_labels_ellipsize="none"
-        fab:menu_labels_hideAnimation="@anim/fab_slide_out_to_right"
-        fab:menu_labels_margin="0dp"
-        fab:menu_labels_maxLines="-1"
-        fab:menu_labels_padding="8dp"
-        fab:menu_labels_paddingBottom="4dp"
-        fab:menu_labels_paddingLeft="8dp"
-        fab:menu_labels_paddingRight="8dp"
-        fab:menu_labels_paddingTop="4dp"
-        fab:menu_labels_position="left"
-        fab:menu_labels_showAnimation="@anim/fab_slide_in_from_right"
-        fab:menu_labels_showShadow="true"
-        fab:menu_labels_singleLine="false"
-        fab:menu_labels_textColor="#FFFFFF"
-        fab:menu_labels_textSize="14sp"
-        fab:menu_openDirection="up"
-        fab:menu_shadowColor="#66000000"
-        fab:menu_shadowRadius="4dp"
-        fab:menu_shadowXOffset="1dp"
-        fab:menu_shadowYOffset="3dp"
-        fab:menu_showShadow="true">
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_send_white_48dp"
-            fab:fab_label="Menu item 1"
-            fab:fab_size="mini" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/done"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/doneicon"
-            fab:fab_label="Menu item 1"
-            fab:fab_size="mini" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/reject"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/clearicon"
-            fab:fab_label="Menu item 1"
-            fab:fab_size="mini" />
-    </com.github.clans.fab.FloatingActionMenu>
--->
 </RelativeLayout>

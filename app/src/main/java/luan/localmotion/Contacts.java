@@ -18,9 +18,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -118,7 +122,7 @@ public class Contacts {
 
         return contact;
     }
-    public static void isMember(final ContactItem contactItem, final ContactListener listener  ){
+    public static void isMember(final ContactItem contactItem, final Context context, final ContactListener listener){
         new AsyncTask<Void, Void, String>() {
 
             @Override
@@ -159,7 +163,24 @@ public class Contacts {
             @Override
             protected void onPostExecute(String msg) {
                 Log.d(MainActivity.TAG, "Luan-checkin: "+msg);
-                listener.OnReceiveIsMember(contactItem, true);
+
+                JSONObject data = null;
+                try {
+                    data = new JSONObject(msg);
+                    if(data.getInt("success")==1){
+
+                        listener.OnReceiveIsMember(contactItem, true);
+                    }
+                    else{
+                        Toast.makeText(context, contactItem.name + "does not have ViaVie. Communication limited to SMS.", Toast.LENGTH_LONG).show();
+                        listener.OnReceiveIsMember(contactItem, false);
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
             }
 
 
@@ -201,13 +222,13 @@ public class Contacts {
 
         return phoneContactID;
     }
-    public static void fillView(Context context, ContactItem contact, ViewGroup view){
+    public static void fillView(Context context, ContactItem contact, ViewGroup view, int size, Integer position){
         Log.d(MainActivity.TAG, "Luan-fillView: "+contact.toString());
         LayoutInflater layoutInflater  = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View contactView = layoutInflater.inflate(R.layout.fragment_contact, null);
         contactView.setTag(contact.phoneNumber);
-        float size= Utils.getPixelfromDP(48, view.getContext());
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(Math.round(size), Math.round(size));
+        float sizeDp= Utils.getPixelfromDP(size, view.getContext());
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(Math.round(sizeDp), Math.round(sizeDp));
         contactView.setLayoutParams(layoutParams);
 
         CircularImageView img = (CircularImageView) contactView.findViewById(R.id.profilePic);
@@ -224,7 +245,13 @@ public class Contacts {
 
             }
         });
-        view.addView(contactView);
+        if(position!=null){
+            view.addView(contactView, position);
+        }
+        else{
+            view.addView(contactView);
+        }
+
     }
     public interface ContactListener {
         void OnReceiveIsMember(ContactItem contact, Boolean result);

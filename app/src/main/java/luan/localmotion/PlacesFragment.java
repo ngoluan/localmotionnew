@@ -132,7 +132,15 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
 
         mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.placesMap);
+        if (mMap == null) {
 
+            mapFragment.getMapAsync(this);
+            mapFragment.setListener(new CustomMapView.OnTouchListener() {
+                @Override
+                public void onTouch() {
+                }
+            });
+        }
         // Set the adapter
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
@@ -380,7 +388,17 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
     public void onDestroyView() {
         super.onDestroyView();
         if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
+        try{
+            Fragment f = getChildFragmentManager().findFragmentById(R.id.placesMap);
+            if (f != null) {
+                getFragmentManager().beginTransaction().remove(f).commit();
 
+                mMap = null;
+            }
+        }
+        catch (RuntimeException e){
+
+        }
     }
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -506,32 +524,14 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
     @Override
     public void fragmentBecameVisible() {
-        if (mMap == null) {
 
-            mapFragment.getMapAsync(this);
-            mapFragment.setListener(new CustomMapView.OnTouchListener() {
-                @Override
-                public void onTouch() {
-                }
-            });
-        }
         getPlaces();
         getYelpCategories();
     }
 
     @Override
     public void fragmentBecameInvisible() {
-        try{
-            Fragment f = getChildFragmentManager().findFragmentById(R.id.placesMap);
-            if (f != null) {
-                getFragmentManager().beginTransaction().remove(f).commit();
 
-                mMap = null;
-            }
-        }
-        catch (RuntimeException e){
-
-        }
 
 
         if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}

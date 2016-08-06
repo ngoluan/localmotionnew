@@ -40,7 +40,7 @@ public class BikeShare {
     public  ArrayList<Marker> googleMapMarkers = new ArrayList<Marker>();
     private BikeShareListener listener = null;
     public Context context;
-    ArrayList<BikeShareItem> bikeShareItems;
+    ArrayList<BikeShareItem> bikeShareItems =  new ArrayList<BikeShareItem>();
     ArrayList<Bitmap> icons;
     public BikeShare(Context context){
         this.context=context;
@@ -80,7 +80,7 @@ public class BikeShare {
                 JSONObject directions;
                 ArrayList<JSONObject> directionsArr = null;
                 String icon;
-                bikeShareItems =  new ArrayList<BikeShareItem>();
+
 
                 try {
                     data = new JSONObject(msg);
@@ -112,34 +112,36 @@ public class BikeShare {
         }.execute();
     }
     void createMarkers(){
-        for (BikeShareItem station:bikeShareItems) {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
 
+                icons = new ArrayList<Bitmap>();
+                Bitmap bikebmp0 = BitmapFactory.decodeResource(context.getResources(), R.drawable.bikeshare0);
+                Bitmap bikebmp1 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare1);
+                Bitmap bikebmp2 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare2);
+                Bitmap bikebmp3 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare3);
+                Bitmap bikebmp4 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare4);
+                Bitmap bikebmp5 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare5);
 
+                Bitmap bikebmpresized0 = Bitmap.createScaledBitmap(bikebmp0,(int)(bikebmp0.getWidth()*0.25), (int)(bikebmp0.getHeight()*0.25), true);
+                Bitmap bikebmpresized1 = Bitmap.createScaledBitmap(bikebmp1,(int)(bikebmp1.getWidth()*0.25), (int)(bikebmp1.getHeight()*0.25), true);
+                Bitmap bikebmpresized2 = Bitmap.createScaledBitmap(bikebmp2,(int)(bikebmp2.getWidth()*0.25), (int)(bikebmp2.getHeight()*0.25), true);
+                Bitmap bikebmpresized3 = Bitmap.createScaledBitmap(bikebmp3,(int)(bikebmp3.getWidth()*0.25), (int)(bikebmp3.getHeight()*0.25), true);
+                Bitmap bikebmpresized4 = Bitmap.createScaledBitmap(bikebmp4,(int)(bikebmp4.getWidth()*0.25), (int)(bikebmp4.getHeight()*0.25), true);
+                Bitmap bikebmpresized5 = Bitmap.createScaledBitmap(bikebmp5,(int)(bikebmp5.getWidth()*0.25), (int)(bikebmp5.getHeight()*0.25), true);
 
-            icons = new ArrayList<Bitmap>();
-            Bitmap bikebmp0 = BitmapFactory.decodeResource(context.getResources(), R.drawable.bikeshare0);
-            Bitmap bikebmp1 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare1);
-            Bitmap bikebmp2 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare2);
-            Bitmap bikebmp3 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare3);
-            Bitmap bikebmp4 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare4);
-            Bitmap bikebmp5 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare5);
+                icons.add(bikebmpresized0);
+                icons.add(bikebmpresized1);
+                icons.add(bikebmpresized2);
+                icons.add(bikebmpresized3);
+                icons.add(bikebmpresized4);
+                icons.add(bikebmpresized5);
 
-            Bitmap bikebmpresized0 = Bitmap.createScaledBitmap(bikebmp0,(int)(bikebmp0.getWidth()*0.4), (int)(bikebmp0.getHeight()*0.4), true);
-            Bitmap bikebmpresized1 = Bitmap.createScaledBitmap(bikebmp1,(int)(bikebmp1.getWidth()*0.4), (int)(bikebmp1.getHeight()*0.4), true);
-            Bitmap bikebmpresized2 = Bitmap.createScaledBitmap(bikebmp2,(int)(bikebmp2.getWidth()*0.4), (int)(bikebmp2.getHeight()*0.4), true);
-            Bitmap bikebmpresized3 = Bitmap.createScaledBitmap(bikebmp3,(int)(bikebmp3.getWidth()*0.4), (int)(bikebmp3.getHeight()*0.4), true);
-            Bitmap bikebmpresized4 = Bitmap.createScaledBitmap(bikebmp4,(int)(bikebmp4.getWidth()*0.4), (int)(bikebmp4.getHeight()*0.4), true);
-            Bitmap bikebmpresized5 = Bitmap.createScaledBitmap(bikebmp5,(int)(bikebmp5.getWidth()*0.4), (int)(bikebmp5.getHeight()*0.4), true);
+            }
+        };
 
-            icons.add(bikebmpresized0);
-            icons.add(bikebmpresized1);
-            icons.add(bikebmpresized2);
-            icons.add(bikebmpresized3);
-            icons.add(bikebmpresized4);
-            icons.add(bikebmpresized5);
-
-
-        }
+        thread.start();
     }
     void drawMarkers(ArrayList<BikeShareItem>  stations, GoogleMap mMap){
         for (Marker marker:googleMapMarkers) {

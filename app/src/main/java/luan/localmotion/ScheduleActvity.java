@@ -51,7 +51,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
     Places places;
 
     ArrayList<ContactItem> contactList=new ArrayList<ContactItem>();
-
+    public Boolean useSMS=false;
     Bundle extras=null;
     public long eventId;
     public CalendarEvent calendarEvent =null;
@@ -173,18 +173,16 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             super.onBackPressed();
             return;
         }
+        doubleBackToExitPressedOnce=true;
 
         final ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager,0);
         final DrawerLayout layout = (DrawerLayout) findViewById(R.id.schedule_drawer_layout);
         Snackbar snackbar = Snackbar
-                .make(layout, "Save calendarEvent?", Snackbar.LENGTH_LONG)
+                .make(layout, "Save event?", Snackbar.LENGTH_LONG)
                 .setAction("SAVE", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Calendar beginTime = getTimestamp(scheduleFragment.getSelectedDateTime("first"));
-                        Calendar endTime = getTimestamp(scheduleFragment.getSelectedDateTime("last"));
-                        calendarEvent.beginTime = beginTime.getTimeInMillis();
-                        calendarEvent.endTime = endTime.getTimeInMillis();
+
                         calendarEvent.title="Hang out";
                         calendarEvent.save();
                         finish();
@@ -234,20 +232,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         Log.d(MainActivity.TAG, "Luan-onNewIntent: "+extras.toString());
     }
 
-    public Calendar getTimestamp(String time){
-        Calendar beginTime = Calendar.getInstance();
-        beginTime.set(2016, 7,9, 12,0, 0);
-        try{
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-M-d hh:mm a");
-            Date parsedDate = dateFormat.parse(time);
-            beginTime.setTime(parsedDate);
-            return beginTime;
-            //Timestamp startTime = new java.sql.Timestamp(parsedDate.getTime());
-            //return startTime;
-        }catch(Exception e){
-        }
-        return beginTime;
-    }
+
 
     @Override
     public void onListFragmentInteraction(Chat item) {
@@ -258,7 +243,16 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
     public void OnChatFragmentListener(String TAG, Chat item) {
 
     }
-
+    void openConversation(){
+        if(useSMS==true){
+            String numbers="";
+            for (int i = contactList.size() - 1; i >= 0; i--) {
+                numbers+=contactList.get(i).phoneNumber+";";
+            }
+            numbers = numbers.replaceAll("; $", "");
+            startActivity(new Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", numbers, null)));
+        }
+    }
     public class MessageReceiver extends BroadcastReceiver {
         OnReceiveMessage onReceiveMessage;
         @Override
@@ -372,11 +366,16 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         bottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
             @Override
             public boolean onTabSelected(int position, boolean wasSelected) {
-                    if (position == 3)
-                    {
-                        mDrawerLayout.openDrawer(drawer);
-                    }
-                    return true;
+                Log.d(MainActivity.TAG, "Luan-onTabSelected: "+position);
+                switch (position) {
+                    case 3: openConversation();
+                        break;
+                    case 4: mDrawerLayout.openDrawer(drawer);
+                        break;
+                    default: break;
+                }
+
+                return true;
             }
         });
     }
@@ -398,9 +397,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
                     scheduleFragment.setupMap();
                 }
 
-
             }
-
 
         }
 

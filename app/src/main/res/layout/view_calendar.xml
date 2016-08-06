@@ -18,31 +18,34 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/colorSecondary">
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:id="@+id/calendarImgView" />
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:id="@+id/calendarImgView"
+            android:src="@drawable/placesicon" />
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:padding="@dimen/grid_padding">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:text="Small Text"
+                android:id="@+id/calendarPlaceView" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="Small Text"
-                android:id="@+id/calendarBeginView" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Small Text"
-                android:id="@+id/calendarEndView" />
+                android:id="@+id/calendarTimeView" />
         </LinearLayout>
 
         <LinearLayout
