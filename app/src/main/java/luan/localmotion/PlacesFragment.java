@@ -96,11 +96,9 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static PlacesFragment newInstance(int columnCount) {
+    public static PlacesFragment newInstance(Places places) {
         PlacesFragment fragment = new PlacesFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
+        fragment.places=places;
         return fragment;
     }
 
@@ -108,21 +106,8 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
-        getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
     }
 
-    BroadcastReceiver locationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            mCurrentLocation = new Location(intent.getExtras().getString("provider"));
-            mCurrentLocation.setLongitude(intent.getExtras().getDouble("lng"));
-            mCurrentLocation.setLatitude(intent.getExtras().getDouble("lat"));
-        }
-    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -194,7 +179,6 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
 
         }
-        getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
         expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayout);
 
         final SearchView search = (SearchView) view.findViewById(R.id.searchView);
@@ -272,10 +256,6 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
         }
 
-        Log.d(MainActivity.TAG,"Place location"+mCurrentLocation.toString());
-        if(places==null){
-            places = new Places(getActivity());
-        }
         fillPlacesFragment(loc);
     }
 
@@ -374,20 +354,17 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
             throw new RuntimeException(context.toString()
                     + " must implement OnPlacesFragmentListener");
         }
-        getActivity().registerReceiver(locationReceiver, new IntentFilter("NEW_LOCATION"));
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
         try{
             Fragment f = getChildFragmentManager().findFragmentById(R.id.placesMap);
             if (f != null) {
@@ -399,26 +376,6 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
         catch (RuntimeException e){
 
         }
-    }
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-
-        /*if (isVisibleToUser) {
-            if (mMap == null) {
-
-                mapFragment.getMapAsync(this);
-                mapFragment.setListener(new CustomMapView.OnTouchListener() {
-                    @Override
-                    public void onTouch() {
-                    }
-                });
-            }
-            getPlaces();
-            getYelpCategories();
-        }
-        else
-            Log.d("MyFragment", "Fragment is not visible.");*/
     }
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -532,9 +489,6 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
     @Override
     public void fragmentBecameInvisible() {
 
-
-
-        if(locationReceiver!=null){getActivity().unregisterReceiver(locationReceiver); locationReceiver=null;}
     }
 }
 

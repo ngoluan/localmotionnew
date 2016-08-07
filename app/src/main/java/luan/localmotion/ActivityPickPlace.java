@@ -8,7 +8,7 @@ import android.os.Bundle;
 import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.PlacesItem;
 
-public class PickPlace extends AppCompatActivity implements OnFragmentInteractionListener {
+public class ActivityPickPlace extends AppCompatActivity implements OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +16,7 @@ public class PickPlace extends AppCompatActivity implements OnFragmentInteractio
         setContentView(R.layout.activity_get_places);
         PlacesFragment placesFragment = (PlacesFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.placesActivityFragment);
+        placesFragment.places=new Places(this);
         placesFragment.fragmentBecameVisible();
     }
 

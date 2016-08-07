@@ -32,13 +32,14 @@ public class CalendarRecyclerViewAdapter extends BaseRecyclerViewAdapter<Calenda
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.view_calendar, viewGroup, false);
 
+
+
         return view;
     }
 
     @Override
     protected void bindView(CalendarEvent item, BaseRecyclerViewAdapter.BaseViewHolder viewHolder) {
         if (item != null) {
-            viewHolder.setItem(item);
             TextView calendarPlace = (TextView) viewHolder.getView(R.id.calendarPlaceView);
             TextView calendarTime = (TextView) viewHolder.getView(R.id.calendarTimeView);
             LinearLayout contactsLayout= (LinearLayout) viewHolder.getView(R.id.contactsLayout);
@@ -64,11 +65,11 @@ public class CalendarRecyclerViewAdapter extends BaseRecyclerViewAdapter<Calenda
             }
             calendarTime.setText(timeText);
 
-            if(!item.yelpImageUrl.equals("")){
-                Picasso.with(getContext()).load(item.yelpImageUrl).placeholder(R.drawable.placesicon).into(calendarImgView);
+            if(!item.imgUrl.equals("")){
+                Picasso.with(getContext()).load(item.imgUrl).placeholder(R.drawable.placesicon).into(calendarImgView);
             }
-            if(!item.yelpBusinessName.equals("")){
-                calendarPlace.setText(item.yelpBusinessName);
+            if(!item.businessName.equals("")){
+                calendarPlace.setText(item.businessName);
             }
             Log.d(MainActivity.TAG, "Luan-bindView: "+item.getPhones());
             for (String contact : item.getPhones()) {

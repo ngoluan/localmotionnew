@@ -42,4 +42,5 @@ public class EventbriteAPI extends DefaultApi10a {
     public String getAuthorizationUrl(OAuth1RequestToken requestToken) {
         return String.format(AUTHORIZE_URL, requestToken.getToken());
     }
+
 }

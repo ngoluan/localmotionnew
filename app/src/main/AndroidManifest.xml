@@ -58,7 +58,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PickContact" />
-        <activity android:name=".PickPlace" />
+        <activity android:name=".ActivityPickPlace" />
 
         <service
             android:name=".LocationService"

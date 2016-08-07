@@ -56,11 +56,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             calendarEvent.endTime = Long.parseLong(data.get("endTime"));
             calendarEvent.title = data.get("title");
             calendarEvent.yelpPlaceId = data.get("yelpPlaceId");
-            calendarEvent.yelpBusinessName = data.get("yelpBusinessName");
-            calendarEvent.yelpsnippetText = data.get("yelpsnippetText");
-            calendarEvent.yelpcategories = data.get("yelpcategories");
-            calendarEvent.yelpcategories = data.get("yelpcategories");
-            calendarEvent.yelpImageUrl = data.get("yelpImageUrl");
+            calendarEvent.businessName = data.get("businessName");
+            calendarEvent.snippetText = data.get("snippetText");
+            calendarEvent.category = data.get("category");
+            calendarEvent.category = data.get("category");
+            calendarEvent.imgUrl = data.get("imgUrl");
             calendarEvent.eventUniqueId = data.get("eventUniqueId");
             calendarEvent.save();
             readyBroadcast(data,data.get("type"), calendarEvent.eventUniqueId);

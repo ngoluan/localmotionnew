@@ -69,7 +69,6 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
     public int squareSize;
 
     public GoogleMap mMap;
-    public int mapMarkerType;
     public List<Integer> mapViews=new ArrayList<Integer>();
     public BikeShare bikeShare;
     public MainActivity activity;
@@ -185,7 +184,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     if(mapViews.get(i)==NEXTBUS)
                         drawNextBus();
                     else if(mapViews.get(i)==BIKESHARE)
-                        drawBikeShare();
+                        bikeShare.onCameraChange(cameraPosition);
                 }
 
             }
@@ -280,9 +279,10 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     eventView.setLayoutParams(new ViewGroup.LayoutParams(squareSize * 3, ViewGroup.LayoutParams.MATCH_PARENT));
 
                     Calendar beginTime = Calendar.getInstance();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM--dd'T'HH:mm:ss");
+
                     Date parsedDate = null;
                     try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                         parsedDate = dateFormat.parse(item.start.local);
                         beginTime.setTime(parsedDate);
 
@@ -290,13 +290,13 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                         e.printStackTrace();
 
                     }
-
+                    SimpleDateFormat newDate = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
                     TextView eventName = (TextView) eventView.findViewById(R.id.eventName);
                     TextView eventTime = (TextView) eventView.findViewById(R.id.eventTime);
                     ImageView eventImgView = (ImageView) eventView.findViewById(R.id.eventImgView);
 
                     eventName.setText(item.name.text);
-                    //eventTime.setText(beginTime);
+                    eventTime.setText(newDate.format(parsedDate));
                     if (item.logo.url != null) {
                         if (!item.logo.url.equals(""))
                             Picasso.with(getContext()).load(item.logo.url)

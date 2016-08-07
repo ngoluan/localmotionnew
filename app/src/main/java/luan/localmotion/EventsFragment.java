@@ -4,15 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,10 +37,10 @@ public class EventsFragment extends BaseFragment<EventbriteEvent,EventsRecyclerV
         mainActivity = (MainActivity) getActivity();
         recyclerViewAdapter = new EventsRecyclerViewAdapter(getContext(), mListListener);
 
-        listColumns=4;
+        listColumns=1;
         createViews(R.id.events_list);
         setRecyclerViewAdapter(recyclerViewAdapter);
-
+        recyclerViewAdapter.setClickListener(this);
         return view;
     }
     public static EventsFragment newInstance(String type) {
@@ -64,6 +59,7 @@ public class EventsFragment extends BaseFragment<EventbriteEvent,EventsRecyclerV
         data.put("token", EventbriteService.TOKEN);
         data.put("location.latitude", String.valueOf(mCurrentLocation.getLatitude()));
         data.put("location.longitude",String.valueOf(mCurrentLocation.getLongitude()));
+        data.put("expand","venue");
 
         Call<EventbriteEvents> eventbriteEvents = eventbriteService.listEvents(data);
 
@@ -117,23 +113,23 @@ public class EventsFragment extends BaseFragment<EventbriteEvent,EventsRecyclerV
     @Override
     public void OnClick(EventbriteEvent item, View view, int position) {
         Intent scheduleIntent = new Intent(getContext(), ScheduleActvity.class);
-        scheduleIntent.putExtra("eventUniqueId", item.getId().toString());
+        scheduleIntent.putExtra("eventbriteId", item.getId());
         startActivity(scheduleIntent);
     }
 
     @Override
     public void OnLongClick(EventbriteEvent item, View view, int position) {
-        final FrameLayout layout = (FrameLayout) view.findViewById(R.id.eventLayout);
+/*        final FrameLayout layout = (FrameLayout) view.findViewById(R.id.eventLayout);
         Snackbar snackbar = Snackbar
                 .make(layout, "Delete event?", Snackbar.LENGTH_LONG)
                 .setAction("DELETE", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-/*                        item.delete();
+*//*                        item.delete();
                         List<EventbriteEvent> events = CalendarEvent.listAll(CalendarEvent.class);
-                        recyclerViewAdapter.animateTo(events);*/
+                        recyclerViewAdapter.animateTo(events);*//*
                     }
                 });
-        snackbar.show();
+        snackbar.show();*/
     }
 }

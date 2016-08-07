@@ -10,7 +10,10 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -19,7 +22,7 @@ import java.util.List;
  * TODO: Replace the implementation with code for your data type.
  */
 public class EventsRecyclerViewAdapter extends BaseRecyclerViewAdapter<EventbriteEvent>  {
-
+    int height=196;
     public EventsRecyclerViewAdapter(Context context, BaseListener<EventbriteEvent> listener) {
         super(context, listener);
     }
@@ -29,19 +32,39 @@ public class EventsRecyclerViewAdapter extends BaseRecyclerViewAdapter<Eventbrit
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.view_event, viewGroup, false);
 
+        float sizeDp= Utils.getPixelfromDP(height, view.getContext());
+        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        layoutParams.height=Math.round(sizeDp);
+        view.setLayoutParams(layoutParams);
+
         return view;
     }
 
     @Override
     protected void bindView(EventbriteEvent item, BaseRecyclerViewAdapter.BaseViewHolder viewHolder) {
         if (item != null) {
+
             TextView eventName = (TextView) viewHolder.getView(R.id.eventName);
             TextView eventTime = (TextView) viewHolder.getView(R.id.eventTime);
             ImageView eventImgView = (ImageView) viewHolder.getView(R.id.eventImgView);
 
             eventName.setText(item.name.text);
-            eventTime.setText(item.start.local);
-            if (item.logo.url != null) {
+
+            Calendar beginTime = Calendar.getInstance();
+
+            Date parsedDate = null;
+            try {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                parsedDate = dateFormat.parse(item.start.local);
+                beginTime.setTime(parsedDate);
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+
+            }
+            SimpleDateFormat newDate = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
+            eventTime.setText(newDate.format(parsedDate));
+            if (item.logo!= null) {
                 if(!item.logo.url.equals("")) Picasso.with(getContext()).load(item.logo.url)
                         .error(R.drawable.placesicon)
                         .placeholder(R.drawable.placesicon)

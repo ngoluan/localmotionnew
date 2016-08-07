@@ -40,7 +40,7 @@ public abstract class  BaseRecyclerViewAdapter<T>  extends RecyclerView.Adapter<
 
     @Override
     public void onBindViewHolder(BaseViewHolder baseViewHolder, int position) {
-
+        baseViewHolder.setItem(getItem(position));
         bindView(getItem(position), baseViewHolder);
     }
 

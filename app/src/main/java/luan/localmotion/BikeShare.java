@@ -6,16 +6,23 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterItem;
+import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
+import com.google.maps.android.ui.IconGenerator;
 import com.yelp.clientlib.entities.Business;
 
 import org.json.JSONArray;
@@ -42,8 +49,11 @@ public class BikeShare {
     public Context context;
     ArrayList<BikeShareItem> bikeShareItems =  new ArrayList<BikeShareItem>();
     ArrayList<Bitmap> icons;
+    // Declare a variable for the cluster manager.
+    private ClusterManager<BikeShareClulsterItem> mClusterManager;
+    BikeShareClusterRenderer bikeShareClusterRenderer;
     public BikeShare(Context context){
-        this.context=context;
+        this.context=context; createMarkers();
     }
     public void getStations(){
         new AsyncTask<String, Void, String>() {
@@ -101,7 +111,7 @@ public class BikeShare {
                                 )
                         );
                     }
-                    createMarkers();
+
                     if (listener != null)
                         listener.OnGetBikes(bikeShareItems);
                 } catch (JSONException e) {
@@ -154,9 +164,11 @@ public class BikeShare {
                 continue;
             float ratioDbl =  ((float)station.bikes/((float)station.bikes+(float)station.docks))*5;
             int ratio = Math.round(ratioDbl);
-            googleMapMarkers.add(mMap.addMarker(new MarkerOptions()
+            mClusterManager.addItem(new BikeShareClulsterItem(station.lat, station.lng, ratio));
+            setUpClusterer(mMap,context);
+            /*googleMapMarkers.add(mMap.addMarker(new MarkerOptions()
                     .position(loc)
-                    .icon(BitmapDescriptorFactory.fromBitmap(icons.get(ratio)))));
+                    .icon(BitmapDescriptorFactory.fromBitmap(icons.get(ratio)))));*/
 
 
         }
@@ -190,6 +202,30 @@ public class BikeShare {
 
         mMap.moveCamera(cameraUpdate);
     }
+    void setUpClusterer(GoogleMap map, Context context) {
+
+        // Initialize the manager with the context and the map.
+        // (Activity extends context, so we can pass 'this' in the constructor.)
+        mClusterManager = new ClusterManager<BikeShareClulsterItem>(context, map);
+        bikeShareClusterRenderer=new BikeShareClusterRenderer(context,map,mClusterManager,icons);
+        mClusterManager.setRenderer(bikeShareClusterRenderer);
+
+        // Point the map's listeners at the listeners implemented by the cluster
+        // manager.
+        map.setOnCameraChangeListener(mClusterManager);
+
+        mClusterManager.cluster();
+    }
+
+    void onCameraChange(CameraPosition cameraPosition){
+        if(bikeShareClusterRenderer!=null)
+        ((GoogleMap.OnCameraChangeListener)bikeShareClusterRenderer).onCameraChange(cameraPosition);
+        if (mClusterManager != null) {
+            mClusterManager.cluster();
+        }
+
+    }
+
     // Assign the listener implementing events interface that will receive the events
     public void setBikeShareListener(BikeShareListener listener) {
         this.listener = listener;
@@ -219,6 +255,93 @@ class BikeShareItem {
         float [] dist = new float[1];
         //Location.distanceBetween(HomeScreen.lat, HomeScreen.lng, this.lat, this.lng, dist);
         this.distance = 0;
+    }
+
+}
+class BikeShareClulsterItem implements ClusterItem {
+    public String id;
+    private final LatLng mPosition;
+
+    public int getmRatio() {
+        return mRatio;
+    }
+
+    private int mRatio;
+
+    public BikeShareClulsterItem(double lat, double lng, int ratio){
+        mPosition = new LatLng(lat, lng);
+        mRatio=ratio;
+    }
+    @Override
+    public LatLng getPosition() {
+        return null;
+    }
+}
+class BikeShareClusterRenderer extends DefaultClusterRenderer<BikeShareClulsterItem> {
+
+    private final IconGenerator mIconGenerator;
+    private final IconGenerator mClusterIconGenerator;
+/*    private final ImageView mImageView;
+    private final ImageView mClusterImageView;
+    private final int mDimension;*/
+    private Context mContext;
+    private ArrayList<Bitmap> mIcons;
+
+    public BikeShareClusterRenderer(Context context, GoogleMap map, ClusterManager<BikeShareClulsterItem> clusterManager,ArrayList<Bitmap> icons ) {
+        super(context, map, clusterManager);
+        mContext=context;
+        mIconGenerator = new IconGenerator(mContext);
+        mClusterIconGenerator = new IconGenerator(mContext);
+        mIcons = icons;
+        /*View multiProfile = getLayoutInflater().inflate(R.layout.multi_profile, null);
+        mClusterIconGenerator.setContentView(multiProfile);
+        mClusterImageView = (ImageView) multiProfile.findViewById(R.id.image);
+
+        mImageView = new ImageView(getApplicationContext());
+        mDimension = (int) getResources().getDimension(R.dimen.custom_profile_image);
+        mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
+        int padding = (int) getResources().getDimension(R.dimen.custom_profile_padding);
+        mImageView.setPadding(padding, padding, padding, padding);
+        mIconGenerator.setContentView(mImageView);*/
+    }
+
+    @Override
+    protected void onBeforeClusterItemRendered(BikeShareClulsterItem bikeShareClulsterItem, MarkerOptions markerOptions) {
+        // Draw a single person.
+        // Set the info window to show their name.
+/*        mImageView.setImageResource(person.profilePhoto);
+        Bitmap icon = mIconGenerator.makeIcon();
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));*/
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(mIcons.get(bikeShareClulsterItem.getmRatio())));
+    }
+
+    /*@Override
+    protected void onBeforeClusterRendered(Cluster<Person> cluster, MarkerOptions markerOptions) {
+        // Draw multiple people.
+        // Note: this method runs on the UI thread. Don't spend too much time in here (like in this example).
+        List<Drawable> profilePhotos = new ArrayList<Drawable>(Math.min(4, cluster.getSize()));
+        int width = mDimension;
+        int height = mDimension;
+
+        for (Person p : cluster.getItems()) {
+            // Draw 4 at most.
+            if (profilePhotos.size() == 4) break;
+            Drawable drawable = getResources().getDrawable(p.profilePhoto);
+            drawable.setBounds(0, 0, width, height);
+            profilePhotos.add(drawable);
+        }
+        MultiDrawable multiDrawable = new MultiDrawable(profilePhotos);
+        multiDrawable.setBounds(0, 0, width, height);
+
+        mClusterImageView.setImageDrawable(multiDrawable);
+        Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+    }*/
+
+    @Override
+    protected boolean shouldRenderAsCluster(Cluster cluster) {
+        // Always render clusters.
+        return cluster.getSize() > 1;
     }
 
 }

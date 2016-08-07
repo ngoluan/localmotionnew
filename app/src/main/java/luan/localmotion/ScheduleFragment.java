@@ -50,7 +50,6 @@ import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.yelp.clientlib.entities.*;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -140,7 +139,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         placePicView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent placesIntent = new Intent(getContext(), PickPlace.class);
+                Intent placesIntent = new Intent(getContext(), ActivityPickPlace.class);
 
                 startActivityForResult(placesIntent,PICK_PLACE_REQUEST);
             }
@@ -156,7 +155,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             }
         });
 
-        setupMap();
+        setupPlaceMap();
         setupCalendar();
         setupDirectionsListview();
 
@@ -165,7 +164,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
         return  view;
     }
-    void setupMap(){
+    void setupPlaceMap(){
 
         if (mMap != null&&scheduleActvity.mCurrentLocation!=null) {
             Location mCurrentLocation=scheduleActvity.mCurrentLocation;
@@ -194,7 +193,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    setupMap();
+                                    setupPlaceMap();
                                 }
                             });
 
@@ -265,7 +264,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
     @Override
     public void fragmentBecameVisible() {
-        setupMap();
+        setupPlaceMap();
     }
 
     @Override
@@ -575,44 +574,36 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     public void fillYelpPlace_v2(CalendarEvent calendarEvent){
 
         TextView placeNameView = (TextView) view.findViewById(R.id.placeName);
-        placeNameView.setText(calendarEvent.yelpBusinessName);
+        placeNameView.setText(calendarEvent.businessName);
 
         TextView placesAddressView = (TextView) view.findViewById(R.id.placeAddress);
 
-        placesAddressView.setText(calendarEvent.yelpAddress);
+        placesAddressView.setText(calendarEvent.address);
 
         TextView placeSnippetView = (TextView) view.findViewById(R.id.placeSnippet);
-        placeSnippetView.setText(calendarEvent.yelpsnippetText);
+        placeSnippetView.setText(calendarEvent.snippetText);
 
         ImageView placesPic = (ImageView) view.findViewById(R.id.placePic);
-        new LoadImage(placesPic).execute(calendarEvent.yelpImageUrl);
-        LatLng loc = new LatLng(calendarEvent.yelpLat, calendarEvent.yelpLng);
-        locMarker = mMap.addMarker(new MarkerOptions()
-                .position(loc));
-        LatLng currentLocation = new LatLng(scheduleActvity.mCurrentLocation.getLatitude(), scheduleActvity.mCurrentLocation.getLongitude());
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(loc).include(currentLocation);
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
+        new LoadImage(placesPic).execute(calendarEvent.imgUrl);
+        setupPlaceMap(calendarEvent.lat, calendarEvent.lng, mMap);
+    }
+    public void fillEventbrite(EventbriteEvent event){
 
-        mMap.moveCamera(cameraUpdate);
+        TextView placeNameView = (TextView) view.findViewById(R.id.placeName);
+        placeNameView.setText(event.name.text);
 
-        Utils.OnGetDirections onGetDirections = new Utils.OnGetDirections() {
-            @Override
-            public void onGetDirections(Direction direction, String type) {
-                Route route = direction.getRouteList().get(0);
-                Leg leg = route.getLegList().get(0);
+        TextView placesAddressView = (TextView) view.findViewById(R.id.placeAddress);
 
-                DirectionObject directionObj = new DirectionObject(type,leg.getDuration().getText() );
+        placesAddressView.setText(event.venue.name+" at "+event.venue.address.address_1);
 
-                mDirectionsAdapter.addItem(mDirectionsAdapter.mValues.size(), directionObj);
+        TextView placeSnippetView = (TextView) view.findViewById(R.id.placeSnippet);
+        placeSnippetView.setText(event.description.text);
 
-            }
-        };
+        ImageView placesPic = (ImageView) view.findViewById(R.id.placePic);
+        new LoadImage(placesPic).execute(event.logo.url);
 
-        Utils.getDirections(null, loc, TransportMode.TRANSIT, getContext(), onGetDirections);
-        Utils.getDirections(null, loc, TransportMode.DRIVING, getContext(), onGetDirections);
-        Utils.getDirections(null, loc, TransportMode.WALKING, getContext(), onGetDirections);
-        Utils.getDirections(null, loc, TransportMode.BICYCLING, getContext(), onGetDirections);
+        setupPlaceMap(Double.parseDouble(event.venue.address.latitude), Double.parseDouble(event.venue.address.longitude), mMap);
+
     }
     public void fillYelpPlace(String id){
 
@@ -633,10 +624,10 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                         business.imageUrl()
                 );
                 scheduleActvity.calendarEvent.yelpPlaceId=business.id();
-                scheduleActvity.calendarEvent.yelpBusinessName=business.name();
-                scheduleActvity.calendarEvent.yelpcategories =business.categories().get(0).name();
-                scheduleActvity.calendarEvent.yelpImageUrl =business.imageUrl();
-                scheduleActvity.calendarEvent.yelpsnippetText=business.snippetText();
+                scheduleActvity.calendarEvent.businessName =business.name();
+                scheduleActvity.calendarEvent.category =business.categories().get(0).name();
+                scheduleActvity.calendarEvent.imgUrl =business.imageUrl();
+                scheduleActvity.calendarEvent.snippetText =business.snippetText();
                 scheduleActvity.calendarEvent.save();
 
                 TextView placeNameView = (TextView) view.findViewById(R.id.placeName);
@@ -652,36 +643,60 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                 ImageView placesPic = (ImageView) view.findViewById(R.id.placePic);
                 Log.i(MainActivity.TAG, "Get business pic: " + business.imageUrl());
                 new LoadImage(placesPic).execute(business.imageUrl());
-                LatLng loc = new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude());
-                locMarker = mMap.addMarker(new MarkerOptions()
-                        .position(loc));
-                LatLng currentLocation = new LatLng(scheduleActvity.mCurrentLocation.getLatitude(), scheduleActvity.mCurrentLocation.getLongitude());
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(loc).include(currentLocation);
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
-
-                mMap.moveCamera(cameraUpdate);
-
-                Utils.OnGetDirections onGetDirections = new Utils.OnGetDirections() {
-                    @Override
-                    public void onGetDirections(Direction direction, String type) {
-                        Route route = direction.getRouteList().get(0);
-                        Leg leg = route.getLegList().get(0);
-
-                        DirectionObject directionObj = new DirectionObject(type,leg.getDuration().getText() );
-
-                        mDirectionsAdapter.addItem(mDirectionsAdapter.mValues.size(), directionObj);
-
-                    }
-                };
-
-                Utils.getDirections(null, loc, TransportMode.TRANSIT, getContext(), onGetDirections);
-                Utils.getDirections(null, loc, TransportMode.DRIVING, getContext(), onGetDirections);
-                Utils.getDirections(null, loc, TransportMode.WALKING, getContext(), onGetDirections);
-                Utils.getDirections(null, loc, TransportMode.BICYCLING, getContext(), onGetDirections);
+                setupPlaceMap(business.location().coordinate().latitude(), business.location().coordinate().longitude(), mMap);
 
             }
+
         });
+    }
+    void setupPlaceMap(final Double targetLat, final Double targetLng, final GoogleMap map){
+        if (scheduleActvity.mCurrentLocation == null) {
+            new java.util.Timer().schedule(
+                    new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    setupPlaceMap(targetLat, targetLng, map);
+                                }
+                            });
+
+
+                        }
+                    },
+                    1000
+            );
+            return;
+        }
+
+        LatLng loc = new LatLng(targetLat, targetLng);
+        locMarker = map.addMarker(new MarkerOptions()
+                .position(loc));
+        LatLng currentLocation = new LatLng(scheduleActvity.mCurrentLocation.getLatitude(), scheduleActvity.mCurrentLocation.getLongitude());
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(loc).include(currentLocation);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
+
+        map.moveCamera(cameraUpdate);
+
+        Utils.OnGetDirections onGetDirections = new Utils.OnGetDirections() {
+            @Override
+            public void onGetDirections(Direction direction, String type) {
+                Route route = direction.getRouteList().get(0);
+                Leg leg = route.getLegList().get(0);
+
+                DirectionObject directionObj = new DirectionObject(type,leg.getDuration().getText() );
+
+                mDirectionsAdapter.addItem(mDirectionsAdapter.mValues.size(), directionObj);
+
+            }
+        };
+
+        Utils.getDirections(null, loc, TransportMode.TRANSIT, getContext(), onGetDirections);
+        Utils.getDirections(null, loc, TransportMode.DRIVING, getContext(), onGetDirections);
+        Utils.getDirections(null, loc, TransportMode.WALKING, getContext(), onGetDirections);
+        Utils.getDirections(null, loc, TransportMode.BICYCLING, getContext(), onGetDirections);
     }
     // TODO: Rename method, update argument and hook method into UI calendarEvent
     public void onButtonPressed(Uri uri) {

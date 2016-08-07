@@ -5,14 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.IBinder;
-import android.renderscript.ScriptGroup;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -35,15 +32,12 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
-import com.google.android.gms.location.LocationServices;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.uber.sdk.android.core.UberSdk;
 import com.uber.sdk.core.auth.Scope;
 import com.uber.sdk.rides.client.SessionConfiguration;
 
-import java.text.DateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
@@ -183,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer = (RelativeLayout) findViewById(R.id.drawer);
         ImageView calendarButton = (ImageView) drawer.findViewById(R.id.calendarButton);
+        calendarButton.setColorFilter(Color.argb(255, 255, 255, 255));
         calendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -190,6 +185,7 @@ public class MainActivity extends AppCompatActivity implements
                 startActivity(eventIntent);
             }
         });
+
     }
 
     @Override
@@ -332,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements
         AHBottomNavigationItem item0 = new AHBottomNavigationItem("Dash", R.drawable.dashicon, ContextCompat.getColor(getBaseContext(), R.color.colorPrimary));
         AHBottomNavigationItem item1 = new AHBottomNavigationItem("Friends", R.drawable.friendsicon, ContextCompat.getColor(getBaseContext(), R.color.colorSecondary));
         AHBottomNavigationItem item2 = new AHBottomNavigationItem("Places", R.drawable.placesicon, ContextCompat.getColor(getBaseContext(), R.color.colorTertiary));
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Calendar", R.drawable.calendaricon, ContextCompat.getColor(getBaseContext(), R.color.colorDark));
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Events", R.drawable.calendaricon, ContextCompat.getColor(getBaseContext(), R.color.colorDark));
         AHBottomNavigationItem item4 = new AHBottomNavigationItem("More", R.drawable.moreicon, ContextCompat.getColor(getBaseContext(), R.color.colorAccent));
 
 // Add items
@@ -411,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements
                     return ContactFragment.newInstance(3);
                 case 2:
 
-                    return PlacesFragment.newInstance(3);
+                    return PlacesFragment.newInstance(places);
                 case 3:
                     return EventsFragment.newInstance("EventsFragment");
                 default:

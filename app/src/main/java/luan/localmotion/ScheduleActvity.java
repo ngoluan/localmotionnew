@@ -35,13 +35,17 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.orm.SugarContext;
 import com.yelp.clientlib.entities.Business;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ScheduleActvity extends AppCompatActivity implements ScheduleFragment.OnFragmentInteractionListener, ChatFragment.OnListFragmentInteractionListener{
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -115,8 +119,10 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             getContacts(phones);
         }
         if(extras.getString("placeId")!=null){
-
             getYelpPlace(extras.getString("placeId"));
+        }
+        if(extras.getString("eventbriteId")!=null){
+            getEventBrite(extras.getString("eventbriteId"));
         }
     }
 
@@ -139,13 +145,13 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             @Override
             public void OnGetBusiness(Activity caller, Business business) {
                 calendarEvent.yelpPlaceId=business.id();
-                calendarEvent.yelpBusinessName=business.name();
-                calendarEvent.yelpcategories =business.categories().get(0).name();
-                calendarEvent.yelpImageUrl =business.imageUrl();
-                calendarEvent.yelpAddress =business.location().address().get(0);
-                calendarEvent.yelpLat =business.location().coordinate().latitude();
-                calendarEvent.yelpLng =business.location().coordinate().longitude();
-                calendarEvent.yelpsnippetText=business.snippetText();
+                calendarEvent.businessName =business.name();
+                calendarEvent.category =business.categories().get(0).name();
+                calendarEvent.imgUrl =business.imageUrl();
+                calendarEvent.address =business.location().address().get(0);
+                calendarEvent.lat =business.location().coordinate().latitude();
+                calendarEvent.lng =business.location().coordinate().longitude();
+                calendarEvent.snippetText =business.snippetText();
                 calendarEvent.save();
 
             if (mViewPager.getCurrentItem() == 0) {
@@ -159,7 +165,38 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             }
         });
     }
+    void getEventBrite(String id){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://www.eventbriteapi.com/v3/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
+        EventbriteService eventbriteService = retrofit.create(EventbriteService.class);
+        Map<String, String> data = new HashMap<>();
+        data.put("token", EventbriteService.TOKEN);
+        data.put("expand","venue");
+
+        Call<EventbriteEvent> eventbriteEvents = eventbriteService.getEvent(Long.parseLong(id),data);
+
+        eventbriteEvents.enqueue(new Callback<EventbriteEvent>() {
+            @Override
+            public void onResponse(Call<EventbriteEvent> call, Response<EventbriteEvent> response) {
+                EventbriteEvent eventbriteEvent=response.body();
+                if (mViewPager.getCurrentItem() == 0) {
+                    ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
+                    if(scheduleFragment!=null){
+                        scheduleFragment.fillEventbrite(eventbriteEvent);
+                    }
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<EventbriteEvent> call, Throwable t) {
+                Log.d(MainActivity.TAG, "Luan-onFailure: "+t.toString());
+            }
+        });
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -394,7 +431,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             if (mViewPager.getCurrentItem() == 0) {
                 ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
                 if(scheduleFragment!=null){
-                    scheduleFragment.setupMap();
+                    scheduleFragment.setupPlaceMap();
                 }
 
             }

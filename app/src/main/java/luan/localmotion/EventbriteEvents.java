@@ -62,6 +62,8 @@ class EventbriteEvent {
     String venue_id="";
     @SerializedName("logo")
     Logo logo;
+    @SerializedName("venue")
+    Venue venue;
 
     public EventbriteEvent(){
 
@@ -107,6 +109,9 @@ class EventbriteEvent {
         this.logo = logo;
     }
 
+    public EventbriteEvent getEvent() {
+        return this;
+    }
 
     class BaseEventbriteField {
         String text;
@@ -117,6 +122,15 @@ class EventbriteEvent {
     class Start  {String local;}
     class End extends Start{}
     class Logo {String url;}
+    class Venue {
+        class Address{
+            String longitude;
+            String latitude;
+            String address_1;
+        }
+        String name;
+        Address address;
+    }
 
 
 
