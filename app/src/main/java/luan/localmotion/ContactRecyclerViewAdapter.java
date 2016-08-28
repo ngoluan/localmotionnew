@@ -1,9 +1,8 @@
 package luan.localmotion;
 
-import android.graphics.drawable.Drawable;
-import android.support.v7.widget.LinearLayoutCompat;
+import android.content.Context;
+import android.graphics.Point;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,122 +14,51 @@ import com.squareup.picasso.Picasso;
 
 import luan.localmotion.Content.ContactItem;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * {@link RecyclerView.Adapter} that can display a  and makes a call to the
  * specified {@link OnFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecyclerViewAdapter.ViewHolder> {
+public class ContactRecyclerViewAdapter extends BaseRecyclerViewAdapter<ContactItem> {
+    int width=96;
+    public ContactRecyclerViewAdapter(Context context, BaseListener<ContactItem> listener) {
+        super(context, listener);
+        width= Utils.getDisplaySize(getContext()).x/3;
+    }
 
-    private ArrayList<ContactItem>  mValues;
-    private final OnContactListListener mListener;
-    private ViewGroup parent;
-    public ContactRecyclerViewAdapter(ArrayList<ContactItem> contactItems, OnContactListListener listener) {
-        mValues = contactItems;
-
-        mListener = listener;
-    }
-    public void setData(ArrayList<ContactItem> contactItems){
-        mValues=contactItems;
-    }
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        this.parent = parent;
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_contact, parent, false);
-        return new ViewHolder(view);
-    }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.nameView.setText(mValues.get(position).name);
-        holder.mItem=mValues.get(position);
-        Picasso.with(parent.getContext()).load(mValues.get(position).profilePicURI)
-                .error(R.drawable.personicon)
-                .placeholder(R.drawable.personicon)
-                .into(holder.profilePicView);
+    protected View createView(Context context, ViewGroup viewGroup, int viewType) {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.view_contact, viewGroup, false);
 
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.OnContactClickListener("PICK_CONTACT", holder.mItem);
-                }
-            }
-        });
-    }
-    public void removeItem(int position) {
-        mValues.remove(position);
-        notifyItemRemoved(position);
-    }
+        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        layoutParams.width=Math.round(width);
+        layoutParams.height=(int) (width*1.);
+        view.setLayoutParams(layoutParams);
 
-    public void addItem(int position, ContactItem item) {
-        mValues.add(position, item);
-        notifyItemInserted(position);
-    }
-
-    public void moveItem(int fromPosition, int toPosition) {
-        final ContactItem item = mValues.remove(fromPosition);
-        mValues.add(toPosition, item);
-        notifyItemChanged(fromPosition, toPosition);
-    }
-    public void animateTo(ArrayList<ContactItem> contactItems) {
-        applyAndAnimateRemovals(contactItems);
-        applyAndAnimateAdditions(contactItems);
-        applyAndAnimateMovedItems(contactItems);
-    }
-    private void applyAndAnimateRemovals(ArrayList<ContactItem> newModels) {
-        for (int i = mValues.size() - 1; i >= 0; i--) {
-            final ContactItem model = mValues.get(i);
-            if (!newModels.contains(model)) {
-                removeItem(i);
-            }
-        }
-    }
-    private void applyAndAnimateAdditions(ArrayList<ContactItem> newModels) {
-        for (int i = 0, count = newModels.size(); i < count; i++) {
-            final ContactItem model = newModels.get(i);
-            if (!mValues.contains(model)) {
-                addItem(i, model);
-            }
-        }
-    }
-    private void applyAndAnimateMovedItems(ArrayList<ContactItem> newModels) {
-        for (int toPosition = newModels.size() - 1; toPosition >= 0; toPosition--) {
-            final ContactItem model = newModels.get(toPosition);
-            final int fromPosition = mValues.indexOf(model);
-            if (fromPosition >= 0 && fromPosition != toPosition) {
-                moveItem(fromPosition, toPosition);
-            }
-        }
+        return view;
     }
     @Override
-    public int getItemCount() {
-        return mValues.size();
-    }
+    protected void bindView(ContactItem item, BaseRecyclerViewAdapter.BaseViewHolder viewHolder) {
+        if (item != null) {
+            TextView contactName = (TextView) viewHolder.getView(R.id.contactNameView);
+            ImageView contactImgView = (ImageView) viewHolder.getView(R.id.contactProfilePic);
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        protected View mView;
-        protected TextView nameView;/*
-        public final TextView phoneNumberView;*/
-        protected CircularImageView profilePicView;
-        public ContactItem mItem;
+            contactName.setText(item.name);
 
-        public ViewHolder(View view) {
-            super(view);
-            mView = view;
-            nameView = (TextView) view.findViewById(R.id.name);/*
-            phoneNumberView = (TextView) view.findViewById(R.id.type);*/
-            profilePicView = (CircularImageView) view.findViewById(R.id.profilePic);
-        }
+            Picasso.with(mContext).load(item.profilePicURI)
+                    .error(R.drawable.personicon)
+                    .placeholder(R.drawable.personicon)
+                    .into(contactImgView);
 
-        @Override
-        public String toString() {
-            return super.toString() + " '" + nameView.getText() + "'";
         }
     }
+
 }

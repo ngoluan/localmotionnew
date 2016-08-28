@@ -3,7 +3,6 @@ package luan.localmotion;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -12,6 +11,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Process;
 import android.provider.Telephony;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -21,16 +21,19 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.github.aakira.expandablelayout.ExpandableLinearLayout;
+import com.google.android.flexbox.FlexboxLayout;
+import com.google.android.gms.games.event.Event;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -38,7 +41,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.vision.text.Line;
 import com.squareup.picasso.Picasso;
 import com.uber.sdk.android.core.UberSdk;
 import com.uber.sdk.core.auth.Scope;
@@ -51,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -66,7 +67,8 @@ import retrofit2.Response;
 public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeRefreshLayout.OnRefreshListener, FragmentInterface {
     public View view;
     public ScrollView mScrollView;
-    public int squareSize;
+    public int squareSize3;
+    public int squareSize4;
 
     public GoogleMap mMap;
     public List<Integer> mapViews=new ArrayList<Integer>();
@@ -118,16 +120,6 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
-        View transitView = view.findViewById(R.id.square1);
-        transitView.setId(R.id.transitView);
-        transitView.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
         RelativeLayout viewBike = (RelativeLayout) view.findViewById(R.id.square3);
         viewBike.setOnClickListener(new View.OnClickListener(){
 
@@ -136,6 +128,15 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     drawBikeShare();
                 }
             });
+
+        View uberOverlay = (View) view.findViewById(R.id.dashUberOverlay);
+        uberOverlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View uberButton = (View) view.findViewById(R.id.dashUberButton);
+                uberButton.callOnClick();
+            }
+        });
 
         CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
                 .findFragmentById(R.id.dashMap);
@@ -146,45 +147,23 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 mScrollView.requestDisallowInterceptTouchEvent(true);
             }
         });
+
         return view;
-    }
-    void setSquareHeights(){
-        Point dSize = Utils.getDisplaySize(getContext());
-        squareSize = (dSize.x - 24)/ 4 ;
-
-        for (int i = 1; i <=11; i++) {
-            Log.d(MainActivity.TAG, "Luan-setSquareHeights: "+i);
-            int resId=Utils.getResFromInt(getContext(),"square",i);
-            View thisView = view.findViewById(resId);
-            ViewGroup.LayoutParams layoutParams = thisView.getLayoutParams();
-            layoutParams.height = squareSize;
-            thisView.setLayoutParams(layoutParams);
-        }
-
-        View mapView = view.findViewById(R.id.dashMap);
-        ViewGroup.LayoutParams mapLayout = mapView.getLayoutParams();
-        mapLayout.height = squareSize * 2;
-        mapView.setLayoutParams(mapLayout);
-
-        View eventView = view.findViewById(R.id.square11);
-        ViewGroup.LayoutParams eventLayout = mapView.getLayoutParams();
-        eventLayout.height = squareSize * 2;
-        eventView.setLayoutParams(mapLayout);
-
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        bikeShare.setUpClusterer(mMap,getContext());
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                mMap.clear();
+
                 for (int i = 0; i < mapViews.size(); i++) {
                     if(mapViews.get(i)==NEXTBUS)
                         drawNextBus();
                     else if(mapViews.get(i)==BIKESHARE)
-                        bikeShare.onCameraChange(cameraPosition);
+                        bikeShare.onCameraChange(cameraPosition, mMap);
                 }
 
             }
@@ -192,11 +171,9 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
     }
     public void setupDash(Location mCurrentLocation){
 
-
-        getContacts();
-        getBikeshare();
-        
+        //getContacts();
         setupMap(mCurrentLocation);
+        getBikeshare();
         getPlaces(mCurrentLocation);
         getTransit(mCurrentLocation);
         getEvents();
@@ -251,17 +228,18 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
     void drawBikeShare(){
         //mapMarkerType = BIKESHARE;
 
-        ArrayList<BikeShareItem> currenStations= lookupOnScreenBikes();
-        bikeShare.drawMarkers(currenStations, mMap);
+        //ArrayList<BikeShareItem> currenStations= lookupOnScreenBikes();
+        bikeShare.drawMarkers(bikeShare.bikeShareItems, mMap);
+
     }
     void getEvents(){
-        EventBrite.getEventbrite(getContext(), new Callback<EventbriteEvents>() {
+        EventBrite.getEvents(getContext(), "date", new Callback<EventbriteEvents>() {
             @Override
             public void onResponse(Call<EventbriteEvents> call, Response<EventbriteEvents> response) {
                 ArrayList<EventbriteEvent> models = new ArrayList<EventbriteEvent>();
                 models.addAll(response.body().getEvents());
 
-                HorizontalScrollView layout = (HorizontalScrollView) view.findViewById(R.id.square11);
+                HorizontalScrollView layout = (HorizontalScrollView) view.findViewById(R.id.dashEventsHsv);
                 layout.removeAllViews();
                 LinearLayout ll = new LinearLayout(getContext());
                 ll.setOrientation(LinearLayout.HORIZONTAL);
@@ -273,10 +251,10 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     if (i > 5) {
                         break;
                     }
-                    EventbriteEvent item = models.get(i);
+                    final EventbriteEvent item = models.get(i);
                     View eventView = getActivity().getLayoutInflater().inflate(R.layout.view_event, null);
 
-                    eventView.setLayoutParams(new ViewGroup.LayoutParams(squareSize * 3, ViewGroup.LayoutParams.MATCH_PARENT));
+                    eventView.setLayoutParams(new ViewGroup.LayoutParams(squareSize3 * 3, ViewGroup.LayoutParams.MATCH_PARENT));
 
                     Calendar beginTime = Calendar.getInstance();
 
@@ -290,21 +268,35 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                         e.printStackTrace();
 
                     }
-                    SimpleDateFormat newDate = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
+                    SimpleDateFormat newDate = new SimpleDateFormat("EE MM d',' h:mm a");
                     TextView eventName = (TextView) eventView.findViewById(R.id.eventName);
+                    TextView eventCategory = (TextView) eventView.findViewById(R.id.eventCategory);
                     TextView eventTime = (TextView) eventView.findViewById(R.id.eventTime);
+                    TextView eventDescription = (TextView) eventView.findViewById(R.id.eventDescription);
+                    TextView eventAddress= (TextView) eventView.findViewById(R.id.eventAddress);
                     ImageView eventImgView = (ImageView) eventView.findViewById(R.id.eventImgView);
 
                     eventName.setText(item.name.text);
+                    if(item.category!=null) eventCategory.setText(item.category.name);
+                    eventDescription.setText(item.description.text);
+                    eventAddress.setText(item.venue.address.address_1);
                     eventTime.setText(newDate.format(parsedDate));
-                    if (item.logo.url != null) {
+                    if (item.logo != null) {
                         if (!item.logo.url.equals(""))
                             Picasso.with(getContext()).load(item.logo.url)
-                                    .error(R.drawable.placesicon)
-                                    .placeholder(R.drawable.placesicon)
+                                    .error(R.drawable.calendaricon)
+                                    .placeholder(R.drawable.calendaricon)
                                     .into(eventImgView);
                     }
-
+                    eventView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Map<String, String> viewParams= new HashMap<>();
+                            viewParams.put("type","events");
+                            viewParams.put(EventBrite.ID_TAG, item.getId());
+                            mListener.onDashFragmentInteraction(viewParams);
+                        }
+                    });
                     ll.addView(eventView);
                 }
             }
@@ -382,28 +374,34 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
     public class PredictionDraw implements Runnable {
         ArrayList<ArrayList<NextBusDashItem>> routesArr;
-        public PredictionDraw(ArrayList<ArrayList<NextBusDashItem>> routesArr){
+        LinearLayout transitView;
+        public PredictionDraw(ArrayList<ArrayList<NextBusDashItem>> routesArr,LinearLayout transitView){
+            this.transitView=transitView;
             this.routesArr=routesArr;
+
+
+
+
         }
         @Override
         public void run() {
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-
-            final RelativeLayout transitView = (RelativeLayout) view.findViewById(R.id.transitView);
-            final LinearLayout innerLayoutRow1 = new LinearLayout(getContext());
-            innerLayoutRow1.setOrientation(LinearLayout.HORIZONTAL);
-
-
-            final LinearLayout innerLayoutRow2 = new LinearLayout(getContext());
-            innerLayoutRow2.setOrientation(LinearLayout.HORIZONTAL);
-            RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-            param.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            innerLayoutRow2.setLayoutParams(param);
-
-
-
-            int width = transitView.getWidth()/4;
+            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT);
             int x=0;
+
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    int totalViews = transitView.getChildCount();
+                    for (int i = 0; i < totalViews; i++) {
+                        View child = (View) transitView.getChildAt(i);
+                        if(child.getTag()==String.valueOf(NEXTBUS))
+                            transitView.removeView(child);
+                    }
+                    transitView.removeViews(0,totalViews-2);
+                }
+            });
+
             for (int i = 0; i < routesArr.size(); i++) {
 
                 for (int j = 0; j < routesArr.get(i).size(); j++) {
@@ -422,53 +420,48 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     d = routesArr.get(i).get(0).routeTitle.indexOf(" ",c);
                     if(d ==-1){d=routesArr.get(i).get(0).routeTitle.length();}
                     String routeTitle =routesArr.get(i).get(0).routeTitle.substring(c, d);
+                    String routeShortTitle =routesArr.get(i).get(0).routeTitle.substring(0,c);
 
                     View icon = getActivity().getLayoutInflater().inflate(R.layout.view_transit,null);
-                    LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(width,width);
+                    LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(squareSize4, squareSize4);
                     icon.setLayoutParams(param2);
                     TextView route = (TextView) icon.findViewById(R.id.route);
-                    route.setText(routeTitle + "-"+dirShortTitle);
+                    route.setText(routeShortTitle + "-"+dirShortTitle);
                     TextView eta = (TextView) icon.findViewById(R.id.eta);
                     eta.setText(String.valueOf(routesArr.get(i).get(j).eta) + " mins");
+                    icon.setTag(NEXTBUS);
 
-                    if(x<=3){
-                        innerLayoutRow1.addView(icon);
-                    }
-                    else if(x>=3){
-                        innerLayoutRow2.addView(icon);
-                    }
-                    else if(x>7){
+                    draw(icon, x);
+                    if(x>5){
                         return;
                     }
                     x++;
+
                 }
 
             }
 
+        }
+        void draw(final View icon, final int position){
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    transitView.addView(innerLayoutRow1);
-                    transitView.addView(innerLayoutRow2);
 
-                    YoYo.with(Techniques.SlideInDown)
+                    transitView.addView(icon, position);
+                    YoYo.with(Techniques.SlideInRight)
                             .duration(700)
-                            .playOn(innerLayoutRow1);
-                    YoYo.with(Techniques.SlideInDown)
-                            .duration(700)
-                            .playOn(innerLayoutRow2);
+                            .playOn(icon);
                 }
             });
         }
-
     }
     public void getTransit(Location loc){
         nextBus.setNextBusListener(new NextBus.NextBusListener(){
 
             @Override
             public void OnGetPredictions(ArrayList<ArrayList<NextBusDashItem>> routesArr) {
-
-                Thread t = new Thread(new PredictionDraw(routesArr));
+                LinearLayout transitView = (LinearLayout) view.findViewById(R.id.transitView);
+                Thread t = new Thread(new PredictionDraw(routesArr, transitView));
                 t.start();
 
 
@@ -483,7 +476,6 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         nextBus.getPredictionLocation(String.valueOf(loc.getLatitude()), String.valueOf(loc.getLongitude()));
     }
     public void getBikeshare(){
-        bikeShare.getStations();
         bikeShare.setBikeShareListener(new BikeShare.BikeShareListener(){
 
 
@@ -494,38 +486,85 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
 
         });
+        bikeShare.getStations();
     }
     public void getPlaces(Location loc){
-        //getPlaces_v2(loc);
         MainActivity caller = (MainActivity) getActivity();
 
         Map<String, String> params = new HashMap<>();
-        params.put("term", "food");
-        params.put("category", "restaurant");
 
-        View view2 = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
-        RelativeLayout layout = (RelativeLayout) view.findViewById(R.id.square5);
+        //TODO make this dependent on time of day
+        params.put("category_filter", "restaurants,bars,coffee");
+        params.put("limit", "12");
+        params.put("sort", "2");
 
-        layout.addView(view2);
+        final FlexboxLayout layout = (FlexboxLayout) view.findViewById(R.id.dashPlacesGrid);
+        layout.removeAllViews();
 
-        ImageView img = (ImageView) view2.findViewById(R.id.imageView);
-        img.setImageDrawable(getResources().getDrawable(R.drawable.placesicon));
+        caller.places.setYelpListener(new Places.YelpListener() {
+            @Override
+            public void OnGetSearch(final ArrayList<Business> businesses) {
+                for (int i = 0; i < businesses.size(); i++) {
+                    String businessName = businesses.get(i).name();
+                    String businessId = businesses.get(i).id();
+                    String categoryName = businesses.get(i).categories().get(0).name();
+                    String img = businesses.get(i).imageUrl();
 
-        final TextView name = (TextView) view2.findViewById(R.id.name);
-        final TextView category = (TextView) view2.findViewById(R.id.category);
+                    addPlacesChild(businessName, businessId, categoryName, img);
 
-/*        (new Thread(new Runnable() {
+
+                    if(i==11)break;
+                }
+            }
 
             @Override
-            public void run() {
+            public void OnGetBusiness(Activity caller, Business business) {
 
-                Looper.prepare();
-                YoYo.with(Techniques.FadeOutLeft)
-                        .duration(700)
-                        .playOn(name);
-                Looper.loop();
             }
-        })).start();*/
+        });
+        caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params);
+
+
+    }
+    void addPlacesChild(String businessName, final String businessId, String categoryName, String img){
+        final FlexboxLayout layout = (FlexboxLayout) view.findViewById(R.id.dashPlacesGrid);
+        View placesView = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
+
+        ImageView imgView = (ImageView) placesView.findViewById(R.id.placeImageView);
+        imgView.setImageDrawable(getResources().getDrawable(R.drawable.placesicon));
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(squareSize3, squareSize3);
+        placesView.setLayoutParams(params);
+
+        Picasso.with(getContext()).load(img)
+                .error(R.drawable.placesicon)
+                .placeholder(R.drawable.placesicon)
+                .into(imgView);
+
+
+        final TextView nameView = (TextView) placesView.findViewById(R.id.placeNameView);
+        nameView.setText(businessName);
+
+        final TextView categoryView = (TextView) placesView.findViewById(R.id.placeCategoryView);
+        categoryView.setText(categoryName);
+
+
+        layout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (null != mListener) {
+                    Map<String, String> viewParams= new HashMap<>();
+                    viewParams.put("type","places");
+                    viewParams.put("placeId", businessId);
+                    mListener.onDashFragmentInteraction(viewParams);
+                }
+            }
+        });
+        layout.addView(placesView);
+        YoYo.with(Techniques.ZoomIn)
+                .duration(700)
+                .playOn(placesView);
+
 
         final Handler handler = new Handler();
         final int[] count = {1};
@@ -536,18 +575,18 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
                 YoYo.with(Techniques.FadeOutLeft)
                         .duration(700)
-                        .playOn(name);
+                        .playOn(nameView);
                 YoYo.with(Techniques.FadeInRight)
                         .duration(700)
-                        .playOn(category);
+                        .playOn(categoryView);
 
                 if(count[0] %2==0)  { //trigger on alternate counts }
                     YoYo.with(Techniques.FadeInRight)
                             .duration(700)
-                            .playOn(name);
+                            .playOn(nameView);
                     YoYo.with(Techniques.FadeOutLeft)
                             .duration(700)
-                            .playOn(category);
+                            .playOn(categoryView);
 
                 }
                 count[0]++;
@@ -555,82 +594,6 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             }
         });
 
-        caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params,view2);
-        caller.places.setYelpListener(new Places.YelpListener() {
-            @Override
-            public void OnGetSearch(final ArrayList<Business> businesses, View view) {
-
-                String businessName = businesses.get(0).name();  // "JapaCurry Truck"
-                String categoryName= businesses.get(0).categories().get(0).name();  // "JapaCurry Truck"
-
-                TextView name = (TextView) view.findViewById(R.id.name);
-                name.setText(businessName);
-                TextView category = (TextView) view.findViewById(R.id.category);
-                category.setText(categoryName);
-
-                view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (null != mListener) {
-                            // Notify the active callbacks interface (the activity, if the
-                            // fragment is attached to one) that an item has been selected.
-                            Map<String, String> viewParams= new HashMap<>();
-                            viewParams.put("type","places");
-                            viewParams.put("placeId", businesses.get(0).id());
-                            mListener.onDashFragmentInteraction(viewParams);
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void OnGetBusiness(Activity caller, Business business) {
-
-            }
-        });
-
-        Map<String, String> params2 = new HashMap<>();
-        params2.put("term", "bars");
-        params2.put("category", "bars");
-        View view3 = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
-        RelativeLayout layout2 = (RelativeLayout) view.findViewById(R.id.square6);
-        final TextView name2 = (TextView) view3.findViewById(R.id.name);
-        final TextView category2 = (TextView) view3.findViewById(R.id.category);
-
-        final Handler handler2 = new Handler();
-        final int[] count2= {1};
-        handler2.post(new Runnable() {
-            @Override
-            public void run() {
-
-
-                YoYo.with(Techniques.FadeOutLeft)
-                        .duration(700)
-                        .playOn(name2);
-                YoYo.with(Techniques.FadeInRight)
-                        .duration(700)
-                        .playOn(category2);
-
-                if(count2[0] %2==0)  { //trigger on alternate counts }
-                    YoYo.with(Techniques.FadeInRight)
-                            .duration(700)
-                            .playOn(name2);
-                    YoYo.with(Techniques.FadeOutLeft)
-                            .duration(700)
-                            .playOn(category2);
-
-                }
-                count2[0]++;
-                handler2.postDelayed(this,5000);
-            }
-        });
-
-
-        layout2.addView(view3);
-        img = (ImageView) view3.findViewById(R.id.imageView);
-        img.setImageDrawable(getResources().getDrawable(R.drawable.drinksicon));
-
-        caller.places.searchNearby(loc.getLatitude(),loc.getLongitude(), params2,view3);
     }
 
     public void getContacts(){
@@ -663,7 +626,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 RelativeLayout layout = (RelativeLayout) view.findViewById(resID);
 
                 Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),cursor.getString(SENDER_ADDRESS));
-                ImageView img = (ImageView) contactView[j].findViewById(R.id.imageView);
+                ImageView img = (ImageView) contactView[j].findViewById(R.id.placeImageView);
                 if(profilePic!=null){
                     img.setImageBitmap(profilePic);
                 }else{
@@ -748,4 +711,30 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         }catch(Exception e){
         }
     }
+    void setSquareHeights(){
+        Point dSize = Utils.getDisplaySize(getContext());
+        squareSize3 = (dSize.x - 24)/ 3 ;
+        squareSize4 = (dSize.x - 24)/ 4 ;
+
+        for (int i = 2; i <=3; i++) {
+            int resId=Utils.getResFromInt(getContext(),"square",i);
+            View thisView = view.findViewById(resId);
+            ViewGroup.LayoutParams layoutParams = thisView.getLayoutParams();
+            layoutParams.height = squareSize4;
+            layoutParams.width = squareSize4;
+            thisView.setLayoutParams(layoutParams);
+        }
+
+        View mapView = view.findViewById(R.id.dashMap);
+        ViewGroup.LayoutParams mapLayout = mapView.getLayoutParams();
+        mapLayout.height = squareSize3 * 3;
+        mapView.setLayoutParams(mapLayout);
+
+        View eventView = view.findViewById(R.id.dashEventsHsv);
+        ViewGroup.LayoutParams eventLayout = eventView.getLayoutParams();
+        eventLayout.height = squareSize3 * 3;
+        eventView.setLayoutParams(eventLayout);
+
+    }
+
 }

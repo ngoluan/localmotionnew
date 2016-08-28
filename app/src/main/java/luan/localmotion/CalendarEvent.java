@@ -9,17 +9,19 @@ import java.util.List;
  * Created by luann on 2016-07-10.
  */
 public class CalendarEvent extends SugarRecord {
+    static String ID_TAG="eventUniqueId";
     public String eventUniqueId ="";
     public String contactsPhone="";
     public String yelpPlaceId="";
     public String eventbriteId="";
-    public String businessName ="";
-    public String snippetText ="";
-    public String category ="";
-    public String address ="";
-    public Double lat =null;
-    public Double lng =null;
-    public String imgUrl ="";
+    public String placeName ="";
+    public String placeDescription ="";
+    public String googlePlaceId ="";
+    public String placeCategory ="";
+    public String placeAddress ="";
+    public Double placeLat =null;
+    public Double placeLng =null;
+    public String placeImgUrl ="";
     public String title="";
     Long beginTime=0l;
     Long endTime=0l;
@@ -46,16 +48,22 @@ public class CalendarEvent extends SugarRecord {
         contactsPhone = serializer.serialize(phones);
     }
 
+
     @Override
     public String toString() {
         return "CalendarEvent{" +
                 "eventUniqueId='" + eventUniqueId + '\'' +
                 ", contactsPhone='" + contactsPhone + '\'' +
                 ", yelpPlaceId='" + yelpPlaceId + '\'' +
-                ", businessName='" + businessName + '\'' +
-                ", snippetText='" + snippetText + '\'' +
-                ", category='" + category + '\'' +
-                ", imgUrl='" + imgUrl + '\'' +
+                ", eventbriteId='" + eventbriteId + '\'' +
+                ", placeName='" + placeName + '\'' +
+                ", placeDescription='" + placeDescription + '\'' +
+                ", googlePlaceId='" + googlePlaceId + '\'' +
+                ", placeCategory='" + placeCategory + '\'' +
+                ", placeAddress='" + placeAddress + '\'' +
+                ", placeLat=" + placeLat +
+                ", placeLng=" + placeLng +
+                ", placeImgUrl='" + placeImgUrl + '\'' +
                 ", title='" + title + '\'' +
                 ", beginTime=" + beginTime +
                 ", endTime=" + endTime +

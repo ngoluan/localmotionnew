@@ -17,7 +17,7 @@
         android:background="@color/colorTertiary">
 
         <TextView
-            android:id="@+id/name"
+            android:id="@+id/placesName"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
@@ -25,7 +25,7 @@
             android:layout_centerInParent="true" />
 
         <TextView
-            android:id="@+id/category"
+            android:id="@+id/placesCategory"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"

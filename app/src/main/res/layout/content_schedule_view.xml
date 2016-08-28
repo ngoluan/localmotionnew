@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:text="nameView"
-                    android:id="@+id/nameView"
+                    android:id="@+id/placeNameView"
                     android:layout_alignParentBottom="true"
                     android:textColor="#ffffff" />
 

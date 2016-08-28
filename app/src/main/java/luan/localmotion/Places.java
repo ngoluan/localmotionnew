@@ -1,10 +1,7 @@
 package luan.localmotion;
 
 import android.app.Activity;
-import android.location.Location;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
 
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
@@ -12,12 +9,9 @@ import com.yelp.clientlib.entities.Business;
 import com.yelp.clientlib.entities.SearchResponse;
 import com.yelp.clientlib.entities.options.CoordinateOptions;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
-import luan.localmotion.Content.PlacesItem;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -58,7 +52,7 @@ public class Places {
         });
         // Response<Business> response = call.execute();
     }
-    public void searchNearby(Double lat, Double lng,  Map<String, String> params, final View view ){
+    public void searchNearby(Double lat, Double lng, Map<String, String> params){
 
         CoordinateOptions coordinate = CoordinateOptions.builder()
                 .latitude(lat)
@@ -79,7 +73,7 @@ public class Places {
 
                 ArrayList<Business> businesses = searchResponse.businesses();
                 if (listener != null)
-                    listener.OnGetSearch(businesses, view);
+                    listener.OnGetSearch(businesses);
 
 
             }
@@ -105,7 +99,7 @@ public class Places {
 
     public interface YelpListener {
 
-        void OnGetSearch(ArrayList<Business> businesses, View view);
+        void OnGetSearch(ArrayList<Business> businesses);
         void OnGetBusiness(Activity caller, Business business);
     }
     interface CallbackExt extends Callback{

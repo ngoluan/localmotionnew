@@ -15,7 +15,7 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/personicon"
-            android:id="@+id/profilePic"
+            android:id="@+id/contactProfilePic"
             app:civ_border_color="@color/colorSecondary"
             app:civ_border_width="2dp"
             android:scaleType="centerCrop"
@@ -32,14 +32,14 @@
 
 
             <TextView
-                android:id="@+id/name"
+                android:id="@+id/contactNameView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceListItem"
                 android:layout_alignParentTop="false"
                 android:layout_alignParentLeft="false"
                 android:textAlignment="center"
-                style="@style/SmallTitle"
+                style="@style/SmallTitleInverse"
                 android:layout_centerHorizontal="true"
                 android:layout_alignParentBottom="true" />
 

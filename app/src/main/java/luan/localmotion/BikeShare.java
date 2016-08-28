@@ -52,10 +52,14 @@ public class BikeShare {
     // Declare a variable for the cluster manager.
     private ClusterManager<BikeShareClulsterItem> mClusterManager;
     BikeShareClusterRenderer bikeShareClusterRenderer;
+    private CameraPosition mPreviousCameraPosition;
     public BikeShare(Context context){
-        this.context=context; createMarkers();
+        this.context=context;
+        createMarkers();
+
     }
     public void getStations(){
+        bikeShareItems.clear();
         new AsyncTask<String, Void, String>() {
             @Override
             protected String doInBackground(String... params) {
@@ -81,7 +85,7 @@ public class BikeShare {
             @Override
             protected void onPostExecute(String msg) {
 
-                Log.i(getClass().getSimpleName(), msg);
+                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+msg);
                 JSONObject data;
                 JSONArray stations;
                 JSONObject station;
@@ -134,12 +138,12 @@ public class BikeShare {
                 Bitmap bikebmp4 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare4);
                 Bitmap bikebmp5 = BitmapFactory.decodeResource(context.getResources(),R.drawable.bikeshare5);
 
-                Bitmap bikebmpresized0 = Bitmap.createScaledBitmap(bikebmp0,(int)(bikebmp0.getWidth()*0.25), (int)(bikebmp0.getHeight()*0.25), true);
-                Bitmap bikebmpresized1 = Bitmap.createScaledBitmap(bikebmp1,(int)(bikebmp1.getWidth()*0.25), (int)(bikebmp1.getHeight()*0.25), true);
-                Bitmap bikebmpresized2 = Bitmap.createScaledBitmap(bikebmp2,(int)(bikebmp2.getWidth()*0.25), (int)(bikebmp2.getHeight()*0.25), true);
-                Bitmap bikebmpresized3 = Bitmap.createScaledBitmap(bikebmp3,(int)(bikebmp3.getWidth()*0.25), (int)(bikebmp3.getHeight()*0.25), true);
-                Bitmap bikebmpresized4 = Bitmap.createScaledBitmap(bikebmp4,(int)(bikebmp4.getWidth()*0.25), (int)(bikebmp4.getHeight()*0.25), true);
-                Bitmap bikebmpresized5 = Bitmap.createScaledBitmap(bikebmp5,(int)(bikebmp5.getWidth()*0.25), (int)(bikebmp5.getHeight()*0.25), true);
+                Bitmap bikebmpresized0 = Bitmap.createScaledBitmap(bikebmp0,(int)(bikebmp0.getWidth()*.3), (int)(bikebmp0.getHeight()*.3), true);
+                Bitmap bikebmpresized1 = Bitmap.createScaledBitmap(bikebmp1,(int)(bikebmp1.getWidth()*.3), (int)(bikebmp1.getHeight()*.3), true);
+                Bitmap bikebmpresized2 = Bitmap.createScaledBitmap(bikebmp2,(int)(bikebmp2.getWidth()*.3), (int)(bikebmp2.getHeight()*.3), true);
+                Bitmap bikebmpresized3 = Bitmap.createScaledBitmap(bikebmp3,(int)(bikebmp3.getWidth()*.3), (int)(bikebmp3.getHeight()*.3), true);
+                Bitmap bikebmpresized4 = Bitmap.createScaledBitmap(bikebmp4,(int)(bikebmp4.getWidth()*.3), (int)(bikebmp4.getHeight()*.3), true);
+                Bitmap bikebmpresized5 = Bitmap.createScaledBitmap(bikebmp5,(int)(bikebmp5.getWidth()*.3), (int)(bikebmp5.getHeight()*.3), true);
 
                 icons.add(bikebmpresized0);
                 icons.add(bikebmpresized1);
@@ -154,24 +158,24 @@ public class BikeShare {
         thread.start();
     }
     void drawMarkers(ArrayList<BikeShareItem>  stations, GoogleMap mMap){
-        for (Marker marker:googleMapMarkers) {
-            marker.remove();
-        }
-        googleMapMarkers.clear();
+
+        mClusterManager.clearItems();
         for (BikeShareItem station:stations) {
             final LatLng loc = new LatLng(station.lat, station.lng);
             if((station.bikes+station.docks)==0)
                 continue;
             float ratioDbl =  ((float)station.bikes/((float)station.bikes+(float)station.docks))*5;
             int ratio = Math.round(ratioDbl);
+
             mClusterManager.addItem(new BikeShareClulsterItem(station.lat, station.lng, ratio));
-            setUpClusterer(mMap,context);
+
             /*googleMapMarkers.add(mMap.addMarker(new MarkerOptions()
                     .position(loc)
                     .icon(BitmapDescriptorFactory.fromBitmap(icons.get(ratio)))));*/
 
 
         }
+        mClusterManager.cluster();
     }
     public void findNearestBikeShare(Location loc, GoogleMap mMap){
         for (BikeShareItem station:bikeShareItems) {
@@ -212,16 +216,18 @@ public class BikeShare {
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
-        map.setOnCameraChangeListener(mClusterManager);
+        //map.setOnCameraChangeListener(mClusterManager);
 
-        mClusterManager.cluster();
+
     }
 
-    void onCameraChange(CameraPosition cameraPosition){
+    void onCameraChange(CameraPosition cameraPosition,GoogleMap map){
         if(bikeShareClusterRenderer!=null)
         ((GoogleMap.OnCameraChangeListener)bikeShareClusterRenderer).onCameraChange(cameraPosition);
-        if (mClusterManager != null) {
-            mClusterManager.cluster();
+        if(this.mPreviousCameraPosition == null || this.mPreviousCameraPosition.zoom != cameraPosition.zoom) {
+            this.mPreviousCameraPosition = cameraPosition;
+            if(mClusterManager!=null)
+                mClusterManager.cluster();
         }
 
     }
@@ -253,7 +259,7 @@ class BikeShareItem {
         this.id = id;
 
         float [] dist = new float[1];
-        //Location.distanceBetween(HomeScreen.lat, HomeScreen.lng, this.lat, this.lng, dist);
+        //Location.distanceBetween(HomeScreen.placeLat, HomeScreen.placeLng, this.placeLat, this.placeLng, dist);
         this.distance = 0;
     }
 
@@ -274,10 +280,10 @@ class BikeShareClulsterItem implements ClusterItem {
     }
     @Override
     public LatLng getPosition() {
-        return null;
+        return mPosition;
     }
 }
-class BikeShareClusterRenderer extends DefaultClusterRenderer<BikeShareClulsterItem> {
+class BikeShareClusterRenderer extends DefaultClusterRenderer<BikeShareClulsterItem> implements GoogleMap.OnCameraChangeListener {
 
     private final IconGenerator mIconGenerator;
     private final IconGenerator mClusterIconGenerator;
@@ -344,4 +350,8 @@ class BikeShareClusterRenderer extends DefaultClusterRenderer<BikeShareClulsterI
         return cluster.getSize() > 1;
     }
 
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+
+    }
 }

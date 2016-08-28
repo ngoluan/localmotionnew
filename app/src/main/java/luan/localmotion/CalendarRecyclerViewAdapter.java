@@ -65,11 +65,11 @@ public class CalendarRecyclerViewAdapter extends BaseRecyclerViewAdapter<Calenda
             }
             calendarTime.setText(timeText);
 
-            if(!item.imgUrl.equals("")){
-                Picasso.with(getContext()).load(item.imgUrl).placeholder(R.drawable.placesicon).into(calendarImgView);
+            if(!item.placeImgUrl.equals("")){
+                Picasso.with(getContext()).load(item.placeImgUrl).placeholder(R.drawable.placesicon).into(calendarImgView);
             }
-            if(!item.businessName.equals("")){
-                calendarPlace.setText(item.businessName);
+            if(!item.placeName.equals("")){
+                calendarPlace.setText(item.placeName);
             }
             Log.d(MainActivity.TAG, "Luan-bindView: "+item.getPhones());
             for (String contact : item.getPhones()) {

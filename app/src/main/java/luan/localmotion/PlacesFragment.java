@@ -1,10 +1,8 @@
 package luan.localmotion;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -49,6 +47,7 @@ import java.util.Map;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
+import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.PlacesItem;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -60,52 +59,37 @@ import okhttp3.Response;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class PlacesFragment extends Fragment implements OnMapReadyCallback,FragmentInterface {
-
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
-    private int mColumnCount = 3;
-    private OnFragmentInteractionListener mListener;
-    public PlacesRecyclerViewAdapter recycleViewAdapter;
-    public ArrayList<PlacesItem> placesItems = new ArrayList<PlacesItem>();
+public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapReadyCallback, SearchView.OnQueryTextListener {
+    Activity activity;
+    PlacesRecyclerViewAdapter recyclerViewAdapter;
     ExpandableLinearLayout expandableLayout;
 
     public GoogleMap mMap;
-    public Marker locMarker;
+
     ArrayList<YelpCategoryItem> yelpCategoryItems;
-    View view;
+
     private boolean loading;
     int offset = 0;
     int numberofItems = 9;
     Places places;
     Location mCurrentLocation=null;
     ArrayList<Marker> markers;
-    GridLayoutManager mLayoutManager;
 
     String category_filter="";
     String term="";
 
     CustomMapView mapFragment;
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public PlacesFragment() {
     }
 
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
     public static PlacesFragment newInstance(Places places) {
         PlacesFragment fragment = new PlacesFragment();
-        fragment.places=places;
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -114,7 +98,6 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
         view = inflater.inflate(R.layout.fragment_places_list, container, false);
 
         markers=new ArrayList<Marker>();
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
 
         mapFragment = (CustomMapView) getChildFragmentManager().findFragmentById(R.id.placesMap);
         if (mMap == null) {
@@ -126,59 +109,39 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
                 }
             });
         }
-        // Set the adapter
-        if (recyclerView instanceof RecyclerView) {
-            Context context = view.getContext();
+        recyclerViewAdapter = new PlacesRecyclerViewAdapter(getContext(), mListListener);
+        createRecyclerViews(R.id.placesList);
+        setRecyclerViewAdapter(recyclerViewAdapter);
+        recyclerViewAdapter.setClickListener(this);
 
-            recyclerView.setItemAnimator(new SlideInLeftAnimator());
-            if (mColumnCount <= 1) {
-                mLayoutManager = new GridLayoutManager(getContext(), mColumnCount);
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                mLayoutManager = new GridLayoutManager(getContext(), mColumnCount);
-                recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.addOnScrollListener(new EndlessOnScrollListener(gridLayoutManager) {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (!recyclerView.canScrollVertically(1)) {
+                    onScrolledToEnd();
+                }
+
             }
 
 
-
-            recycleViewAdapter = new PlacesRecyclerViewAdapter(placesItems, mListener, getActivity());
-            AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(recycleViewAdapter);
-            recyclerView.setAdapter(alphaInAnimationAdapter);
-
-
-            recyclerView.addOnScrollListener(new EndlessOnScrollListener(mLayoutManager) {
-                @Override
-                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                    super.onScrolled(recyclerView, dx, dy);
-
-                    if (!recyclerView.canScrollVertically(1)) {
-                        onScrolledToEnd();
-                    }
-
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState){
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    mapShownBusinesses(models);
                 }
-
-
-                public void onScrollStateChanged(RecyclerView recyclerView, int newState){
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        Log.i("a", "scrolling stopped...");
-                        mapShownBusinesses(placesItems);
-                    }
+            }
+            @Override
+            public void onScrolledToEnd() {
+                if (!loading) {
+                    loading = true;
+                    offset = gridLayoutManager.getItemCount() + numberofItems;
+                    getPlaces();
                 }
-                @Override
-                public void onScrolledToEnd() {
-                    if (!loading) {
-                        loading = true;
-                        Log.i(MainActivity.TAG, "Places layout offset:" + String.valueOf(mLayoutManager.getItemCount()));
-                        offset = mLayoutManager.getItemCount() + numberofItems;
-                        getPlaces();
-                    }
-                    loading = false;
-                }
-            });
-
-
-
-        }
+                loading = false;
+            }
+        });
+        
         expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayout);
 
         final SearchView search = (SearchView) view.findViewById(R.id.searchView);
@@ -195,7 +158,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
                 if(!search.getQuery().toString().equals("")){
                     term=search.getQuery().toString();
                 }
-                placesItems.clear();
+                models.clear();
                 fillPlacesFragment(null);
                 return false;
             }
@@ -223,7 +186,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
                 if(!search.getQuery().toString().equals("")){
                     term=search.getQuery().toString();
                 }
-                placesItems.clear();
+                models.clear();
                 fillPlacesFragment(null);
             }
         });
@@ -274,12 +237,12 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
         places.setYelpListener(new Places.YelpListener() {
             @Override
-            public void OnGetSearch(ArrayList<Business> businesses, View view) {
+            public void OnGetSearch(ArrayList<Business> businesses) {
                 int i=0;
                 for (Business business :
                         businesses) {
                     Log.d(MainActivity.TAG, "Luan-OnGetSearch: "+(i%4));
-                    placesItems.add(new PlacesItem(
+                    models.add(new PlacesItem(
                             business.id(),
                             business.name(),
                             business.categories().get(0).name(),
@@ -294,11 +257,11 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
                     i++;
                 }
 
-                recycleViewAdapter.notifyDataSetChanged();
+                recyclerViewAdapter.notifyDataSetChanged();
 
 
 
-                mapShownBusinesses(placesItems);
+                mapShownBusinesses(models);
 
 
             }
@@ -308,13 +271,13 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
             }
         });
-        places.searchNearby(loc.latitude, loc.longitude, params, null);
+        places.searchNearby(loc.latitude, loc.longitude, params);
 
 
     }
     public void mapShownBusinesses(ArrayList<PlacesItem> places){
-        int first = mLayoutManager.findFirstVisibleItemPosition();
-        int last = mLayoutManager.findLastVisibleItemPosition();
+        int first = gridLayoutManager.findFirstVisibleItemPosition();
+        int last = gridLayoutManager.findLastVisibleItemPosition();
         if(mMap!=null)
             mMap.clear();
 
@@ -345,22 +308,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
         //CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
         //mMap.moveCamera(cameraUpdate);
     }
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnPlacesFragmentListener");
-        }
-    }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
 
     @Override
     public void onDestroyView() {
@@ -402,7 +350,7 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 //cameraPosition.target.latitude
-                placesItems.clear();
+                models.clear();
                 fillPlacesFragment(cameraPosition.target);
             }
         });
@@ -462,6 +410,12 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
 
         }.execute();
     }
+    @Override
+    public void OnClick(PlacesItem item, View view, int position) {
+        Intent scheduleIntent = new Intent(getContext(), ScheduleActvity.class);
+        scheduleIntent.putExtra("placeId", item.placeId);
+        startActivity(scheduleIntent);
+    }
     public void fillCategories(){
         Spinner categorySpinner = (Spinner) view.findViewById(R.id.categorySpinner);
         List<String> list = new ArrayList<String>();
@@ -489,6 +443,16 @@ public class PlacesFragment extends Fragment implements OnMapReadyCallback,Fragm
     @Override
     public void fragmentBecameInvisible() {
 
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        return false;
     }
 }
 

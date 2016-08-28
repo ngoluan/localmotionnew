@@ -7,7 +7,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
@@ -15,8 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,8 +25,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import luan.localmotion.Content.ContactItem;
@@ -99,7 +94,6 @@ public class Contacts {
         String contactPicUri=null;
         InputStream inputStream=null;
         Bitmap profilePic=null;
-
         ContentResolver cr = context.getContentResolver();
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
         Cursor cursor = cr.query(uri, new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup._ID}, null, null, null);
@@ -132,8 +126,6 @@ public class Contacts {
             protected String doInBackground(Void... params) {
 
                 String result = postData();
-
-
 
                 return result;
             }
@@ -223,21 +215,23 @@ public class Contacts {
         return phoneContactID;
     }
     public static void fillView(Context context, ContactItem contact, ViewGroup view, int size, Integer position){
-        Log.d(MainActivity.TAG, "Luan-fillView: "+contact.toString());
         LayoutInflater layoutInflater  = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View contactView = layoutInflater.inflate(R.layout.fragment_contact, null);
+        View contactView = layoutInflater.inflate(R.layout.view_contact, null);
+        if(contact==null)
+            return;
         contactView.setTag(contact.phoneNumber);
         float sizeDp= Utils.getPixelfromDP(size, view.getContext());
         ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(Math.round(sizeDp), Math.round(sizeDp));
         contactView.setLayoutParams(layoutParams);
 
-        CircularImageView img = (CircularImageView) contactView.findViewById(R.id.profilePic);
+        CircularImageView img = (CircularImageView) contactView.findViewById(R.id.contactProfilePic);
+        Log.d(MainActivity.TAG, "Luan-fillView: "+contact.profilePicURI);
         Picasso.with(context).load(contact.profilePicURI)
                 .error(R.drawable.personicon)
                 .placeholder(R.drawable.personicon)
                 .into(img);
 
-        TextView name = (TextView) contactView.findViewById(R.id.name);
+        TextView name = (TextView) contactView.findViewById(R.id.contactNameView);
         name.setText(contact.name);
         contactView.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -66,7 +66,7 @@ public class NextBus {
             }
 
             protected void onPostExecute(final String input) {
-
+                Log.d(MainActivity.TAG, "Luan-onPostExecute: "+input.toString());
 
 
 

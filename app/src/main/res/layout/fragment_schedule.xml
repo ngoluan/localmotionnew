@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#f0f0f0">
+    android:background="@color/colorWhite">
     <!--tools:showIn="@layout/activity_schedule_view"-->
 
     <ScrollView
@@ -57,14 +57,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/scheduleContactsLayout"
-                android:background="@color/colorPrimary"
                 android:layout_margin="@dimen/grid_margin">
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
                     <include
                         android:id="@+id/contactAdd"
-                        layout="@layout/fragment_contact"
+                        layout="@layout/view_contact"
                         android:layout_width="96dp"
                         android:layout_height="96dp"
                         android:layout_centerHorizontal="true"
@@ -75,11 +74,17 @@
                         android:layout_height="wrap_content"
                         android:text="Add"
                         android:layout_centerHorizontal="true"
-                        android:layout_alignParentBottom="true" />
+                        android:layout_alignParentBottom="true"
+                        style="@style/SmallTitleInverse" />
                 </RelativeLayout>
 
             </LinearLayout>
-
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="6dp"
+                android:background="@drawable/border_bottom"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp" />
             <LinearLayout
             android:layout_width="match_parent"
                 android:weightSum="4"
@@ -89,7 +94,6 @@
             <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
-                android:background="@color/colorTertiary"
                 android:layout_weight="3">
 
                 <com.prolificinteractive.materialcalendarview.MaterialCalendarView xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -97,31 +101,39 @@
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
                     app:mcv_arrowColor="?attr/colorPrimary"
-                    app:mcv_dateTextAppearance="@style/TextAppearance.AppCompat.Small"
-                    app:mcv_headerTextAppearance="?android:attr/textAppearanceMedium"
+                    app:mcv_dateTextAppearance="@style/SmallTitleInverse"
+                    app:mcv_headerTextAppearance="?android:attr/textAppearanceMediumInverse"
                     app:mcv_leftArrowMask="@drawable/left"
                     app:mcv_rightArrowMask="@drawable/ic_keyboard_arrow_right_white_24dp"
                     app:mcv_selectionColor="@color/colorAccent"
                     app:mcv_showOtherDates="all"
-                    app:mcv_weekDayTextAppearance="?android:attr/textAppearanceMedium"
+                    app:mcv_weekDayTextAppearance="?android:attr/textAppearanceMediumInverse"
                     android:layout_margin="@dimen/grid_margin" />
             </RelativeLayout>
             <ListView
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:id="@+id/timeListView"
-                android:background="@color/colorTertiaryClear"
                 android:layout_margin="@dimen/grid_margin"
                 android:layout_weight="1"></ListView>
 
             </LinearLayout>
 
 
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="6dp"
+                android:background="@drawable/border_bottom"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:id="@+id/imageView" />
+
             <LinearLayout
                 android:weightSum="4"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/schedulePlacesLayout">
 
 
                 <ImageView
@@ -130,15 +142,15 @@
                     android:id="@+id/placePic"
                     android:layout_weight="1"
                     android:src="@drawable/placesicon"
-                    android:background="@color/colorDarkClear"
-                    android:layout_margin="@dimen/grid_margin" />
+                    android:layout_margin="@dimen/grid_margin"
+                    android:tint="@color/colorLightGrey"
+                    android:tintMode="multiply" />
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="fill_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_weight="3"
-                    android:background="@color/colorDark"
                     android:layout_margin="@dimen/grid_margin"
                     android:padding="@dimen/grid_padding">
 
@@ -146,26 +158,71 @@
                         android:id="@+id/placeName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pick Place"
-
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:textColor="#ffffff" />
+                        style="@style/MediumTitleInverse"
+                        android:textAppearance="?android:attr/textAppearanceLarge" />
 
                     <TextView
                         android:id="@+id/placeAddress"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Small Text"
+                        style="@style/SmallTitleInverse"
                         android:textAppearance="?android:attr/textAppearanceSmall" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Small Text"
+                        style="@style/SmallTitleInverse"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:id="@+id/placeSnippet" />
                 </LinearLayout>
             </LinearLayout>
+            <com.github.aakira.expandablelayout.ExpandableLinearLayout
+                android:id="@+id/schedulePlacesChooser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:ael_duration="400"
+                app:ael_expanded="false">
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content" >
+
+                    <fragment
+                        android:id="@+id/place_autocomplete_fragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                        android:layout_weight="1"
+                        android:layout_gravity="center_vertical" />
+
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Yelp"
+                        android:id="@+id/scheduleOpenYelpButton"
+                        android:layout_weight="0"
+                        android:layout_gravity="center_vertical" />
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Events"
+                        android:id="@+id/scheduleOpenEventsButton"
+                        android:layout_weight="0"
+                        android:layout_gravity="center_vertical" />
+                </LinearLayout>
+                </com.github.aakira.expandablelayout.ExpandableLinearLayout>
+
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="6dp"
+                android:background="@drawable/border_bottom"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:id="@+id/imageView12" />
 
             <fragment
                 android:id="@+id/placesMap"
@@ -179,6 +236,14 @@
                 android:layout_rowSpan="2"
                 tools:context="luan.localmotion.MapsActivity" />
 
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="6dp"
+                android:background="@drawable/border_bottom"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:id="@+id/imageView13" />
+
             <android.support.v7.widget.RecyclerView app:layoutManager="GridLayoutManager"
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -186,6 +251,33 @@
                 android:id="@+id/schedulerDirectionsRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="6dp"
+                android:background="@drawable/border_bottom"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:id="@+id/imageView14" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Propose"
+                    android:id="@+id/scheduleProposeButton" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save "
+                    android:id="@+id/scheduleSaveButton" />
+
+            </LinearLayout>
+
 
         </LinearLayout>
 

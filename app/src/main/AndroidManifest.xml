@@ -49,7 +49,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main2"
+            android:label="@string/title_activity_main"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,7 +57,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PickContact" />
+        <activity android:name=".PickContactActivity" />
+        <activity android:name=".ActivityPickEvent" />
         <activity android:name=".ActivityPickPlace" />
 
         <service

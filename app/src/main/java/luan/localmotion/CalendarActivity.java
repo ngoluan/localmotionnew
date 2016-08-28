@@ -103,7 +103,7 @@ public class CalendarActivity extends AppCompatActivity implements BaseListener<
     @Override
     public void OnClick(CalendarEvent item, View view, int position) {
         Intent scheduleIntent = new Intent(this, ScheduleActvity.class);
-        scheduleIntent.putExtra("eventUniqueId", item.getId().toString());
+        scheduleIntent.putExtra(CalendarEvent.ID_TAG, item.getId().toString());
         startActivity(scheduleIntent);
     }
 

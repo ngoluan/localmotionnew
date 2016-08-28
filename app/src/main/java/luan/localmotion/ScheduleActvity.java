@@ -96,16 +96,22 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         processExtras();
 
     }
+
     void processExtras(){
         Intent intent = getIntent();
         extras = intent.getExtras();
-        if(extras.getString("eventUniqueId")!=null){
+        if(extras.getString(CalendarEvent.ID_TAG)!=null){
 
             calendarEvent = CalendarEvent.findById(CalendarEvent.class, Integer.parseInt(extras.getString("eventUniqueId")));
-
             if(!calendarEvent.contactsPhone.equals("")){
                 List<String> phones = calendarEvent.getPhones();
                 getContacts(phones);
+            }
+            if(!calendarEvent.yelpPlaceId.equals("")){
+                getYelpPlace(calendarEvent.yelpPlaceId);
+            }
+            if(!calendarEvent.eventbriteId.equals("")){
+                getEventBrite(calendarEvent.eventbriteId);
             }
         }
         else{
@@ -121,8 +127,8 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         if(extras.getString("placeId")!=null){
             getYelpPlace(extras.getString("placeId"));
         }
-        if(extras.getString("eventbriteId")!=null){
-            getEventBrite(extras.getString("eventbriteId"));
+        if(extras.getString(EventBrite.ID_TAG)!=null){
+            getEventBrite(extras.getString(EventBrite.ID_TAG));
         }
     }
 
@@ -130,34 +136,43 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         for (int i = 0; i < phones.size(); i++) {
             String normalizedPhone = Utils.normalizeNumber(phones.get(i));
             ContactItem contactItem=Contacts.getContactItem(getBaseContext(),normalizedPhone);
+            if(contactItem!=null)
             contactList.add(contactItem);
 
         }
     }
-    void getYelpPlace(String id){
+    public void getYelpPlace(String id){
         places.searchBusiness(this, id);
         places.setYelpListener(new Places.YelpListener() {
             @Override
-            public void OnGetSearch(ArrayList<Business> businesses, View view) {
+            public void OnGetSearch(ArrayList<Business> businesses) {
 
             }
 
             @Override
             public void OnGetBusiness(Activity caller, Business business) {
                 calendarEvent.yelpPlaceId=business.id();
-                calendarEvent.businessName =business.name();
-                calendarEvent.category =business.categories().get(0).name();
-                calendarEvent.imgUrl =business.imageUrl();
-                calendarEvent.address =business.location().address().get(0);
-                calendarEvent.lat =business.location().coordinate().latitude();
-                calendarEvent.lng =business.location().coordinate().longitude();
-                calendarEvent.snippetText =business.snippetText();
-                calendarEvent.save();
+                calendarEvent.placeName =business.name();
+                calendarEvent.placeCategory =business.categories().get(0).name();
+                calendarEvent.placeImgUrl =business.imageUrl();
+                calendarEvent.placeAddress =business.location().address().get(0);
+                calendarEvent.placeLat =business.location().coordinate().latitude();
+                calendarEvent.placeLng =business.location().coordinate().longitude();
+                calendarEvent.placeDescription =business.snippetText();
 
             if (mViewPager.getCurrentItem() == 0) {
                 ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
                 if(scheduleFragment!=null){
-                    scheduleFragment.fillYelpPlace_v2(calendarEvent);
+                    scheduleFragment.fillPlaces(
+                            calendarEvent.placeName,
+                            calendarEvent.placeAddress,
+                            calendarEvent.placeDescription,
+                            calendarEvent.placeImgUrl,
+                            calendarEvent.placeLat,
+                            calendarEvent.placeLng
+                    );
+
+                    //scheduleFragment.fillYelpPlace_v2(calendarEvent);
                 }
 
             }
@@ -177,15 +192,23 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         data.put("expand","venue");
 
         Call<EventbriteEvent> eventbriteEvents = eventbriteService.getEvent(Long.parseLong(id),data);
-
         eventbriteEvents.enqueue(new Callback<EventbriteEvent>() {
             @Override
             public void onResponse(Call<EventbriteEvent> call, Response<EventbriteEvent> response) {
                 EventbriteEvent eventbriteEvent=response.body();
+                calendarEvent.eventbriteId=eventbriteEvent.getId();
                 if (mViewPager.getCurrentItem() == 0) {
                     ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
                     if(scheduleFragment!=null){
-                        scheduleFragment.fillEventbrite(eventbriteEvent);
+                        scheduleFragment.fillPlaces(
+                                eventbriteEvent.name.text,
+                                eventbriteEvent.venue.name+" at "+eventbriteEvent.venue.address.address_1,
+                                eventbriteEvent.description.text,
+                                eventbriteEvent.logo.url,
+                                Double.parseDouble(eventbriteEvent.venue.address.latitude),
+                                Double.parseDouble(eventbriteEvent.venue.address.longitude)
+                        );
+                        //scheduleFragment.fillEventbrite(eventbriteEvent);
                     }
 
                 }
@@ -202,6 +225,10 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_schedule_actvity2, menu);
         return true;
+    }
+    public void saveEvent(){
+        calendarEvent.title="Hang out";
+        calendarEvent.save();
     }
     boolean doubleBackToExitPressedOnce = false;
     @Override
@@ -220,8 +247,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
                     @Override
                     public void onClick(View view) {
 
-                        calendarEvent.title="Hang out";
-                        calendarEvent.save();
+                        saveEvent();
                         finish();
                     }
                 });
@@ -290,6 +316,16 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             startActivity(new Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", numbers, null)));
         }
     }
+    void sendProposal(){
+        if(useSMS==true){
+            String numbers="";
+            for (int i = contactList.size() - 1; i >= 0; i--) {
+                numbers+=contactList.get(i).phoneNumber+";";
+            }
+            numbers = numbers.replaceAll("; $", "");
+            startActivity(new Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", numbers, null)));
+        }
+    }
     public class MessageReceiver extends BroadcastReceiver {
         OnReceiveMessage onReceiveMessage;
         @Override
@@ -334,6 +370,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
 
         }
     };
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -431,7 +468,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             if (mViewPager.getCurrentItem() == 0) {
                 ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
                 if(scheduleFragment!=null){
-                    scheduleFragment.setupPlaceMap();
+                    scheduleFragment.setupMap();
                 }
 
             }

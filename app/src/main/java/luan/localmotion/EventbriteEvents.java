@@ -18,6 +18,7 @@ public class EventbriteEvents {
         return events;
     }
 
+
     public void setEvents(List<EventbriteEvent> events) {
         this.events = events;
     }
@@ -64,6 +65,8 @@ class EventbriteEvent {
     Logo logo;
     @SerializedName("venue")
     Venue venue;
+    @SerializedName("placeCategory")
+    EventBriteCategory category;
 
     public EventbriteEvent(){
 
@@ -169,4 +172,30 @@ class EventbriteEvent {
         this.venue_id = venue_id;
     }
 
+}
+
+class EventbriteCategories {
+
+    @SerializedName("categories")
+    List<EventBriteCategory> categories;
+
+    public EventbriteCategories() {
+    }
+
+    public List<EventBriteCategory> getCategories() {
+        return categories;
+    }
+}
+
+class EventBriteCategory {
+    @SerializedName("name")
+    String name;
+    @SerializedName("short_name")
+    String shortName;
+    @SerializedName("id")
+    String id;
+
+    EventBriteCategory(){
+
+    }
 }

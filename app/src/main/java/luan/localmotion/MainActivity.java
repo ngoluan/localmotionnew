@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements
     public Location mCurrentLocation;
     private DrawerLayout mDrawerLayout;
     private RelativeLayout drawer;
+    Toolbar myToolbar;
 
     public Places places;
     public Contacts contacts;
@@ -67,9 +69,6 @@ public class MainActivity extends AppCompatActivity implements
 
     LocationService mService;
     boolean mBound = false;
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.addOnPageChangeListener(onPageChangeListener);
 
+        //myToolbar = (Toolbar) findViewById(R.id.mainToolbar);
+        //setSupportActionBar(myToolbar);
         setBottomBar();
 
         updateValuesFromBundle(savedInstanceState);
@@ -205,11 +206,12 @@ public class MainActivity extends AppCompatActivity implements
         super.onStart();
         // Bind to LocalService
         Intent intent = new Intent(this, LocationService.class);
+        Log.d(MainActivity.TAG, "Luan-onStart: ");
+
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
     @Override
     protected void onStop() {
-        super.onStop();
         super.onStop();
         // Unbind from the service
         if (mBound) {
@@ -308,11 +310,13 @@ public class MainActivity extends AppCompatActivity implements
         scheduleIntent.putExtra("type", param.get("type"));
         if (param.get("type").equals("contact")) {
             scheduleIntent.putExtra("contactPhone", param.get("contactPhone"));
-        } else if (param.get("type").equals("place")) {
+        } else if (param.get("type").equals("places")) {
             scheduleIntent.putExtra("placeId", param.get("placeId"));
+        } else if (param.get("type").equals("events")) {
+            scheduleIntent.putExtra(EventBrite.ID_TAG, param.get(EventBrite.ID_TAG));
         }
-        scheduleIntent.putExtra("lat", String.valueOf(mCurrentLocation.getLatitude()));
-        scheduleIntent.putExtra("lng", String.valueOf(mCurrentLocation.getLongitude()));
+        scheduleIntent.putExtra("placeLat", String.valueOf(mCurrentLocation.getLatitude()));
+        scheduleIntent.putExtra("placeLng", String.valueOf(mCurrentLocation.getLongitude()));
         startActivity(scheduleIntent);
     }
 

@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public abstract class  BaseRecyclerViewAdapter<T>  extends RecyclerView.Adapter<BaseRecyclerViewAdapter.BaseViewHolder> {
     public ArrayList<T> mValues = new ArrayList<T>();
-    private Context mContext;
+    Context mContext;
     private BaseListener<T> mListener;
 
     protected abstract View createView(Context context, ViewGroup viewGroup, int viewType);

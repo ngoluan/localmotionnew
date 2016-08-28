@@ -16,11 +16,11 @@ import jp.wasabeef.recyclerview.animators.FadeInRightAnimator;
 /**
  * Created by luann on 2016-07-24.
  */
-public class BaseFragment<T,A> extends Fragment implements FragmentInterface {
+public abstract class BaseFragment<T> extends Fragment implements FragmentInterface,BaseListener<T>{
     View view;
 
     RecyclerView recyclerView;
-    int listColumns=1;
+    int listColumns=3;
     LinearLayoutManager linearLayoutManager;
     GridLayoutManager gridLayoutManager;
     BaseListener<T> mListListener;
@@ -31,10 +31,10 @@ public class BaseFragment<T,A> extends Fragment implements FragmentInterface {
 
     }
 
-    public void createViews(int viewId){
+    public void createRecyclerViews(int viewId){
         
         recyclerView = (RecyclerView) view.findViewById(viewId);
-        Log.d(MainActivity.TAG, "Luan-createViews: basefragment");
+        Log.d(MainActivity.TAG, "Luan-createRecyclerViews: basefragment");
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
             recyclerView.setItemAnimator(new FadeInRightAnimator());
@@ -50,9 +50,10 @@ public class BaseFragment<T,A> extends Fragment implements FragmentInterface {
 
         }
     }
-    public void setRecyclerViewAdapter(EventsRecyclerViewAdapter recyclerViewAdapter){
+    public void setRecyclerViewAdapter(BaseRecyclerViewAdapter<T> recyclerViewAdapter){
         AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(recyclerViewAdapter);
         recyclerView.setAdapter(alphaInAnimationAdapter);
+        recyclerViewAdapter.setClickListener(this);
     }
 
 
@@ -66,4 +67,14 @@ public class BaseFragment<T,A> extends Fragment implements FragmentInterface {
 
     }
 
+
+    @Override
+    public void OnClick(T item, View view, int position) {
+
+    }
+
+    @Override
+    public void OnLongClick(T item, View view, int position) {
+
+    }
 }

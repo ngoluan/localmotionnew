@@ -1,6 +1,7 @@
 package luan.localmotion;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,75 +19,47 @@ import luan.localmotion.Content.PlacesItem;
  * specified {@link OnFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class PlacesRecyclerViewAdapter extends RecyclerView.Adapter<PlacesRecyclerViewAdapter.ViewHolder> {
+public class PlacesRecyclerViewAdapter  extends BaseRecyclerViewAdapter<PlacesItem>  {
     public boolean showCategory = false;
-    private final ArrayList<PlacesItem> mValues;
-    private final OnFragmentInteractionListener mListener;
-    public ImageLoader imageLoader;
-    Activity activity;
-
-    public PlacesRecyclerViewAdapter(ArrayList<PlacesItem> PlacesItems, OnFragmentInteractionListener listener, Activity activity) {
-        mValues = PlacesItems;
-        mListener = listener;
-        this.activity=activity;
-        imageLoader = new ImageLoader(activity.getApplicationContext());
+    int width=96;
+    public PlacesRecyclerViewAdapter(Context context, BaseListener<PlacesItem> listener) {
+        super(context, listener);
+        width= Utils.getDisplaySize(getContext()).x/3;
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_places, parent, false);
-        return new ViewHolder(view);
+    protected View createView(Context context, ViewGroup viewGroup, int viewType) {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.fragment_places, viewGroup, false);
+
+        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        layoutParams.width=Math.round(width);
+        layoutParams.height=(int) (width*1.);
+        view.setLayoutParams(layoutParams);
+
+        return view;
     }
+
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
-        holder.nameView.setText(position+". "+mValues.get(position).name);
-        holder.typeView.setText(mValues.get(position).type);
-        //imageLoader.DisplayImage(mValues.get(position).imgUrl, holder.placesImg);
-        Picasso.with(activity).load(mValues.get(position).imgUrl)
-                .error(R.drawable.placesicon)
-                .placeholder(R.drawable.placesicon)
-                .into(holder.placesImg);
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.OnPlacesFragmentListener("PICK_PLACE", holder.mItem);
-                }
-            }
-        });
-    }
+    protected void bindView(PlacesItem item, BaseRecyclerViewAdapter.BaseViewHolder viewHolder) {
+        if (item != null) {
+            TextView placesName = (TextView) viewHolder.getView(R.id.placesName);
+            TextView placesCategory = (TextView) viewHolder.getView(R.id.placesCategory);
+            ImageView placesImgView = (ImageView) viewHolder.getView(R.id.placesImg);
 
-    @Override
-    public int getItemCount() {
-        return mValues.size();
-    }
+            placesName.setText(item.name);
+            placesCategory.setText(item.type);
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView nameView;
-        public final TextView typeView;
-        public final ImageView placesImg;
-        public PlacesItem mItem;
+            Picasso.with(mContext).load(item.imgUrl)
+                    .error(R.drawable.placesicon)
+                    .placeholder(R.drawable.placesicon)
+                    .into(placesImgView);
 
-        public ViewHolder(View view) {
-            super(view);
-            mView = view;
-            nameView = (TextView) view.findViewById(R.id.name);
-            typeView = (TextView) view.findViewById(R.id.category);
-            placesImg = (ImageView) view.findViewById(R.id.placesImg);
-
-            if(showCategory==false){typeView.setVisibility(View.INVISIBLE);}
         }
-
-        @Override
-        public String toString() {
-            return super.toString() + " '" + typeView.getText() + "'";
-        }
-
     }
+
+
+
+
 }

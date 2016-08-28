@@ -1,21 +1,20 @@
 package luan.localmotion;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.SearchView;
 
-import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 import luan.localmotion.Content.ContactItem;
 import me.everything.providers.android.contacts.Contact;
 import me.everything.providers.android.contacts.ContactsProvider;
@@ -32,92 +31,74 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class ContactFragment extends Fragment implements SearchView.OnQueryTextListener, FragmentInterface {
+public class ContactFragment extends BaseFragment<ContactItem>  implements SearchView.OnQueryTextListener {
 
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
-    private int mColumnCount = 4;
-    private OnContactListListener mListener;
-    private ArrayList<ContactItem> contacts = new ArrayList<ContactItem>();
+    public ContactRecyclerViewAdapter recyclerViewAdapter;
+
     private ArrayList<ContactItem> originalContacts=new ArrayList<ContactItem>();
-    ContactRecyclerViewAdapter contactRecyclerViewAdapter;
-    RecyclerView recyclerView;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
     public Activity activity;
     public ContactFragment() {
+
+            models=new ArrayList<ContactItem>();
     }
 
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
     public static ContactFragment newInstance(int columnCount) {
-        ContactFragment fragment = new ContactFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
+        return new ContactFragment();
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
-        activity=getActivity();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_contact_list, container, false);
-        recyclerView = (RecyclerView) view.findViewById(R.id.list);
-        // Set the adapter
-        if (recyclerView instanceof RecyclerView) {
-            Context context = view.getContext();
+        view = inflater.inflate(R.layout.fragment_contact_list, container, false);
+        activity=getActivity();
+        recyclerViewAdapter = new ContactRecyclerViewAdapter(getContext(), mListListener);
 
-            recyclerView.setItemAnimator(new SlideInLeftAnimator());
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+        listColumns=3;
+        createRecyclerViews(R.id.contactRecyleriew);
+        setRecyclerViewAdapter(recyclerViewAdapter);
+
+        final EditText search = (EditText) view.findViewById( R.id.contactSearchView);
+        search.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
             }
 
-            contactRecyclerViewAdapter= new ContactRecyclerViewAdapter(contacts, mListener);
-            AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(contactRecyclerViewAdapter);
-            recyclerView.setAdapter(alphaInAnimationAdapter);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-        }
+            }
 
-/*
-        SearchView search = (SearchView) view.findViewById( R.id.searchView);
-        search.setOnQueryTextListener(this); // call the QuerytextListner.
-*/
+            @Override
+            public void afterTextChanged(Editable s) {
+                Log.d(MainActivity.TAG, "Luan-afterTextChanged: "+s.toString());
+                String query = search.getText().toString().toLowerCase();
+                ArrayList<ContactItem> filteredList = new ArrayList<ContactItem>();
+                models= new ArrayList<ContactItem>(originalContacts);
+                for (int i = 0; i < models.size(); i++) {
+
+                    final String text = models.get(i).name.toLowerCase();
+                    if (text.contains(query)) {
+
+                        filteredList.add(models.get(i));
+                    }
+                }
+
+                recyclerViewAdapter.animateTo(filteredList);
+                recyclerView.scrollToPosition(0);
+            }
+        });
+
 
         return view;
     }
 
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnContactListListener) {
-            mListener = (OnContactListListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnContactFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
     public void getAllContacts(){
         Thread thread = new Thread() {
             @Override
@@ -134,24 +115,22 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                         contactsMap.put(contact.normilizedPhone, contact);
                         //Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),contact.phone);
                         Bitmap profilePic=null;
-                        contacts.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, contact.uriPhoto));
+                        models.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, contact.uriPhoto));
                     }
 
                 }
-                originalContacts= new ArrayList<ContactItem>(contacts);
-                Collections.sort(contacts, new Comparator<ContactItem>() {
+                originalContacts= new ArrayList<ContactItem>(models);
+                Collections.sort(models, new Comparator<ContactItem>() {
                     @Override
                     public int compare(ContactItem lhs, ContactItem rhs) {
                         return  lhs.name.compareTo(rhs.name);
                     }
-
-
                 });
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        contactRecyclerViewAdapter.notifyDataSetChanged();
+                        recyclerViewAdapter.animateTo(models);
                     }
                 });
 
@@ -171,17 +150,17 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     public boolean onQueryTextChange(String query) {
         query = query.toLowerCase();
         ArrayList<ContactItem> filteredList = new ArrayList<ContactItem>();
-        contacts= new ArrayList<ContactItem>(originalContacts);
-        for (int i = 0; i < contacts.size(); i++) {
+        models= new ArrayList<ContactItem>(originalContacts);
+        for (int i = 0; i < models.size(); i++) {
 
-            final String text = contacts.get(i).name.toLowerCase();
+            final String text = models.get(i).name.toLowerCase();
             if (text.contains(query)) {
 
-                filteredList.add(contacts.get(i));
+                filteredList.add(models.get(i));
             }
         }
 
-        contactRecyclerViewAdapter.animateTo(filteredList);
+        recyclerViewAdapter.animateTo(filteredList);
         recyclerView.scrollToPosition(0);
 
         return true;
@@ -196,4 +175,11 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     public void fragmentBecameInvisible() {
 
     }
+    @Override
+    public void OnClick(ContactItem item, View view, int position) {
+        Intent scheduleIntent = new Intent(getContext(), ScheduleActvity.class);
+        scheduleIntent.putExtra("contactPhone", item.phoneNumber);
+        startActivity(scheduleIntent);
+    }
+
 }

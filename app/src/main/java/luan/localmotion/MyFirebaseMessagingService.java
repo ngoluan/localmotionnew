@@ -25,6 +25,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -40,9 +41,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Map<String,String> data=remoteMessage.getData();
+        Log.d(MainActivity.TAG, "Luan-onMessageReceived: "+data.toString());
         if(data.get("type").equals(ChatFragment.TYPE_EVENT)){
             String eventId = data.get("eventUniqueId");
-            List<CalendarEvent> calendarEvents =  CalendarEvent.find(CalendarEvent.class, "eventUniqueId=?", eventId);
+            List<CalendarEvent> calendarEvents =  CalendarEvent.find(CalendarEvent.class, "event_unique_id=?", eventId);
             CalendarEvent calendarEvent =null;
             if(calendarEvents.size()==0){
                 calendarEvent = new CalendarEvent();
@@ -51,18 +53,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             else{
                 calendarEvent = calendarEvents.get(0);
             }
-            calendarEvent.contactsPhone = data.get("contactsPhone");
+            calendarEvent.addPhone(data.get("contactsPhone"));
+            calendarEvent.addPhone(data.get("sendersPhone"));
             calendarEvent.beginTime = Long.parseLong(data.get("beginTime"));
             calendarEvent.endTime = Long.parseLong(data.get("endTime"));
             calendarEvent.title = data.get("title");
             calendarEvent.yelpPlaceId = data.get("yelpPlaceId");
-            calendarEvent.businessName = data.get("businessName");
-            calendarEvent.snippetText = data.get("snippetText");
-            calendarEvent.category = data.get("category");
-            calendarEvent.category = data.get("category");
-            calendarEvent.imgUrl = data.get("imgUrl");
-            calendarEvent.eventUniqueId = data.get("eventUniqueId");
+            calendarEvent.placeName = data.get("placeName");
+            calendarEvent.placeDescription = data.get("placeDescription");
+            calendarEvent.placeCategory = data.get("placeCategory");
+            calendarEvent.placeAddress = data.get("placeAddress");
+            calendarEvent.googlePlaceId = data.get("googlePlaceId");
+            calendarEvent.placeImgUrl = data.get("placeImgUrl");
+            calendarEvent.eventUniqueId = data.get(CalendarEvent.ID_TAG);
+            if(!data.get("placeLat").equals(""))
+            calendarEvent.placeLat = Double.parseDouble(data.get("placeLat"));
+            if(!data.get("placeLng").equals(""))
+            calendarEvent.placeLng = Double.parseDouble(data.get("placeLng"));
             calendarEvent.save();
+
             readyBroadcast(data,data.get("type"), calendarEvent.eventUniqueId);
         }
         else if(data.get("type").equals(ChatFragment.TYPE_MESSAGE)){
@@ -184,7 +193,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         changeBundle.putString("place", data.get("place"));
         changeBundle.putString("placeId", data.get("placeId"));
         changeBundle.putString("message", data.get("message"));
-        changeBundle.putString("address", data.get("address"));
+        changeBundle.putString("placeAddress", data.get("placeAddress"));
         changeBundle.putString("contactName", data.get("senderName"));
         changeBundle.putString("contactPhone", data.get("senderPhone"));
         changeBundle.putString("dateTime", data.get("dateTime"));

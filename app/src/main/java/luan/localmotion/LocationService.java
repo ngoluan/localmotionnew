@@ -99,8 +99,8 @@ public class LocationService extends Service implements LocationListener, Google
             mListener.onLocationChanged(location);
         Intent intent = new Intent("NEW_LOCATION");
         //intent.putExtra("location", location);
-        intent.putExtra("lat", location.getLatitude());
-        intent.putExtra("lng", location.getLongitude());
+        intent.putExtra("placeLat", location.getLatitude());
+        intent.putExtra("placeLng", location.getLongitude());
         intent.putExtra("provider", location.getProvider());
         //sendBroadcast(intent);
         intent.setClass(this, LocationReceiver.class);
@@ -170,7 +170,7 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.d(MainActivity.TAG, "Luan-onConnectionFailed: "+ connectionResult.toString());
     }
     public void setCustomObjectListener(LocationServiceListener listener) {
         this.mListener = listener;

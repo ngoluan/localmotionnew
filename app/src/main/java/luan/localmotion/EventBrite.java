@@ -17,8 +17,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by luann on 2016-07-26.
  */
 public class EventBrite {
-
-    public static void getEventbrite(Context context, Callback<EventbriteEvents> callback){
+    static String ID_TAG="eventbriteId";
+    public static void getEvents(Context context, String sort_by, Callback<EventbriteEvents> callback){
         Location mCurrentLocation = Utils.getLocationFromHistory(context);
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -31,6 +31,8 @@ public class EventBrite {
         data.put("token", EventbriteService.TOKEN);
         data.put("location.latitude", String.valueOf(mCurrentLocation.getLatitude()));
         data.put("location.longitude",String.valueOf(mCurrentLocation.getLongitude()));
+        data.put("expand","placeCategory,venue");
+        if(!sort_by.equals("")) data.put("sort_by",sort_by);
 
         Call<EventbriteEvents> eventbriteEvents = eventbriteService.listEvents(data);
 

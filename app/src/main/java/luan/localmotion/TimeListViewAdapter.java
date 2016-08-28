@@ -50,7 +50,7 @@ public class TimeListViewAdapter extends ArrayAdapter<String> {
             layout.setBackgroundColor(parent.getResources().getColor(R.color.colorAccent));
         }
         else{
-            layout.setBackgroundColor(parent.getResources().getColor(R.color.colorTertiary));
+            //layout.setBackgroundColor(parent.getResources().getColor(R.color.colorTertiary));
         }
         return view;
     }

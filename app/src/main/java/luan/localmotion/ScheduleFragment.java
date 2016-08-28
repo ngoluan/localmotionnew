@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -33,6 +34,13 @@ import com.akexorcist.googledirection.constant.TransportMode;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.model.Leg;
 import com.akexorcist.googledirection.model.Route;
+import com.github.aakira.expandablelayout.ExpandableLinearLayout;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -48,6 +56,7 @@ import com.orm.SugarRecord;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
+import com.squareup.picasso.Picasso;
 import com.yelp.clientlib.entities.*;
 
 import java.text.SimpleDateFormat;
@@ -61,19 +70,17 @@ import luan.localmotion.Content.ContactItem;
 import me.everything.providers.android.calendar.CalendarProvider;
 
 
-public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,FragmentInterface {
+public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,FragmentInterface, GoogleApiClient.OnConnectionFailedListener {
 
     ScheduleActvity scheduleActvity;
     private OnFragmentInteractionListener mListener;
 
-
-    Bundle extras;
-
     public GoogleMap mMap;
+    private GoogleApiClient mGoogleApiClient;
     public Marker locMarker;
     public static final int PICK_CONTACT_REQUEST = 1;
-
     public static final int PICK_PLACE_REQUEST = 2;
+    public static final int PICK_EVENT_REQUEST = 3;
     public static final int RESULT_CANCELED    = 0;
     public static final int RESULT_OK           = -1;
     String placeAddress="";
@@ -85,9 +92,10 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     RecyclerView directionsRecyclerView;
     TimeListViewAdapter mTimeAdapter;
     DirectionsRecyclerViewAdapter mDirectionsAdapter;
-
+    ExpandableLinearLayout expandableLayout;
     private DirectionsRecyclerViewAdapter.OnDirectionsListener onDirectionsListener;
 
+    Boolean placesLoaded=false;
     public ScheduleFragment() {
 
     }
@@ -102,6 +110,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(getContext())
+                .addApi(com.google.android.gms.location.places.Places.GEO_DATA_API)
+                .addApi(com.google.android.gms.location.places.Places.PLACE_DETECTION_API)
+                .build();
     }
 
     @Override
@@ -112,15 +125,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
-
-        if(scheduleActvity.calendarEvent !=null){
-            if(!scheduleActvity.calendarEvent.yelpPlaceId.equals("")){
-                fillYelpPlace(scheduleActvity.calendarEvent.yelpPlaceId);
-            }
-        }
-        if(scheduleActvity.contactList.size()!=0){
-            fillContact_v3(scheduleActvity.contactList);
-        }
+        setupFragment();
 
 /*        if(scheduleActvity.extras.getString("placeId")!=null){
             fillYelpPlace(scheduleActvity.extras.getString("placeId"));
@@ -130,13 +135,13 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         profilePicView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent contactIntent = new Intent(getContext(), PickContact.class);
+                Intent contactIntent = new Intent(getContext(), PickContactActivity.class);
 
                 startActivityForResult(contactIntent,PICK_CONTACT_REQUEST);
             }
         });
-        final View placePicView= view.findViewById(R.id.placePic);
-        placePicView.setOnClickListener(new View.OnClickListener() {
+        Button scheduleOpenYelpButton= (Button)view.findViewById(R.id.scheduleOpenYelpButton);
+        scheduleOpenYelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent placesIntent = new Intent(getContext(), ActivityPickPlace.class);
@@ -144,7 +149,31 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                 startActivityForResult(placesIntent,PICK_PLACE_REQUEST);
             }
         });
+        Button scheduleEventYelpButton= (Button)view.findViewById(R.id.scheduleOpenEventsButton);
+        scheduleEventYelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent eventsIntent = new Intent(getContext(), ActivityPickEvent.class);
 
+                startActivityForResult(eventsIntent ,PICK_EVENT_REQUEST);
+            }
+        });
+
+        Button scheduleProposeButton= (Button)view.findViewById(R.id.scheduleProposeButton);
+        scheduleProposeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scheduleActvity.sendProposal();
+            }
+        });
+
+        LinearLayout schedulePlacesLayout = (LinearLayout)view.findViewById(R.id.schedulePlacesLayout);
+        schedulePlacesLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleExpandPlacesChooser();
+            }
+        });
         CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
                 .findFragmentById(R.id.placesMap);
         mapFragment.getMapAsync(this);
@@ -155,16 +184,60 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             }
         });
 
-        setupPlaceMap();
-        setupCalendar();
-        setupDirectionsListview();
 
 
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.d(MainActivity.TAG, "Luan-onPlaceSelected: "+place.toString());
+                fillPlaces(
+                        place.getName().toString(),
+                        place.getAddress().toString(),
+                        "",
+                        "",
+                        place.getLatLng().latitude,
+                        place.getLatLng().longitude);
+
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(MainActivity.TAG, "An error occurred: " + status);
+            }
+        });
+
+        expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.schedulePlacesChooser);
 
         return  view;
     }
-    void setupPlaceMap(){
+    void setupFragment(){
+
+        if(scheduleActvity.calendarEvent !=null){
+            if(!scheduleActvity.calendarEvent.yelpPlaceId.equals("")){
+                fillYelpPlace(scheduleActvity.calendarEvent.yelpPlaceId);
+            }
+
+/*            if(!scheduleActvity.calendarEvent.contactsPhone.equals("")){
+                fillContact_v3(scheduleActvity.contactList);
+                //fillYelpPlace(scheduleActvity.calendarEvent.yelpPlaceId);
+            }*/
+        }
+        if(scheduleActvity.contactList.size()!=0){
+            fillContact_v3(scheduleActvity.contactList);
+        }
+
+        setupDirectionsListview();
+        setupMap();
+        setupCalendar();
+
+
+    }
+    void setupMap(){
 
         if (mMap != null&&scheduleActvity.mCurrentLocation!=null) {
             Location mCurrentLocation=scheduleActvity.mCurrentLocation;
@@ -193,7 +266,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    setupPlaceMap();
+                                    setupMap();
                                 }
                             });
 
@@ -264,11 +337,16 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
     @Override
     public void fragmentBecameVisible() {
-        setupPlaceMap();
+        setupFragment();
     }
 
     @Override
     public void fragmentBecameInvisible() {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
 
@@ -481,6 +559,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         }
         return beginTime;
     }
+    void toggleExpandPlacesChooser(){
+
+        expandableLayout.toggle();
+
+    }
     public void setListViewHeightBasedOnChildren(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
         if (listAdapter == null)
@@ -535,15 +618,17 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         final LinearLayout contactsLayout = (LinearLayout) view.findViewById(R.id.scheduleContactsLayout);
         int children = contactsLayout.getChildCount();
         for (int i = 0; i < contacts.size(); i++) {
+            if(contacts.get(i)==null) continue;
             Contacts.fillView(getContext(), contacts.get(i),contactsLayout, 96, children-1);
 
             Contacts.isMember(contacts.get(i), getContext(), new Contacts.ContactListener() {
                 @Override
                 public void OnReceiveIsMember(ContactItem contact, Boolean result) {
                     for (int i1 = 0; i1 < scheduleActvity.contactList.size(); i1++) {
+                        if(scheduleActvity.contactList.get(i1)==null) continue;
                         if(contact.phoneNumber.equals( scheduleActvity.contactList.get(i1).phoneNumber)){
                             View contactView = (View) contactsLayout.findViewWithTag(contact.phoneNumber);
-                            CircularImageView circularImageView = (CircularImageView) contactView.findViewById(R.id.profilePic);
+                            CircularImageView circularImageView = (CircularImageView) contactView.findViewById(R.id.contactProfilePic);
                             circularImageView.setBorderColor(getResources().getColor(R.color.colorDark));
                             scheduleActvity.contactList.get(i1).isMember=result;
                             scheduleActvity.useSMS=true;
@@ -574,18 +659,18 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     public void fillYelpPlace_v2(CalendarEvent calendarEvent){
 
         TextView placeNameView = (TextView) view.findViewById(R.id.placeName);
-        placeNameView.setText(calendarEvent.businessName);
+        placeNameView.setText(calendarEvent.placeName);
 
         TextView placesAddressView = (TextView) view.findViewById(R.id.placeAddress);
 
-        placesAddressView.setText(calendarEvent.address);
+        placesAddressView.setText(calendarEvent.placeAddress);
 
         TextView placeSnippetView = (TextView) view.findViewById(R.id.placeSnippet);
-        placeSnippetView.setText(calendarEvent.snippetText);
+        placeSnippetView.setText(calendarEvent.placeDescription);
 
         ImageView placesPic = (ImageView) view.findViewById(R.id.placePic);
-        new LoadImage(placesPic).execute(calendarEvent.imgUrl);
-        setupPlaceMap(calendarEvent.lat, calendarEvent.lng, mMap);
+        new LoadImage(placesPic).execute(calendarEvent.placeImgUrl);
+        setupPlaceMap(calendarEvent.placeLat, calendarEvent.placeLng, mMap);
     }
     public void fillEventbrite(EventbriteEvent event){
 
@@ -605,12 +690,47 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         setupPlaceMap(Double.parseDouble(event.venue.address.latitude), Double.parseDouble(event.venue.address.longitude), mMap);
 
     }
+    public void fillPlaces(String name, String address, String snippet, String imgUrl, Double lat, Double lng){
+
+        TextView placeNameView = (TextView) view.findViewById(R.id.placeName);
+        placeNameView.setText(name);
+
+        TextView placesAddressView = (TextView) view.findViewById(R.id.placeAddress);
+
+        placesAddressView.setText(address);
+
+        TextView placeSnippetView = (TextView) view.findViewById(R.id.placeSnippet);
+        placeSnippetView.setText(snippet);
+
+        ImageView placesPic = (ImageView) view.findViewById(R.id.placePic);
+        if(!imgUrl.equals("")){
+            Picasso.with(getContext()).load(imgUrl)
+                    .error(R.drawable.placesicon)
+                    .placeholder(R.drawable.placesicon)
+                    .into(placesPic);
+        }
+        else{
+            Picasso.with(getContext()).load(R.drawable.placesicon)
+                    .into(placesPic);
+        }
+
+
+        setupPlaceMap(lat, lng, mMap);
+        expandableLayout.collapse();
+        scheduleActvity.calendarEvent.placeName =name;
+        scheduleActvity.calendarEvent.placeAddress =address;
+        scheduleActvity.calendarEvent.placeDescription =snippet;
+        scheduleActvity.calendarEvent.placeLat =lat;
+        scheduleActvity.calendarEvent.placeLng =lng;
+        scheduleActvity.calendarEvent.placeImgUrl =imgUrl;
+
+    }
     public void fillYelpPlace(String id){
 
         scheduleActvity.places.searchBusiness(getActivity(), id);
         scheduleActvity.places.setYelpListener(new Places.YelpListener() {
             @Override
-            public void OnGetSearch(ArrayList<Business> businesses, View view) {
+            public void OnGetSearch(ArrayList<Business> businesses) {
 
             }
 
@@ -624,11 +744,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                         business.imageUrl()
                 );
                 scheduleActvity.calendarEvent.yelpPlaceId=business.id();
-                scheduleActvity.calendarEvent.businessName =business.name();
-                scheduleActvity.calendarEvent.category =business.categories().get(0).name();
-                scheduleActvity.calendarEvent.imgUrl =business.imageUrl();
-                scheduleActvity.calendarEvent.snippetText =business.snippetText();
-                scheduleActvity.calendarEvent.save();
+                scheduleActvity.calendarEvent.placeName =business.name();
+                scheduleActvity.calendarEvent.placeCategory =business.categories().get(0).name();
+                scheduleActvity.calendarEvent.placeImgUrl =business.imageUrl();
+                scheduleActvity.calendarEvent.placeDescription =business.snippetText();
+                //scheduleActvity.calendarEvent.save();
 
                 TextView placeNameView = (TextView) view.findViewById(R.id.placeName);
                 placeNameView.setText(business.name());
@@ -650,7 +770,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         });
     }
     void setupPlaceMap(final Double targetLat, final Double targetLng, final GoogleMap map){
-        if (scheduleActvity.mCurrentLocation == null) {
+        if (scheduleActvity.mCurrentLocation == null || map==null) {
             new java.util.Timer().schedule(
                     new java.util.TimerTask() {
                         @Override
@@ -669,6 +789,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             );
             return;
         }
+        map.clear();
 
         LatLng loc = new LatLng(targetLat, targetLng);
         locMarker = map.addMarker(new MarkerOptions()
@@ -710,18 +831,28 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         if (requestCode == PICK_CONTACT_REQUEST) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                List<String> phones= new ArrayList<>();
+                //List<String> phones= new ArrayList<>();
                 String normalizedPhone = Utils.normalizeNumber(data.getStringExtra("contactPhoneNumber"));
-                phones.add(normalizedPhone);
+                //phones.add(normalizedPhone);
                 scheduleActvity.calendarEvent.addPhone(normalizedPhone);
-                fillContact_v2(phones);
+                //TODO kind of weird. why would you need a separate contact list? Maybe have add phone generate it or calendar event generate it everytime it's called?
+                scheduleActvity.getContacts(scheduleActvity.calendarEvent.getPhones());
+                //fillContact_v2(phones);
             }
         }
         else if(requestCode == PICK_PLACE_REQUEST) {
             if (resultCode == RESULT_OK) {
-                fillYelpPlace(data.getStringExtra("placeId"));
+                //fillYelpPlace(data.getStringExtra("placeId"));
+                scheduleActvity.getYelpPlace(data.getStringExtra("placeId"));
             }
         }
+        else if(requestCode == PICK_EVENT_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                //fillYelpPlace(data.getStringExtra("placeId"));
+                scheduleActvity.getEventBrite(data.getStringExtra("eventId"));
+            }
+        }
+        setupFragment();
     }
     @Override
     public void onAttach(Context context) {

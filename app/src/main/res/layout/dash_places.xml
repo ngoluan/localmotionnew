@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
 android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:background="@color/colorTertiaryClear">
+    android:layout_height="fill_parent">
 
 
     <ImageView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/imageView"
+        android:id="@+id/placeImageView"
         android:layout_gravity="center_horizontal"
         android:layout_weight="1"
         android:scaleType="fitCenter"
-        android:layout_marginBottom="@dimen/img_sq_margin"
-        android:layout_marginTop="@dimen/img_sq_margin_sm"
-        android:layout_marginRight="@dimen/img_sq_margin_sm"
-        android:layout_marginLeft="@dimen/img_sq_margin_sm" />
+        android:tint="@color/colorLightGrey"
+        android:tintMode="multiply" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,7 +24,7 @@ android:layout_width="fill_parent"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:id="@+id/name"
+            android:id="@+id/placeNameView"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
@@ -37,7 +34,7 @@ android:layout_width="fill_parent"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:id="@+id/category"
+            android:id="@+id/placeCategoryView"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"

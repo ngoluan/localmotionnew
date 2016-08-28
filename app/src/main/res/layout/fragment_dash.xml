@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:uber="http://schemas.android.com/apk/res-auto"
     tools:context=".DashFragment"
-    android:background="@color/colorDeepDark">
+    android:background="@android:color/white">
 
     <ScrollView
         android:layout_width="wrap_content"
@@ -21,235 +21,155 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                <fragment
+                    android:layout_height="300dp"
+                    android:id="@+id/dashMap"
+                    class="luan.localmotion.CustomMapView"
+                    tools:context="luan.localmotion.MapsActivity"
+                    android:layout_margin="2dp"
+                    android:layout_width="fill_parent"
+                    android:tag="dashMap" />
+
+                <HorizontalScrollView
+                    android:layout_width="fill_parent"
+                    android:id="@+id/hsv"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp">
+
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_weight="4"
-                        android:baselineAligned="false">
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_weight="2"
-                            android:layout_margin="2dp"
-                            android:id="@+id/square1"></RelativeLayout>
+                        android:baselineAligned="false"
+                        android:id="@+id/transitView">
 
                         <RelativeLayout
-                            android:layout_width="0dp"
+                            android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_margin="2dp"
                             android:id="@+id/square2"
-                            android:layout_weight="2"
                             android:background="@color/colorDarkClear">
                             <com.uber.sdk.android.rides.RideRequestButton
+                                android:id="@+id/dashUberButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                uber:ub__style="black"/>
+                                uber:ub__style="black"
+                                android:visibility="invisible" />
+                            <ImageView
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:id="@+id/transit_border"
+                                android:background="@drawable/right_border"
+                                android:layout_marginTop="12dp"
+                                android:layout_marginBottom="12dp" />
+                            <ImageView
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:id="@+id/dashUberOverlay"
+                                android:src="@drawable/uber_badge" />
 
 
                         </RelativeLayout>
-
-
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_weight="4"
-                        android:baselineAligned="false">
-                        <fragment
-                            android:layout_height="100dp"
-                            android:id="@+id/dashMap"
-                            android:layout_weight="3"
-                            class="luan.localmotion.CustomMapView"
-                            tools:context="luan.localmotion.MapsActivity"
+                        <RelativeLayout
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
                             android:layout_margin="2dp"
-                            android:layout_width="0dp" />
-                        <LinearLayout
-                            android:orientation="vertical"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1">
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:layout_margin="2dp"
-                                android:id="@+id/square3"
-                                android:background="@color/colorSecondaryClear">
-                                <ImageView
-                                    android:layout_width="fill_parent"
-                                    android:layout_height="fill_parent"
-                                    android:layout_gravity="center_horizontal"
-                                    android:scaleType="fitCenter"
-                                    android:layout_marginBottom="@dimen/img_sq_margin"
-                                    android:layout_marginTop="@dimen/img_sq_margin_sm"
-                                    android:layout_marginRight="@dimen/img_sq_margin_sm"
-                                    android:layout_marginLeft="@dimen/img_sq_margin_sm"
-                                    style="@style/SmallTitle"
-                                    android:src="@drawable/bikeshareicon" />
-
-                                <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent">
-
-                                    <TextView
-                                        android:layout_width="fill_parent"
-                                        android:layout_height="wrap_content"
-                                        android:textAppearance="?android:attr/textAppearanceSmall"
-                                        android:layout_gravity="bottom|center_horizontal"
-                                        android:layout_centerHorizontal="true"
-                                        android:layout_alignParentBottom="true"
-                                        android:textAlignment="center"
-                                        style="@style/SmallTitle"
-                                        android:text="Find Bikeshare" />
-
-                                </RelativeLayout>
-                            </RelativeLayout>
-
-
+                            android:id="@+id/square3">
+                            <ImageView
+                                android:layout_width="fill_parent"
+                                android:layout_height="fill_parent"
+                                android:layout_gravity="center_horizontal"
+                                android:scaleType="fitCenter"
+                                android:layout_marginBottom="@dimen/img_sq_margin"
+                                android:layout_marginTop="@dimen/img_sq_margin_sm"
+                                android:layout_marginRight="@dimen/img_sq_margin_sm"
+                                android:layout_marginLeft="@dimen/img_sq_margin_sm"
+                                style="@style/SmallTitle"
+                                android:src="@drawable/bikeshareicon"
+                                android:tint="@color/colorGrey"
+                                android:tintMode="multiply" />
 
                             <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:layout_margin="2dp"
-                                android:id="@+id/square4"
-                                android:background="@color/colorDark">
-                                <ImageView
+                                android:layout_height="match_parent">
+
+                                <TextView
                                     android:layout_width="fill_parent"
-                                    android:layout_height="fill_parent"
-                                    android:layout_gravity="center_horizontal"
-                                    android:scaleType="fitCenter"
-                                    android:layout_marginBottom="@dimen/img_sq_margin"
-                                    android:layout_marginTop="@dimen/img_sq_margin_sm"
-                                    android:layout_marginRight="@dimen/img_sq_margin_sm"
-                                    android:layout_marginLeft="@dimen/img_sq_margin_sm"
-                                    style="@style/SmallTitle"
-                                    android:src="@drawable/mapicon" />
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="?android:attr/textAppearanceSmall"
+                                    android:layout_gravity="bottom|center_horizontal"
+                                    android:layout_centerHorizontal="true"
+                                    android:layout_alignParentBottom="true"
+                                    android:textAlignment="center"
+                                    style="@style/SmallTitleInverse"
+                                    android:text="Find Bikeshare" />
 
-                                <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent">
-
-                                    <TextView
-                                        android:layout_width="fill_parent"
-                                        android:layout_height="wrap_content"
-                                        android:textAppearance="?android:attr/textAppearanceSmall"
-                                        android:layout_gravity="bottom|center_horizontal"
-                                        android:layout_centerHorizontal="true"
-                                        android:layout_alignParentBottom="true"
-                                        android:textAlignment="center"
-                                        style="@style/SmallTitle"
-                                        android:text="Map Options" />
-
-                                </RelativeLayout>
                             </RelativeLayout>
-
-
-                        </LinearLayout>
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_weight="4"
-                        android:baselineAligned="false">
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square5" />
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square6" />
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square7" />
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square8"
-                            android:padding="@dimen/grid_margin" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_weight="4"
-                        android:baselineAligned="false">
-                       <!-- <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square9" />
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square10" />
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square11" />
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_margin="2dp"
-                            android:layout_weight="1"
-                            android:id="@+id/square12" />-->
-                        <LinearLayout
-                            android:orientation="vertical"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1">
-                            <RelativeLayout
-                                android:layout_width="fill_parent"
-                                android:layout_height="fill_parent"
-                                android:id="@+id/square9"
-                                android:layout_margin="2dp"/>
-                            <RelativeLayout
-                                android:layout_width="fill_parent"
-                                android:layout_height="fill_parent"
-                                android:id="@+id/square10"
-                                android:layout_margin="2dp"/>
-                            </LinearLayout>
-
-                        <HorizontalScrollView
-                            android:layout_width="0dp"
-                            android:id="@+id/square11"
-                            android:layout_weight="3"
-                            android:layout_height="100dp">
-
-<!--                            <LinearLayout
-                                android:orientation="horizontal"
-                                android:layout_width="wrap_content"
-                                android:id="@+id/square9"
-                                android:layout_height="50dp"></LinearLayout>-->
-                        </HorizontalScrollView>
+                        </RelativeLayout>
 
                     </LinearLayout>
-                    </LinearLayout>
+                </HorizontalScrollView>
 
+                <ImageView
+                    android:layout_width="fill_parent"
+                    android:layout_height="6dp"
+                    android:id="@+id/imageView10"
+                    android:background="@drawable/border_bottom"
+                    android:layout_marginLeft="6dp"
+                    android:layout_marginRight="6dp" />
+
+                <TextView
+                    style="@style/MediumTitleInverse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="Events"
+                    android:id="@+id/textView2"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginLeft="12dp" />
+
+                <HorizontalScrollView
+                    android:layout_width="fill_parent"
+                    android:id="@+id/dashEventsHsv"
+                    android:layout_weight="3"
+                    android:layout_height="100dp"
+                    android:layout_marginBottom="12dp"
+                    android:layout_marginTop="12dp">
+
+                </HorizontalScrollView>
+
+                <ImageView
+                    android:layout_width="fill_parent"
+                    android:layout_height="6dp"
+                    android:id="@+id/imageView11"
+                    android:background="@drawable/border_bottom"
+                    android:layout_marginLeft="6dp"
+                    android:layout_marginRight="6dp" />
+
+                <TextView
+                    style="@style/MediumTitleInverse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="Places"
+                    android:id="@+id/textView3"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginLeft="12dp" />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:flexWrap="wrap"
+                    app:alignItems="flex_start"
+                    app:alignContent="flex_start"
+                    android:id="@+id/dashPlacesGrid"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp">
+
+                </com.google.android.flexbox.FlexboxLayout>
 
                 </LinearLayout>
 

@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="50dp"
-    android:layout_height="50dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
     android:layout_margin="1dp"
-    android:background="@color/colorAccent">
+    android:padding="4dp">
 
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/imageView7"
+        android:background="@drawable/borders_round" />
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
->
+        android:padding="4dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -20,29 +27,29 @@ android:layout_width="50dp"
             android:scrollHorizontally="true"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textSize="8dp"
             android:layout_gravity="top|center_horizontal"
-            style="@style/SmallTitle" />
+            style="@style/SmallTitleInverse"
+            android:textSize="12dp" />
 
 
         <ImageView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/imageView"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/busicon"
+            android:id="@+id/imageView2"
             android:layout_weight="1"
-            android:scaleType="fitCenter" />
+            android:src="@drawable/busicon"
+            android:padding="4dp"
+            android:tint="@color/colorGrey"
+            android:tintMode="multiply" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Mins"
             android:id="@+id/eta"
             android:layout_gravity="bottom|center_horizontal"
-            android:textSize="10dp"
-            style="@style/SmallTitle"  />
+            style="@style/SmallTitleInverse"  />
     </LinearLayout>
 
 
