@@ -31,8 +31,8 @@ import android.widget.Toast;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
-import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
+/*import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;*/
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.uber.sdk.android.core.UberSdk;
 import com.uber.sdk.core.auth.Scope;
@@ -53,7 +53,14 @@ public class MainActivity extends AppCompatActivity implements
     protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
     protected final static String LOCATION_KEY = "location-key";
     protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key";
+
     static String TAG = "luan.localmotion";
+    static String EVENT_ACCEPT= "EVENT_ACCEPT";
+    static String EVENT_CHANGE= "EVENT_CHANGE";
+    static String EVENT_REJECT= "EVENT_REJECT";
+
+    Bundle extras=null;
+
     public Location mCurrentLocation;
     private DrawerLayout mDrawerLayout;
     private RelativeLayout drawer;
@@ -96,15 +103,11 @@ public class MainActivity extends AppCompatActivity implements
 
 
 
+        processExtras();
 
-        if (getIntent().getExtras() != null) {
-            for (String key : getIntent().getExtras().keySet()) {
-                String value = getIntent().getExtras().getString(key);
-            }
-        }
         // [END handle_data_extras]
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        AppEventsLogger.activateApp(this);
+/*        FacebookSdk.sdkInitialize(getApplicationContext());
+        AppEventsLogger.activateApp(this);*/
         SharedPreferences prefs = this.getSharedPreferences(
                 "luan.localmotion", Context.MODE_PRIVATE);
         if (prefs.getString("lastLat", "").equals("")) {
@@ -125,6 +128,31 @@ public class MainActivity extends AppCompatActivity implements
         UberSdk.initialize(config);
 
         setDrawer();
+    }
+    void processExtras(){
+        Intent intent = getIntent();
+        extras = intent.getExtras();
+        String action = intent.getAction();
+        if(action!=null){
+            if(action.equals(EVENT_ACCEPT)){
+
+            }
+            else if(action.equals(EVENT_CHANGE)){
+                //TODO is this a common function???
+                Intent scheduleIntent = new Intent(this, ScheduleActvity.class);
+                if (!extras.get(CalendarEvent.UNIQUE_ID_TAG).equals("")) {
+                    scheduleIntent.putExtra(CalendarEvent.UNIQUE_ID_TAG, extras.getString(CalendarEvent.UNIQUE_ID_TAG));
+                }
+                scheduleIntent.putExtra("placeLat", String.valueOf(mCurrentLocation.getLatitude()));
+                scheduleIntent.putExtra("placeLng", String.valueOf(mCurrentLocation.getLongitude()));
+                startActivity(scheduleIntent);
+            }
+            else if(action.equals(EVENT_REJECT)){
+                CalendarEvent calendarEvent =CalendarEvent.getByUniqueId(extras.getString(CalendarEvent.UNIQUE_ID_TAG));
+                calendarEvent.delete();
+            }
+        }
+
     }
 
     ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
@@ -311,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements
         if (param.get("type").equals("contact")) {
             scheduleIntent.putExtra("contactPhone", param.get("contactPhone"));
         } else if (param.get("type").equals("places")) {
-            scheduleIntent.putExtra("placeId", param.get("placeId"));
+            scheduleIntent.putExtra("yelpPlaceId", param.get("yelpPlaceId"));
         } else if (param.get("type").equals("events")) {
             scheduleIntent.putExtra(EventBrite.ID_TAG, param.get(EventBrite.ID_TAG));
         }

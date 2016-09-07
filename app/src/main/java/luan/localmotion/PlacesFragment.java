@@ -413,7 +413,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
     @Override
     public void OnClick(PlacesItem item, View view, int position) {
         Intent scheduleIntent = new Intent(getContext(), ScheduleActvity.class);
-        scheduleIntent.putExtra("placeId", item.placeId);
+        scheduleIntent.putExtra("yelpPlaceId", item.placeId);
         startActivity(scheduleIntent);
     }
     public void fillCategories(){

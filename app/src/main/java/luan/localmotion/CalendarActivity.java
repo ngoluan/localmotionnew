@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -92,6 +93,10 @@ public class CalendarActivity extends AppCompatActivity implements BaseListener<
     }
     void  getEvents() {
         List<CalendarEvent> calendarEvents = CalendarEvent.listAll(CalendarEvent.class);
+        for (int i = 0; i < calendarEvents.size(); i++) {
+            CalendarEvent calendarEvent= calendarEvents.get(i);
+            Log.d(MainActivity.TAG, "Luan-getEvents: "+calendarEvent.eventUniqueId);
+        }
         models.addAll(calendarEvents);
 
         recyclerViewAdapter.animateTo(models);
@@ -103,7 +108,7 @@ public class CalendarActivity extends AppCompatActivity implements BaseListener<
     @Override
     public void OnClick(CalendarEvent item, View view, int position) {
         Intent scheduleIntent = new Intent(this, ScheduleActvity.class);
-        scheduleIntent.putExtra(CalendarEvent.ID_TAG, item.getId().toString());
+        scheduleIntent.putExtra(CalendarEvent.UNIQUE_ID_TAG, item.eventUniqueId);
         startActivity(scheduleIntent);
     }
 

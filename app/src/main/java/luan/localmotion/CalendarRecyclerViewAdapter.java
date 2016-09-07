@@ -45,6 +45,7 @@ public class CalendarRecyclerViewAdapter extends BaseRecyclerViewAdapter<Calenda
             LinearLayout contactsLayout= (LinearLayout) viewHolder.getView(R.id.contactsLayout);
             ImageView calendarImgView = (ImageView) viewHolder.getView(R.id.calendarImgView);
 
+            //TODO use utils formatTime
             SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd 'at' HH:mm");
 
             String timeText="";

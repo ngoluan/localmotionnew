@@ -9,7 +9,7 @@ import java.util.List;
  * Created by luann on 2016-07-10.
  */
 public class CalendarEvent extends SugarRecord {
-    static String ID_TAG="eventUniqueId";
+    static String UNIQUE_ID_TAG ="eventUniqueId";
     public String eventUniqueId ="";
     public String contactsPhone="";
     public String yelpPlaceId="";
@@ -68,5 +68,14 @@ public class CalendarEvent extends SugarRecord {
                 ", beginTime=" + beginTime +
                 ", endTime=" + endTime +
                 '}';
+    }
+    public static CalendarEvent getByUniqueId(String eventUniqueId){
+        List<CalendarEvent> calendarEvents = CalendarEvent.listAll(CalendarEvent.class);
+        for (int i = 0; i < calendarEvents.size(); i++) {
+            CalendarEvent calendarEvent= calendarEvents.get(i);
+            if(calendarEvents.get(i).eventUniqueId.equals(eventUniqueId))
+                return calendarEvent;
+        }
+        return null;
     }
 }

@@ -27,6 +27,9 @@ import com.google.android.gms.maps.model.LatLng;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +94,20 @@ public class Utils {
         String mPhoneNumber = tMgr.getLine1Number();
         final String normalizePhoneNumber = normalizeNumber(mPhoneNumber);
         return normalizePhoneNumber;
+    }
+    public static String formatTime(Long inputTime){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd 'at' HH:mm");
+
+        String timeText="";
+        if(inputTime!=0) {
+            Calendar calendar = GregorianCalendar.getInstance();
+            calendar.setTimeInMillis(inputTime);
+            timeText=dateFormat.format(inputTime);
+        }
+        else{
+            timeText="No time specified.";
+        }
+        return timeText;
     }
     public static void serverUserCheckIn( final String regIDFCM, Context context){
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);

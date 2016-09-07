@@ -527,6 +527,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
     }
     void addPlacesChild(String businessName, final String businessId, String categoryName, String img){
+        Log.d(MainActivity.TAG, "Luan-addPlacesChild: "+businessName+" "+businessId);
         final FlexboxLayout layout = (FlexboxLayout) view.findViewById(R.id.dashPlacesGrid);
         View placesView = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
 
@@ -549,13 +550,13 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         categoryView.setText(categoryName);
 
 
-        layout.setOnClickListener(new View.OnClickListener() {
+        placesView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (null != mListener) {
                     Map<String, String> viewParams= new HashMap<>();
                     viewParams.put("type","places");
-                    viewParams.put("placeId", businessId);
+                    viewParams.put("yelpPlaceId", businessId);
                     mListener.onDashFragmentInteraction(viewParams);
                 }
             }

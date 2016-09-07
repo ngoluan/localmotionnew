@@ -100,9 +100,9 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
     void processExtras(){
         Intent intent = getIntent();
         extras = intent.getExtras();
-        if(extras.getString(CalendarEvent.ID_TAG)!=null){
-
-            calendarEvent = CalendarEvent.findById(CalendarEvent.class, Integer.parseInt(extras.getString("eventUniqueId")));
+        if(extras.getString(CalendarEvent.UNIQUE_ID_TAG)!=null){
+            calendarEvent = CalendarEvent.getByUniqueId(extras.getString(CalendarEvent.UNIQUE_ID_TAG));
+            //calendarEvent = CalendarEvent.findById(CalendarEvent.class, Integer.parseInt(extras.getString(CalendarEvent.UNIQUE_ID_TAG)));
             if(!calendarEvent.contactsPhone.equals("")){
                 List<String> phones = calendarEvent.getPhones();
                 getContacts(phones);
@@ -124,8 +124,8 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             phones.add(extras.getString("contactPhone"));
             getContacts(phones);
         }
-        if(extras.getString("placeId")!=null){
-            getYelpPlace(extras.getString("placeId"));
+        if(extras.getString("yelpPlaceId")!=null){
+            getYelpPlace(extras.getString("yelpPlaceId"));
         }
         if(extras.getString(EventBrite.ID_TAG)!=null){
             getEventBrite(extras.getString(EventBrite.ID_TAG));

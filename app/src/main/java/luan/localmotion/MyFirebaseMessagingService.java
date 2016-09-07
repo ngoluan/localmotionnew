@@ -29,13 +29,17 @@ import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-public class MyFirebaseMessagingService extends FirebaseMessagingService {
+import luan.localmotion.Content.ContactItem;
 
+public class MyFirebaseMessagingService extends FirebaseMessagingService {
+    CalendarEvent calendarEvent =null;
     private static final String TAG = "MyFirebaseMsgService";
 
     @Override
@@ -45,7 +49,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if(data.get("type").equals(ChatFragment.TYPE_EVENT)){
             String eventId = data.get("eventUniqueId");
             List<CalendarEvent> calendarEvents =  CalendarEvent.find(CalendarEvent.class, "event_unique_id=?", eventId);
-            CalendarEvent calendarEvent =null;
+
             if(calendarEvents.size()==0){
                 calendarEvent = new CalendarEvent();
 
@@ -65,7 +69,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             calendarEvent.placeAddress = data.get("placeAddress");
             calendarEvent.googlePlaceId = data.get("googlePlaceId");
             calendarEvent.placeImgUrl = data.get("placeImgUrl");
-            calendarEvent.eventUniqueId = data.get(CalendarEvent.ID_TAG);
+            calendarEvent.eventUniqueId = data.get(CalendarEvent.UNIQUE_ID_TAG);
             if(!data.get("placeLat").equals(""))
             calendarEvent.placeLat = Double.parseDouble(data.get("placeLat"));
             if(!data.get("placeLng").equals(""))
@@ -119,14 +123,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         else if(data.get("type").equals("message")){
             sendMessageNotification(data);
         }
-/*        Bitmap image=null;
-        String urldisplay = "https://maps.googleapis.com/maps/api/staticmap?center=2+bloor+west+Toronto&markers=2+bloor+west+Toronto&zoom=13.5&size=100x100&key=AIzaSyDanfrkNLdf5vDKb861Z3Et-z2BiLzZPc0";
-        try {
-            InputStream in = new java.net.URL(urldisplay).openStream();
-            image = BitmapFactory.decodeStream(in);
-        } catch (Exception e) {
-            image = null;
-        }*/
 
 
     }
@@ -139,15 +135,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ttcinner)
-                .setContentTitle(data.get("title"))
-                .setContentText(data.get("message"))
+                .setSmallIcon(R.drawable.logo)
                 .setAutoCancel(true)
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setCategory(Notification.CATEGORY_EVENT)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
 
+        if(!data.get("title").equals(""))
+            notificationBuilder.setContentTitle(data.get("title"));
+        if(!data.get("message").equals(""))
+            notificationBuilder.setContentTitle(data.get("message"));
 
 
         NotificationManager notificationManager =
@@ -155,30 +153,51 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
     }
-    public void sendEventNotification(Map<String,String> data){
+    public void sendEventNotification(Map<String,String> data) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        ContactItem contactItem = Contacts.getContactItem(getBaseContext(), data.get("sendersPhone"));
+        String contactName = contactItem.name;
+        String time = Utils.formatTime(calendarEvent.beginTime);
+        String title = contactName+" wants to hangout";
+        String message = "At: " + calendarEvent.placeName+ " starting " + time;
+        NotificationCompat.Builder notificationBuilder = null;
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ttcinner)
-                .setContentTitle(data.get("title"))
-                .setContentText(data.get("message"))
+        notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.logo_sm)
+                .setContentTitle(title)
+                .setContentText(message)
                 .setAutoCancel(true)
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setCategory(Notification.CATEGORY_EVENT)
                 .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                .bigText(data.get("message")));
+                .setContentIntent(pendingIntent);
+
+
+        // BigPictureStyle
+        NotificationCompat.BigPictureStyle s = new NotificationCompat.BigPictureStyle();
+
+        String pictureUrl = "https://maps.googleapis.com/maps/api/staticmap?center="+calendarEvent.placeLat+","+calendarEvent.placeLng+"&zoom=13&size=400x400&&markers=color:blue%7C"+calendarEvent.placeLat+","+calendarEvent.placeLng+"&key=AIzaSyD3rvDAJ0HqJZQsDJIRsDbmDQ-r2D2Qvuw";
+        Log.d(MainActivity.TAG, "Luan-sendEventNotification: "+pictureUrl);
+        try {
+            s.setSummaryText(message);
+            s.bigLargeIcon(Picasso.with(getBaseContext()).load(contactItem.profilePicURI).get());
+            s.bigPicture(Picasso.with(getBaseContext()).load(pictureUrl).get());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        notificationBuilder.setStyle(s);
+
+
         //Yes intent
         Intent yesReceive = new Intent();
-        yesReceive.setAction("EVENT_INTENT");
+        yesReceive.setAction(MainActivity.EVENT_ACCEPT);
         Bundle yesBundle = new Bundle();
-        yesBundle.putInt("userAnswer", 1);//This is the value I want to pass
+        yesBundle.putString("eventUniqueId",calendarEvent.getId().toString());
         yesReceive.putExtras(yesBundle);
 
 
@@ -186,26 +205,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationBuilder.addAction(R.drawable.doneicon, "Yes", pendingIntentYes);
 
         Intent changeReceive = new Intent(getApplicationContext(), ScheduleActvity.class);
-        changeReceive.setAction("EVENT_EDIT");
+        changeReceive.setAction(MainActivity.EVENT_CHANGE);
         changeReceive.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         Bundle changeBundle = new Bundle();
-        changeBundle.putString("place", data.get("place"));
-        changeBundle.putString("placeId", data.get("placeId"));
-        changeBundle.putString("message", data.get("message"));
-        changeBundle.putString("placeAddress", data.get("placeAddress"));
-        changeBundle.putString("contactName", data.get("senderName"));
-        changeBundle.putString("contactPhone", data.get("senderPhone"));
-        changeBundle.putString("dateTime", data.get("dateTime"));
+        changeBundle.putString(CalendarEvent.UNIQUE_ID_TAG,calendarEvent.eventUniqueId);
         changeReceive.putExtras(changeBundle);
         PendingIntent pendingIntentChange = PendingIntent.getActivity(getBaseContext(), 0,
                 changeReceive, 0);
         notificationBuilder.addAction(R.drawable.editicon, "Edit", pendingIntentChange);
 
         Intent rejectReceive = new Intent();
-        rejectReceive.setAction("EVENT_INTENT");
+        rejectReceive.setAction(MainActivity.EVENT_REJECT);
         Bundle rejectBundle = new Bundle();
-        rejectBundle.putInt("userAnswer", 1);//This is the value I want to pass
+        rejectBundle.putString(CalendarEvent.UNIQUE_ID_TAG,calendarEvent.eventUniqueId);
         rejectReceive.putExtras(rejectBundle);
         PendingIntent pendingIntentreject= PendingIntent.getBroadcast(this, 12345, rejectReceive, PendingIntent.FLAG_UPDATE_CURRENT);
         notificationBuilder.addAction(R.drawable.clearicon, "Reject", pendingIntentreject);

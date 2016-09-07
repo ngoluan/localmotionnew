@@ -192,8 +192,8 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                Log.d(MainActivity.TAG, "Luan-onPlaceSelected: "+place.toString());
+                scheduleActvity.calendarEvent.yelpPlaceId="";
+                scheduleActvity.calendarEvent.eventbriteId="";
                 fillPlaces(
                         place.getName().toString(),
                         place.getAddress().toString(),
@@ -843,7 +843,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         else if(requestCode == PICK_PLACE_REQUEST) {
             if (resultCode == RESULT_OK) {
                 //fillYelpPlace(data.getStringExtra("placeId"));
-                scheduleActvity.getYelpPlace(data.getStringExtra("placeId"));
+                scheduleActvity.getYelpPlace(data.getStringExtra("yelpPlaceId"));
             }
         }
         else if(requestCode == PICK_EVENT_REQUEST) {

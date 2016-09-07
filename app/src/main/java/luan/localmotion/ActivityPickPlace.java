@@ -26,7 +26,7 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
     @Override
     public void OnClick(PlacesItem item, View view, int position) {
         Intent intent = new Intent();
-        intent.putExtra("placeId",item.placeId  );
+        intent.putExtra("yelpPlaceId",item.placeId  );
         intent.putExtra("name",item.name);
         intent.putExtra("type",item.type );
         intent.putExtra("placeImgUrl",item.imgUrl);
