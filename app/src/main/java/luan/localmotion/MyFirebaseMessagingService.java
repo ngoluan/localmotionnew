@@ -47,7 +47,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Map<String,String> data=remoteMessage.getData();
         Log.d(MainActivity.TAG, "Luan-onMessageReceived: "+data.toString());
         if(data.get("type").equals(ChatFragment.TYPE_EVENT)){
-            String eventId = data.get("eventUniqueId");
+            String eventId = data.get(CalendarEvent.UNIQUE_ID_TAG);
             List<CalendarEvent> calendarEvents =  CalendarEvent.find(CalendarEvent.class, "event_unique_id=?", eventId);
 
             if(calendarEvents.size()==0){

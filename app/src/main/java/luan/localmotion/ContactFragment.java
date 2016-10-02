@@ -1,5 +1,7 @@
 package luan.localmotion;
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -14,6 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.SearchView;
+
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 
 import luan.localmotion.Content.ContactItem;
 import me.everything.providers.android.contacts.Contact;
@@ -104,35 +114,49 @@ public class ContactFragment extends BaseFragment<ContactItem>  implements Searc
             @Override
             public void run() {
 
-                ContactsProvider contactsProvider = new ContactsProvider(getContext());
 
-                List<Contact> contactsList =  contactsProvider.getContacts().getList();
-                Log.d(MainActivity.TAG, "Luan-run: "+contactsList.size());
-                HashMap<String, Contact> contactsMap= new HashMap<String, Contact>();
-                for (Contact contact:contactsList) {
 
-                    if (!contactsMap.containsKey(contact.normilizedPhone)) {
-                        contactsMap.put(contact.normilizedPhone, contact);
-                        //Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),contact.phone);
-                        Bitmap profilePic=null;
-                        models.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, contact.uriPhoto));
+                Dexter.checkPermission(new PermissionListener() {
+                    @Override public void onPermissionGranted(PermissionGrantedResponse response) {
+                        ContactsProvider contactsProvider = new ContactsProvider(getContext());
+
+                        List<Contact> contactsList =  contactsProvider.getContacts().getList();
+                        Log.d(MainActivity.TAG, "Luan-run: "+contactsList.size());
+                        HashMap<String, Contact> contactsMap= new HashMap<String, Contact>();
+                        for (Contact contact:contactsList) {
+
+                            if (!contactsMap.containsKey(contact.normilizedPhone)) {
+                                contactsMap.put(contact.normilizedPhone, contact);
+                                //Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),contact.phone);
+                                Bitmap profilePic=null;
+                                models.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, contact.uriPhoto));
+                            }
+
+                        }
+                        originalContacts= new ArrayList<ContactItem>(models);
+                        Collections.sort(models, new Comparator<ContactItem>() {
+                            @Override
+                            public int compare(ContactItem lhs, ContactItem rhs) {
+                                return  lhs.name.compareTo(rhs.name);
+                            }
+                        });
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                recyclerViewAdapter.animateTo(models);
+                            }
+                        });
                     }
-
-                }
-                originalContacts= new ArrayList<ContactItem>(models);
-                Collections.sort(models, new Comparator<ContactItem>() {
-                    @Override
-                    public int compare(ContactItem lhs, ContactItem rhs) {
-                        return  lhs.name.compareTo(rhs.name);
+                    @Override public void onPermissionDenied(PermissionDeniedResponse response) {
+                        //Toast.makeText(res, "Can't detect phone number", Toast.LENGTH_SHORT).show();
                     }
-                });
-
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        recyclerViewAdapter.animateTo(models);
+                    @Override public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
                     }
-                });
+                }, Manifest.permission.READ_CONTACTS);
+
+
 
             }
         };
@@ -178,7 +202,8 @@ public class ContactFragment extends BaseFragment<ContactItem>  implements Searc
     @Override
     public void OnClick(ContactItem item, View view, int position) {
         Intent scheduleIntent = new Intent(getContext(), ScheduleActvity.class);
-        scheduleIntent.putExtra("contactPhone", item.phoneNumber);
+        scheduleIntent.putExtra(ContactItem.UNIQUE_ID, item.phoneNumber);
+
         startActivity(scheduleIntent);
     }
 

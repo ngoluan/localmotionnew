@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorDark"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+
+    <LinearLayout
+        android:weightSum="4"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/imageView15"
+            android:src="@drawable/ic_search_white_48dp"
+            android:cropToPadding="false"
+            android:scaleType="fitStart"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="12dp" />
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/yelpSearchView"
+            android:textColorHint="@color/colorLightGrey"
+            style="@style/SmallTitle"
+            android:hint="Search keywords"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorGrey"></TableRow>
+
+    <LinearLayout
+        android:weightSum="3"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/imageView11"
+            android:src="@drawable/ic_filter_list_white_48dp"
+            android:cropToPadding="false"
+            android:scaleType="fitStart"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="12dp" />
+
+        <TextView
+            style="@style/SmallTitle"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Category:"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/textView7" />
+
+        <Spinner
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/yelpCategorySpinner"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorGrey" />
+
+    <LinearLayout
+        android:weightSum="3"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp" >
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/imageView17"
+            android:src="@drawable/ic_attach_money_white_48dp"
+            android:cropToPadding="false"
+            android:scaleType="fitStart"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="12dp" />
+
+        <TextView
+            style="@style/SmallTitle"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Price :"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/textView8" />
+
+        <Spinner
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/yelpPriceSpinner"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorGrey" />
+
+    <LinearLayout
+        android:weightSum="3"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/imageView16"
+            android:src="@drawable/ic_money_off_white_48dp"
+            android:cropToPadding="false"
+            android:scaleType="fitStart"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="12dp" />
+
+        <TextView
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Open now:"
+            style="@style/SmallTitle"
+            android:layout_gravity="center_vertical" />
+
+        <Switch
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/yelpOpenSwitch"
+            android:layout_weight="1"
+            android:singleLine="false"
+            android:splitTrack="false"
+            android:layout_gravity="center_vertical" />
+
+
+    </LinearLayout>
+
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorGrey" />
+
+    <LinearLayout
+        android:weightSum="3"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_whatshot_white_48dp"
+            android:cropToPadding="false"
+            android:scaleType="fitStart"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="12dp" />
+
+        <TextView
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Hot and new:"
+            style="@style/SmallTitle"
+            android:layout_gravity="center_vertical" />
+
+        <Switch
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/yelpHotSwitch"
+            android:layout_weight="1"
+            android:singleLine="false"
+            android:splitTrack="false"
+            android:layout_gravity="center_vertical" />
+
+
+    </LinearLayout>
+
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorGrey" />
+
+    <!--<LinearLayout
+        android:weightSum="3"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_new_releases_white_48dp"
+            android:cropToPadding="false"
+            android:scaleType="fitStart"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="12dp" />
+
+        <TextView
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="New:"
+            style="@style/SmallTitle"
+            android:layout_gravity="center_vertical" />
+
+        <Switch
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/yelpNewSwitch"
+            android:layout_weight="1"
+            android:singleLine="false"
+            android:splitTrack="false"
+            android:layout_gravity="center_vertical" />
+
+
+    </LinearLayout>
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorGrey" />
+-->
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp"
+        android:text="Search"
+        android:id="@+id/yelpsSearchButton"
+        android:background="@color/colorPrimary"
+        android:textSize="18dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:elevation="0dp" />
+
+</LinearLayout>

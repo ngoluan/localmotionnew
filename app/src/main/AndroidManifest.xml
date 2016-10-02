@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
-        android:name="com.orm.SugarApp"
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
@@ -57,7 +57,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PickContactActivity" />
+        <activity android:name=".ActivityPickContact" />
         <activity android:name=".ActivityPickEvent" />
         <activity android:name=".ActivityPickPlace" />
 

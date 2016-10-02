@@ -1,6 +1,5 @@
 package luan.localmotion;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,17 +9,13 @@ import android.graphics.Point;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Display;
 
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
-import com.akexorcist.googledirection.constant.TransportMode;
 import com.akexorcist.googledirection.model.Direction;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -34,6 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.michaelrocks.libphonenumber.android.NumberParseException;
+import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
+import io.michaelrocks.libphonenumber.android.Phonenumber;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -44,6 +42,13 @@ import okhttp3.Response;
  * Created by luann on 2016-06-29.
  */
 public class Utils {
+    public static final int PICK_CONTACT_REQUEST = 1;
+    public static final int PICK_PLACE_REQUEST = 2;
+    public static final int PICK_EVENT_REQUEST = 3;
+    public static final int PICK_CALENDAR_REQUEST = 4;
+    public static final int RESULT_CANCELED    = 0;
+    public static final int RESULT_OK           = -1;
+
     public static void CopyStream(InputStream is, OutputStream os)
     {
         final int buffer_size=1024;
@@ -65,8 +70,8 @@ public class Utils {
         }
         catch(Exception ex){}
     }
-    public static String normalizeNumber(String phoneNumber) {
-        if (TextUtils.isEmpty(phoneNumber)) {
+    public static String normalizeNumber(String phoneNumber, Context mContext) {
+        /*if (TextUtils.isEmpty(phoneNumber)) {
             return "";
         }
 
@@ -86,13 +91,21 @@ public class Utils {
         }
         String number = sb.toString();
         number=number.replace("+","");
-        number=number.replace("+","");
-        return number;
+        number=number.replace("+","");*/
+        String swissNumberStr = "044 668 18 00";
+        PhoneNumberUtil phoneUtil = PhoneNumberUtil.createInstance(mContext);
+        try {
+            Phonenumber.PhoneNumber number = phoneUtil.parse(phoneNumber, "US");
+            return phoneUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL);
+        } catch (NumberParseException e) {
+            System.err.println("NumberParseException was thrown: " + e.toString());
+        }
+        return "";
     }
     public static String  getPhoneNumber(Context context){
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
         String mPhoneNumber = tMgr.getLine1Number();
-        final String normalizePhoneNumber = normalizeNumber(mPhoneNumber);
+        final String normalizePhoneNumber = normalizeNumber(mPhoneNumber, context);
         return normalizePhoneNumber;
     }
     public static String formatTime(Long inputTime){
@@ -109,10 +122,12 @@ public class Utils {
         }
         return timeText;
     }
-    public static void serverUserCheckIn( final String regIDFCM, Context context){
+    public static void serverUserCheckIn( final String regIDFCM, final Context context){
+
+
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);
         String mPhoneNumber = tMgr.getLine1Number();
-        final String normalizePhoneNumber = normalizeNumber(mPhoneNumber);
+        final String normalizePhoneNumber = normalizeNumber(mPhoneNumber, context);
 
         //Used in case regIDFCM not available, like during first installation.
         if(regIDFCM==null){
@@ -164,6 +179,7 @@ public class Utils {
 
 
         }.execute();
+
     }
     public static void sendMessage(final HashMap<String, String> data, Context context){
         TelephonyManager tMgr = (TelephonyManager)  context.getSystemService(Context.TELEPHONY_SERVICE);

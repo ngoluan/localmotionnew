@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ScheduleActvity">
+    <item
+        android:id="@+id/action_chat"
+        android:orderInCategory="100"
+        android:icon="@drawable/chaticon"
+        android:title="Chat"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_planner"
+        android:orderInCategory="100"
+        android:icon="@drawable/calendaricon"
+        android:title="Chat"
+        app:showAsAction="always" />
+</menu>

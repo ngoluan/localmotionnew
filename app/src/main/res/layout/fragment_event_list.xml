@@ -16,15 +16,6 @@
 
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <SearchView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/eventSearchView"
-            android:queryHint="Type term or keyword"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:iconifiedByDefault="false" />
-
 
 
         <com.github.aakira.expandablelayout.ExpandableLinearLayout
@@ -78,7 +69,7 @@
             app:ael_duration="400"
             app:ael_expanded="true">
             <fragment
-                class="luan.localmotion.CustomMapView"
+                class="com.google.android.gms.maps.SupportMapFragment"
                 tools:context="luan.localmotion.MapsActivity"
                 android:layout_height="200dp"
                 android:id="@+id/eventMap"
@@ -93,8 +84,7 @@
             android:layout_width="fill_parent"
             android:layout_height="12dp"
             android:id="@+id/eventsExpandMapButton"
-            android:src="@drawable/upicon"
-            android:background="@color/colorTertiaryClear" />
+            android:src="@drawable/upicon" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/events_list"

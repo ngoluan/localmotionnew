@@ -51,7 +51,20 @@
                     android:textColor="@color/abc_primary_text_material_dark" />
 
             </RelativeLayout>-->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorDeepDark"
+                android:padding="6dp">
 
+                <TextView
+                    style="@style/MediumTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Contacts"
+                    android:id="@+id/textView4" />
+            </RelativeLayout>
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
@@ -85,12 +98,28 @@
                 android:background="@drawable/border_bottom"
                 android:layout_marginLeft="6dp"
                 android:layout_marginRight="6dp" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorDeepDark"
+                android:padding="6dp" >
+
+                <TextView
+                    style="@style/MediumTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Calendar"
+                    android:id="@+id/textView5" />
+            </RelativeLayout>
+
             <LinearLayout
             android:layout_width="match_parent"
                 android:weightSum="4"
             android:orientation="horizontal"
-            android:layout_height="275dp"
-                android:baselineAligned="false">
+                android:baselineAligned="false"
+                android:layout_height="300dp">
             <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
@@ -127,6 +156,29 @@
                 android:layout_marginLeft="6dp"
                 android:layout_marginRight="6dp"
                 android:id="@+id/imageView" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorDeepDark"
+                android:padding="6dp" >
+
+                <TextView
+                    style="@style/MediumTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Places and Events"
+                    android:id="@+id/textView6" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:id="@+id/imageView18"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_search_white_48dp" />
+            </RelativeLayout>
 
             <LinearLayout
                 android:weightSum="4"
@@ -261,20 +313,27 @@
                 android:id="@+id/imageView14" />
 
             <LinearLayout
+                android:weightSum="2"
                 android:orientation="horizontal"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <Button
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="Propose"
-                    android:id="@+id/scheduleProposeButton" />
+                    android:id="@+id/scheduleProposeButton"
+                    android:background="@color/colorPrimary"
+                    android:layout_weight="1"
+                    android:layout_marginRight="1dp" />
 
                 <Button
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="Save "
-                    android:id="@+id/scheduleSaveButton" />
+                    android:id="@+id/scheduleSaveButton"
+                    android:background="@color/colorPrimary"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="1dp" />
 
             </LinearLayout>
 

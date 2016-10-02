@@ -126,11 +126,9 @@ public class ChatFragment extends Fragment implements FragmentInterface {
                     Calendar.getInstance().getTimeInMillis(),messageEditText.getText().toString(),
                     scheduleActvity.calendarEvent.eventUniqueId);
             long chatId= chat.save();
-            Log.d(MainActivity.TAG, "Luan-onClick size: "+ chats.size());
-            //chatRecyclerViewAdapter.notifyDataSetChanged();
+            chats.add(chat);
             chatRecyclerViewAdapter.notifyItemInserted(chats.size()-1);
             TelephonyManager tMgr = (TelephonyManager)  getContext().getSystemService(Context.TELEPHONY_SERVICE);
-            final String mPhoneNumber = tMgr.getLine1Number();
 
             HashMap<String,String> sendData = new HashMap<String, String>();
 

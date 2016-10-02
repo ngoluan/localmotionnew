@@ -95,7 +95,8 @@ public class BikeShare {
                 ArrayList<JSONObject> directionsArr = null;
                 String icon;
 
-
+                if(msg==null)
+                    return;
                 try {
                     data = new JSONObject(msg);
 

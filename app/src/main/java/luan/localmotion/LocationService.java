@@ -8,18 +8,27 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -44,6 +53,7 @@ public class LocationService extends Service implements LocationListener, Google
     public LocationService() {
 
     }
+
     public class LocalBinder extends Binder {
         LocationService getService() {
             // Return this instance of LocalService so clients can call public methods
@@ -114,23 +124,40 @@ public class LocationService extends Service implements LocationListener, Google
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+    public void onConnected(final @Nullable Bundle bundle) {
+
+        if(Dexter.isRequestOngoing()==true){
+            new Handler().postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    onConnected(bundle);
+                }
+            }, 5000);
+
             return;
         }
-        mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mListener != null)
-            mListener.OnConnected(bundle,mCurrentLocation);
-        if (mRequestingLocationUpdates) {
-            startLocationUpdates();
-        }
+        Dexter.checkPermission(new PermissionListener() {
+            @Override
+            public void onPermissionGranted(PermissionGrantedResponse response) {
+                if (ActivityCompat.checkSelfPermission(getBaseContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getBaseContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                if (mListener != null)
+                    mListener.OnConnected(bundle,mCurrentLocation);
+                if (mRequestingLocationUpdates) {
+                    startLocationUpdates();
+                }
+            }
+            @Override public void onPermissionDenied(PermissionDeniedResponse response) {
+                //Toast.makeText(res, "Can't detect phone number", Toast.LENGTH_SHORT).show();
+            }
+            @Override public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                token.continuePermissionRequest();
+            }
+        }, android.Manifest.permission.ACCESS_FINE_LOCATION);
+
     }
     protected void startLocationUpdates() {
         Log.d(MainActivity.TAG, "Location updates");
@@ -147,6 +174,11 @@ public class LocationService extends Service implements LocationListener, Google
             Log.d(MainActivity.TAG, "Location updates");
             return;
         }
+        if(mGoogleApiClient.isConnected()==false){
+            mGoogleApiClient.connect();
+            return;
+        }
+
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
     }
@@ -171,6 +203,7 @@ public class LocationService extends Service implements LocationListener, Google
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(MainActivity.TAG, "Luan-onConnectionFailed: "+ connectionResult.toString());
+        Toast.makeText(LocationService.this, "Can't get location", Toast.LENGTH_SHORT).show();
     }
     public void setCustomObjectListener(LocationServiceListener listener) {
         this.mListener = listener;

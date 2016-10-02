@@ -1,12 +1,14 @@
 package luan.localmotion;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -30,12 +32,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import luan.localmotion.Content.NextBusDashItem;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by luann on 2016-05-28.
@@ -54,6 +63,7 @@ public class NextBus {
         this.caller = caller;
         createMarkers();
     }
+
     public void getPredictionLocation(String lat, String lng) {
         new AsyncTask<String, Void, String>() {
             String type = null;
@@ -235,6 +245,36 @@ public class NextBus {
 
         }.execute("", "ttc", lat, lng);
     }
+    public static void getPredictionLocation_v2(String lat, String lng, Callback<List<NextBusPrediction>> callback, Context context) {
+        Location mCurrentLocation = Utils.getLocationFromHistory(context);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://restbus.info/api/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        NextbusService nextbusService = retrofit.create(NextbusService.class);
+
+        Call<List<NextBusPrediction>> nextbusServicePredictions = nextbusService.getPredictions(lat, lng);
+        if(callback==null){
+            callback=new Callback<List<NextBusPrediction>>(){
+
+                @Override
+                public void onResponse(Call<List<NextBusPrediction>> call, retrofit2.Response<List<NextBusPrediction>> response) {
+                    for (int i = 0; i < response.body().size(); i++) {
+
+                        Log.d(MainActivity.TAG, "Luan-onResponse: "+response.body().get(i));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<NextBusPrediction>> call, Throwable t) {
+                    Log.d(MainActivity.TAG, "Luan-onFailure: "+t.getMessage().toString());
+                }
+            };
+        }
+        nextbusServicePredictions.enqueue(callback);
+    }
     void createMarkers() {
         Thread thread = new Thread() {
             @Override
@@ -325,7 +365,8 @@ public class NextBus {
             protected String doInBackground(Void... params) {
 
                 String result = postData();
-
+                if(result==null)
+                    return "";
                 XmlPullParserFactory pullParserFactory;
                 try {
                     pullParserFactory = XmlPullParserFactory.newInstance();

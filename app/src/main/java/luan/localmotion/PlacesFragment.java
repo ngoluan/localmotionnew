@@ -67,6 +67,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
     public GoogleMap mMap;
 
     ArrayList<YelpCategoryItem> yelpCategoryItems;
+    List<String> yelpPriceItems=new ArrayList<>();
 
     private boolean loading;
     int offset = 0;
@@ -77,6 +78,9 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
 
     String category_filter="";
     String term="";
+    String price="";
+    String open="false";
+    String hotAndNew="";
 
     CustomMapView mapFragment;
     public PlacesFragment() {
@@ -84,6 +88,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
 
     public static PlacesFragment newInstance(Places places) {
         PlacesFragment fragment = new PlacesFragment();
+
         return fragment;
     }
 
@@ -141,8 +146,8 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
                 loading = false;
             }
         });
-        
-        expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayout);
+
+        /*expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayout);
 
         final SearchView search = (SearchView) view.findViewById(R.id.searchView);
         search.setOnClickListener(new View.OnClickListener() {
@@ -205,7 +210,13 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
                             .into(expandMapButton);
                 }
             }
-        });
+        });*/
+
+        yelpPriceItems.add("Any");
+        yelpPriceItems.add("$");
+        yelpPriceItems.add("$$");
+        yelpPriceItems.add("$$$");
+        yelpPriceItems.add("$$$$");
 
         return view;
     }
@@ -257,8 +268,8 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
                     i++;
                 }
 
-                recyclerViewAdapter.notifyDataSetChanged();
-
+                //recyclerViewAdapter.notifyDataSetChanged();
+                recyclerViewAdapter.animateTo(models);
 
 
                 mapShownBusinesses(models);
@@ -350,6 +361,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 //cameraPosition.target.latitude
+
                 models.clear();
                 fillPlacesFragment(cameraPosition.target);
             }
@@ -436,7 +448,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
     @Override
     public void fragmentBecameVisible() {
 
-        getPlaces();
+        //getPlaces();
         getYelpCategories();
     }
 

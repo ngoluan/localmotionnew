@@ -28,7 +28,7 @@ public abstract class BaseFragment<T> extends Fragment implements FragmentInterf
     ArrayList<T> models;
 
     public BaseFragment(){
-
+        models = new ArrayList<>();
     }
 
     public void createRecyclerViews(int viewId){

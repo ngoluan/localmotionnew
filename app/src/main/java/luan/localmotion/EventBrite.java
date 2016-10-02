@@ -31,7 +31,7 @@ public class EventBrite {
         data.put("token", EventbriteService.TOKEN);
         data.put("location.latitude", String.valueOf(mCurrentLocation.getLatitude()));
         data.put("location.longitude",String.valueOf(mCurrentLocation.getLongitude()));
-        data.put("expand","placeCategory,venue");
+        data.put("expand","category,venue");
         if(!sort_by.equals("")) data.put("sort_by",sort_by);
 
         Call<EventbriteEvents> eventbriteEvents = eventbriteService.listEvents(data);

@@ -24,6 +24,6 @@ public interface EventbriteService {
     Call<EventbriteEvents> listEvents(@QueryMap Map<String, String> options);
     @GET("events/{id}/")
     Call<EventbriteEvent> getEvent(@Path("id") long id,@QueryMap Map<String, String> options);
-    @GET("categories/")
+    @GET("categories/?token="+TOKEN)
     Call<EventbriteCategories> getCategories();
 }

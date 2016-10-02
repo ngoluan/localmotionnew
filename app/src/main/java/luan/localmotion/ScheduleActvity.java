@@ -7,14 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 
@@ -23,6 +21,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,12 +29,11 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 
-import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
-import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.orm.SugarContext;
 import com.yelp.clientlib.entities.Business;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,11 +59,11 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
     public CalendarEvent calendarEvent =null;
     private DrawerLayout mDrawerLayout;
     private RelativeLayout drawer;
-    AHBottomNavigation bottomNavigation;
+    Toolbar myToolbar;
+    //AHBottomNavigation bottomNavigation;
 
-    LocationService mService;
-    boolean mBound = false;
-    Location mCurrentLocation=null;
+
+    Menu menu;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -79,19 +77,26 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         mDrawerLayout = (DrawerLayout) findViewById(R.id.schedule_drawer_layout);
         drawer= (RelativeLayout) findViewById(R.id.schedule_drawer);
 
-
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         mViewPager = (ViewPager) findViewById(R.id.schedule_container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.addOnPageChangeListener(onPageChangeListener);
 
+        myToolbar = (Toolbar) findViewById(R.id.schedule_toolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setTitle("Schedule an Activity");
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         contacts = new Contacts(this);
+
         places = new Places(this);
 
         SugarContext.init(this);
 
-        setBottomBar();
+        //setBottomBar();
 
         processExtras();
 
@@ -119,10 +124,11 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             calendarEvent.eventUniqueId =String.valueOf(System.currentTimeMillis())+"-"+Utils.getPhoneNumber(this);
 
         }
-        if(extras.getString("contactPhone")!=null){
-            List<String> phones= new ArrayList<>();
-            phones.add(extras.getString("contactPhone"));
-            getContacts(phones);
+        if(extras.getString(ContactItem.UNIQUE_ID)!=null){
+            String normalizedPhone = Utils.normalizeNumber(extras.getString(ContactItem.UNIQUE_ID), getApplicationContext());
+            Log.d(MainActivity.TAG, "Luan-processExtras: "+normalizedPhone);
+            calendarEvent.addPhone(normalizedPhone);
+            getContacts(calendarEvent.getPhones());
         }
         if(extras.getString("yelpPlaceId")!=null){
             getYelpPlace(extras.getString("yelpPlaceId"));
@@ -134,7 +140,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
 
     void getContacts(List<String> phones){
         for (int i = 0; i < phones.size(); i++) {
-            String normalizedPhone = Utils.normalizeNumber(phones.get(i));
+            String normalizedPhone = Utils.normalizeNumber(phones.get(i), getApplicationContext());
             ContactItem contactItem=Contacts.getContactItem(getBaseContext(),normalizedPhone);
             if(contactItem!=null)
             contactList.add(contactItem);
@@ -205,8 +211,8 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
                                 eventbriteEvent.venue.name+" at "+eventbriteEvent.venue.address.address_1,
                                 eventbriteEvent.description.text,
                                 eventbriteEvent.logo.url,
-                                Double.parseDouble(eventbriteEvent.venue.address.latitude),
-                                Double.parseDouble(eventbriteEvent.venue.address.longitude)
+                                Double.parseDouble(String.valueOf(eventbriteEvent.venue.address.latitude)),
+                                Double.parseDouble(String.valueOf(eventbriteEvent.venue.address.longitude))
                         );
                         //scheduleFragment.fillEventbrite(eventbriteEvent);
                     }
@@ -219,12 +225,6 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
                 Log.d(MainActivity.TAG, "Luan-onFailure: "+t.toString());
             }
         });
-    }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_schedule_actvity2, menu);
-        return true;
     }
     public void saveEvent(){
         calendarEvent.title="Hang out";
@@ -265,6 +265,15 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         }, 5000);
     }
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_schedule, menu);
+        this.menu = menu;
+        menu.findItem(R.id.action_planner).setVisible(false);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -272,9 +281,19 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+
+        if (id == R.id.action_planner) {
+            mViewPager.setCurrentItem(0);
+            menu.findItem(R.id.action_planner).setVisible(false);
+            menu.findItem(R.id.action_chat).setVisible(true);
+
         }
+        else if (id == R.id.action_chat) {
+            openConversation();
+        }
+        else if (id == android.R.id.home) {
+                    onBackPressed();
+                }
 
         return super.onOptionsItemSelected(item);
     }
@@ -315,6 +334,11 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             numbers = numbers.replaceAll("; $", "");
             startActivity(new Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", numbers, null)));
         }
+        else{
+            mViewPager.setCurrentItem(1);
+            menu.findItem(R.id.action_planner).setVisible(true);
+            menu.findItem(R.id.action_chat).setVisible(false);
+        }
     }
     void sendProposal(){
         if(useSMS==true){
@@ -325,6 +349,31 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             numbers = numbers.replaceAll("; $", "");
             startActivity(new Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", numbers, null)));
         }
+        else{
+            HashMap<String,String> sendData = new HashMap<String, String>();
+            sendData.put("type",ChatFragment.TYPE_EVENT);
+            sendData.put("sendersPhone",Utils.getPhoneNumber(getApplicationContext()));
+            sendData.put("contactsPhone",calendarEvent.contactsPhone);
+            sendData.put("dateTime",String.valueOf(Calendar.getInstance().getTimeInMillis()));
+            sendData.put("yelpPlaceId",calendarEvent.yelpPlaceId);
+            sendData.put("eventbriteId",calendarEvent.eventbriteId);
+            sendData.put("placeName",calendarEvent.placeName);
+            sendData.put("placeDescription",calendarEvent.placeDescription);
+            sendData.put("googlePlaceId",calendarEvent.googlePlaceId);
+            sendData.put("placeCategory",calendarEvent.placeCategory);
+            sendData.put("placeAddress",calendarEvent.placeAddress);
+            sendData.put("placeLat",calendarEvent.placeLat.toString());
+            sendData.put("placeLng",calendarEvent.placeLng.toString());
+            sendData.put("placeImgUrl",calendarEvent.placeImgUrl);
+            sendData.put("title",calendarEvent.title);
+            sendData.put("beginTime",calendarEvent.beginTime.toString());
+            sendData.put("endTime",calendarEvent.endTime.toString());
+            sendData.put("message","");
+            sendData.put("eventUniqueId",calendarEvent.eventUniqueId);
+
+            Utils.sendMessage(sendData, getApplicationContext());
+        }
+        calendarEvent.save();
     }
     public class MessageReceiver extends BroadcastReceiver {
         OnReceiveMessage onReceiveMessage;
@@ -371,24 +420,8 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         }
     };
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Bind to LocalService
-        Intent intent = new Intent(this, LocationService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    }
-    @Override
-    protected void onStop() {
-        super.onStop();
-        super.onStop();
-        // Unbind from the service
-        if (mBound) {
-            unbindService(mConnection);
-            mBound = false;
-        }
-    }
-    public void setBottomBar() {
+
+    /*public void setBottomBar() {
         bottomNavigation = (AHBottomNavigation) findViewById(R.id.schedule_bottom_navigation);
 
 // Create items
@@ -452,40 +485,8 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
                 return true;
             }
         });
-    }
-    LocationServiceListener locationServiceListener = new LocationServiceListener() {
-        @Override
-        public void OnConnected(@Nullable Bundle bundle, Location location) {
+    }*/
 
-            mCurrentLocation = location;
-            SharedPreferences prefs = getSharedPreferences(
-                    "luan.localmotion", Context.MODE_PRIVATE);
-
-            prefs.edit().putString("lastLat", String.valueOf(mCurrentLocation.getLatitude())).apply();
-            prefs.edit().putString("lastLng", String.valueOf(mCurrentLocation.getLongitude())).apply();
-            prefs.edit().putString("lastProvider", String.valueOf(mCurrentLocation.getProvider())).apply();
-
-            if (mViewPager.getCurrentItem() == 0) {
-                ScheduleFragment scheduleFragment = (ScheduleFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
-                if(scheduleFragment!=null){
-                    scheduleFragment.setupMap();
-                }
-
-            }
-
-        }
-
-        @Override
-        public void onLocationChanged(Location location) {
-            mCurrentLocation = location;
-
-            SharedPreferences prefs = getSharedPreferences(
-                    "luan.localmotion", Context.MODE_PRIVATE);
-            prefs.edit().putString("lastLat", String.valueOf(location.getLatitude())).apply();
-            prefs.edit().putString("lastLng", String.valueOf(location.getLongitude())).apply();
-            prefs.edit().putString("lastProvider", String.valueOf(location.getProvider())).apply();
-        }
-    };
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private final FragmentManager mFragmentManager;
 
@@ -538,24 +539,7 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
             return null;
         }
     }
-    /** Defines callbacks for service binding, passed to bindService() */
-    public ServiceConnection mConnection = new ServiceConnection() {
 
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
-            mService = binder.getService();
-            mService.setCustomObjectListener(locationServiceListener);
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
-        }
-    };
 
 }
 

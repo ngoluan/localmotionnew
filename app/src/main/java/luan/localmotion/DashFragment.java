@@ -26,14 +26,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
-import com.github.aakira.expandablelayout.ExpandableLinearLayout;
 import com.google.android.flexbox.FlexboxLayout;
-import com.google.android.gms.games.event.Event;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -58,6 +55,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.NextBusDashItem;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -120,7 +118,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
-        RelativeLayout viewBike = (RelativeLayout) view.findViewById(R.id.square3);
+        /*RelativeLayout viewBike = (RelativeLayout) view.findViewById(R.id.square3);
         viewBike.setOnClickListener(new View.OnClickListener(){
 
                 @Override
@@ -136,7 +134,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 View uberButton = (View) view.findViewById(R.id.dashUberButton);
                 uberButton.callOnClick();
             }
-        });
+        });*/
 
         CustomMapView mapFragment = (CustomMapView) getChildFragmentManager()
                 .findFragmentById(R.id.dashMap);
@@ -268,7 +266,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                         e.printStackTrace();
 
                     }
-                    SimpleDateFormat newDate = new SimpleDateFormat("EE MM d',' h:mm a");
+                    SimpleDateFormat newDate = new SimpleDateFormat("EEEE, MMM d',' h:mm a");
                     TextView eventName = (TextView) eventView.findViewById(R.id.eventName);
                     TextView eventCategory = (TextView) eventView.findViewById(R.id.eventCategory);
                     TextView eventTime = (TextView) eventView.findViewById(R.id.eventTime);
@@ -277,7 +275,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     ImageView eventImgView = (ImageView) eventView.findViewById(R.id.eventImgView);
 
                     eventName.setText(item.name.text);
-                    if(item.category!=null) eventCategory.setText(item.category.name);
+                    if(item.category!=null) eventCategory.setText(item.category.shortName);
                     eventDescription.setText(item.description.text);
                     eventAddress.setText(item.venue.address.address_1);
                     eventTime.setText(newDate.format(parsedDate));
@@ -318,6 +316,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         LatLngBounds curScreen = mMap.getProjection()
                 .getVisibleRegion().latLngBounds;
         ArrayList<VehicleData> currentVehicles= new ArrayList<VehicleData>();
+
 
         for (Iterator<VehicleData> it = nextBus.nextBusData.iterator(); it.hasNext(); ) {
             VehicleData vehicle = it.next();
@@ -374,13 +373,10 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
     public class PredictionDraw implements Runnable {
         ArrayList<ArrayList<NextBusDashItem>> routesArr;
-        LinearLayout transitView;
-        public PredictionDraw(ArrayList<ArrayList<NextBusDashItem>> routesArr,LinearLayout transitView){
+        FlexboxLayout transitView;
+        public PredictionDraw(ArrayList<ArrayList<NextBusDashItem>> routesArr,FlexboxLayout transitView){
             this.transitView=transitView;
             this.routesArr=routesArr;
-
-
-
 
         }
         @Override
@@ -407,13 +403,11 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 for (int j = 0; j < routesArr.get(i).size(); j++) {
                     routesArr.get(i).get(j);
 
-
                     //getting the direction heading
                     int c = routesArr.get(i).get(j).dirTitle.indexOf("-");
                     int d=routesArr.get(i).get(0).routeTitle.length();
                     String dirTitle = routesArr.get(i).get(j).dirTitle.substring(0, c) + " to " + routesArr.get(i).get(j).dirTitle.substring(d + 8);
                     String dirShortTitle= routesArr.get(i).get(j).dirTitle.substring(0, c);
-
 
                     //getting only the route name
                     c = routesArr.get(i).get(0).routeTitle.indexOf("-")+1;
@@ -432,7 +426,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                     icon.setTag(NEXTBUS);
 
                     draw(icon, x);
-                    if(x>5){
+                    if(x>4){
                         return;
                     }
                     x++;
@@ -455,15 +449,92 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             });
         }
     }
+    public class PredictionDraw_2 implements Runnable {
+        List<NextBusPrediction> routesArr;
+        FlexboxLayout transitView;
+        public PredictionDraw_2(List<NextBusPrediction> routesArr,FlexboxLayout transitView){
+            this.transitView=transitView;
+            this.routesArr=routesArr;
+
+        }
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT);
+            int x=0;
+
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    int totalViews = transitView.getChildCount();
+                    for (int i = 0; i < totalViews; i++) {
+                        View child = (View) transitView.getChildAt(i);
+                        if(child.getTag()==String.valueOf(NEXTBUS))
+                            transitView.removeView(child);
+                    }
+                    transitView.removeViews(0,totalViews-1);
+                }
+            });
+
+            //loop through directions
+            for (int i = 0; i < routesArr.size(); i++) {
+                View item = getActivity().getLayoutInflater().inflate(R.layout.view_transit_long,null);
+                TextView routeView = (TextView) item.findViewById(R.id.transitRouteNumber);
+                routeView.setText(routesArr.get(i).route.id);
+
+                int c = routesArr.get(i).route.title.indexOf("-")+1;
+                String routeShortTitle =routesArr.get(i).route.title.substring(c);
+
+                TextView routeNameView = (TextView) item.findViewById(R.id.transitRouteName);
+                routeNameView.setText(routeShortTitle);
+
+                String direction = routesArr.get(i).values.get(0).direction.title.replace("To: ","");
+                int start=direction.indexOf("-");
+                int end=direction.indexOf("towards");
+                if(end>start) //sometimes, it doesn't fit this
+                direction=direction.substring(0, start-1) + " " + direction.substring(end);
+                TextView directionView = (TextView) item.findViewById(R.id.transitDirection);
+                directionView.setText(direction);
+                String eta="";
+
+                TextView etaView = (TextView) item.findViewById(R.id.transitETA);
+
+                for (int j = 0; j < routesArr.get(i).values.size(); j++) {
+
+                    eta +=routesArr.get(i).values.get(j).minutes + " & ";
+                    if(j==1) break;
+
+                }
+
+                eta = eta.substring(0,eta.length()-2);
+                etaView.setText(eta);
+
+                item.setTag(NEXTBUS);
+                draw(item, x);
+
+                x++;
+
+            }
+
+        }
+        void draw(final View icon, final int position){
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    transitView.addView(icon, position);
+/*                    YoYo.with(Techniques.SlideInRight)
+                            .duration(700)
+                            .playOn(icon);*/
+                }
+            });
+        }
+    }
     public void getTransit(Location loc){
         nextBus.setNextBusListener(new NextBus.NextBusListener(){
 
             @Override
             public void OnGetPredictions(ArrayList<ArrayList<NextBusDashItem>> routesArr) {
-                LinearLayout transitView = (LinearLayout) view.findViewById(R.id.transitView);
-                Thread t = new Thread(new PredictionDraw(routesArr, transitView));
-                t.start();
-
 
             }
 
@@ -473,7 +544,21 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 drawNextBus();
             }
         });
-        nextBus.getPredictionLocation(String.valueOf(loc.getLatitude()), String.valueOf(loc.getLongitude()));
+
+        nextBus.getPredictionLocation_v2(String.valueOf(loc.getLatitude()), String.valueOf(loc.getLongitude()), new Callback<List<NextBusPrediction>>() {
+            @Override
+            public void onResponse(Call<List<NextBusPrediction>> call, Response<List<NextBusPrediction>> response) {
+
+                FlexboxLayout transitView = (FlexboxLayout) view.findViewById(R.id.transitView);
+                Thread t = new Thread(new PredictionDraw_2(response.body(), transitView));
+                t.start();
+            }
+
+            @Override
+            public void onFailure(Call<List<NextBusPrediction>> call, Throwable t) {
+
+            }
+        }, getContext());
     }
     public void getBikeshare(){
         bikeShare.setBikeShareListener(new BikeShare.BikeShareListener(){
@@ -646,7 +731,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
                             Map<String, String> viewParams= new HashMap<>();
                             viewParams.put("type","contact");
-                            viewParams.put("contactPhone", address);
+                            viewParams.put(ContactItem.UNIQUE_ID, address);
                             mListener.onDashFragmentInteraction(viewParams);
                         }
                     }
@@ -717,14 +802,14 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
         squareSize3 = (dSize.x - 24)/ 3 ;
         squareSize4 = (dSize.x - 24)/ 4 ;
 
-        for (int i = 2; i <=3; i++) {
+        /*for (int i = 2; i <=3; i++) {
             int resId=Utils.getResFromInt(getContext(),"square",i);
             View thisView = view.findViewById(resId);
             ViewGroup.LayoutParams layoutParams = thisView.getLayoutParams();
             layoutParams.height = squareSize4;
             layoutParams.width = squareSize4;
             thisView.setLayoutParams(layoutParams);
-        }
+        }*/
 
         View mapView = view.findViewById(R.id.dashMap);
         ViewGroup.LayoutParams mapLayout = mapView.getLayoutParams();

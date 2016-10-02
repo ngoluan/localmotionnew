@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -43,15 +44,23 @@ public class EventsRecyclerViewAdapter extends BaseRecyclerViewAdapter<Eventbrit
     @Override
     protected void bindView(EventbriteEvent item, BaseRecyclerViewAdapter.BaseViewHolder viewHolder) {
         if (item != null) {
+            RelativeLayout layout = (RelativeLayout) viewHolder.getView(R.id.eventContainer);
+            layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(Utils.getPixelfromDP(300, getContext()))));
 
             TextView eventName = (TextView) viewHolder.getView(R.id.eventName);
+            TextView eventCategory = (TextView) viewHolder.getView(R.id.eventCategory);
+            TextView eventDescription = (TextView) viewHolder.getView(R.id.eventDescription);
+            TextView eventAddress= (TextView) viewHolder.getView(R.id.eventAddress);
             TextView eventTime = (TextView) viewHolder.getView(R.id.eventTime);
             ImageView eventImgView = (ImageView) viewHolder.getView(R.id.eventImgView);
 
             eventName.setText(item.name.text);
+            if(item.category!=null) eventCategory.setText(item.category.name);
+            eventDescription.setText(item.description.text);
+            eventAddress.setText(item.venue.address.address_1);
 
+            SimpleDateFormat newDate = new SimpleDateFormat("EEEE, MMM d',' h:mm a");
             Calendar beginTime = Calendar.getInstance();
-
             Date parsedDate = null;
             try {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -62,14 +71,17 @@ public class EventsRecyclerViewAdapter extends BaseRecyclerViewAdapter<Eventbrit
                 e.printStackTrace();
 
             }
-            SimpleDateFormat newDate = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
             eventTime.setText(newDate.format(parsedDate));
-            if (item.logo!= null) {
-                if(!item.logo.url.equals("")) Picasso.with(getContext()).load(item.logo.url)
-                        .error(R.drawable.placesicon)
-                        .placeholder(R.drawable.placesicon)
-                        .into(eventImgView);
+            if (item.logo != null) {
+                if (!item.logo.url.equals(""))
+                    Picasso.with(getContext()).load(item.logo.url)
+                            .error(R.drawable.calendaricon)
+                            .placeholder(R.drawable.calendaricon)
+                            .into(eventImgView);
             }
+
+            eventName.setText(item.name.text);
+
 
         }
     }

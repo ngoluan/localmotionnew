@@ -71,11 +71,13 @@ public class CalendarRecyclerViewAdapter extends BaseRecyclerViewAdapter<Calenda
             }
             if(!item.placeName.equals("")){
                 calendarPlace.setText(item.placeName);
+            } else if (!item.placeAddress.equals("")) {
+                calendarPlace.setText(item.placeAddress);
+
             }
-            Log.d(MainActivity.TAG, "Luan-bindView: "+item.getPhones());
             for (String contact : item.getPhones()) {
                 if(contact.equals("")) continue;
-                Contacts.fillView(getContext(), Contacts.getContactItem(getContext(), contact),contactsLayout, 72, null);
+                Contacts.fillView(getContext(), Contacts.getContactItem(getContext(), contact),contactsLayout, 72, null, R.color.colorSecondary);
             }
         }
 

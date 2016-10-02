@@ -12,17 +12,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/schedule_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
     <android.support.v4.view.ViewPager
         android:id="@+id/schedule_container"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:layout_above="@+id/schedule_bottom_navigation" />
-    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
-        android:id="@+id/schedule_bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" />
+        android:layout_below="@+id/schedule_toolbar" />
 </RelativeLayout>
     <!-- The navigation drawer -->
     <RelativeLayout android:id="@+id/schedule_drawer"

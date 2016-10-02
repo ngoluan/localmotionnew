@@ -214,7 +214,7 @@ public class Contacts {
 
         return phoneContactID;
     }
-    public static void fillView(Context context, ContactItem contact, ViewGroup view, int size, Integer position){
+    public static void fillView(Context context, ContactItem contact, ViewGroup view, int size, Integer position, int background){
         LayoutInflater layoutInflater  = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View contactView = layoutInflater.inflate(R.layout.view_contact, null);
         if(contact==null)
@@ -224,12 +224,12 @@ public class Contacts {
         ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(Math.round(sizeDp), Math.round(sizeDp));
         contactView.setLayoutParams(layoutParams);
 
-        CircularImageView img = (CircularImageView) contactView.findViewById(R.id.contactProfilePic);
-        Log.d(MainActivity.TAG, "Luan-fillView: "+contact.profilePicURI);
+        CircularImageView circularImageView = (CircularImageView) contactView.findViewById(R.id.contactProfilePic);
         Picasso.with(context).load(contact.profilePicURI)
                 .error(R.drawable.personicon)
                 .placeholder(R.drawable.personicon)
-                .into(img);
+                .into(circularImageView);
+        circularImageView.setBorderColor(context.getResources().getColor(background));
 
         TextView name = (TextView) contactView.findViewById(R.id.contactNameView);
         name.setText(contact.name);

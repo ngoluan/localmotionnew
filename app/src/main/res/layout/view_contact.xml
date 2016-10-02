@@ -24,26 +24,16 @@
             android:layout_alignParentTop="true"
             android:layout_marginTop="0dp"
             android:layout_centerHorizontal="true" />
-        <RelativeLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/contactNameView"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true">
-
-
-            <TextView
-                android:id="@+id/contactNameView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceListItem"
-                android:layout_alignParentTop="false"
-                android:layout_alignParentLeft="false"
-                android:textAlignment="center"
-                style="@style/SmallTitleInverse"
-                android:layout_centerHorizontal="true"
-                android:layout_alignParentBottom="true" />
-
-        </RelativeLayout>
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:layout_below="@id/contactProfilePic"
+            android:textAlignment="center"
+            style="@style/SmallTitleInverse"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true" />
 
     </RelativeLayout>
 

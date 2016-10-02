@@ -65,7 +65,7 @@ class EventbriteEvent {
     Logo logo;
     @SerializedName("venue")
     Venue venue;
-    @SerializedName("placeCategory")
+    @SerializedName("category")
     EventBriteCategory category;
 
     public EventbriteEvent(){
@@ -127,8 +127,8 @@ class EventbriteEvent {
     class Logo {String url;}
     class Venue {
         class Address{
-            String longitude;
-            String latitude;
+            float longitude;
+            float latitude;
             String address_1;
         }
         String name;

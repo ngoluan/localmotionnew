@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:weightSum="3"
     android:orientation="vertical"
-    android:padding="6dp">
+    android:id="@+id/eventContainer">
 
     <LinearLayout
         android:orientation="vertical"
@@ -17,32 +18,28 @@
             android:layout_weight="2">
 
             <ImageView
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="fill_parent"
                 android:id="@+id/eventImgView"
                 android:src="@drawable/calendaricon"
                 android:scaleType="centerCrop"
-                android:layout_alignParentLeft="true"
                 android:layout_marginLeft="0dp"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="0dp"
                 android:tintMode="multiply"
-                android:tint="@color/colorLightGrey" />
+                android:tint="@color/colorGrey"
+                app:srcCompat="@drawable/calendaricon" />
 
             <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_alignParentLeft="false"
-                android:layout_alignParentTop="false"
-                android:layout_alignParentBottom="true">
+                android:layout_alignParentTop="true">
 
                 <TextView
                     android:id="@+id/eventName"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:maxLines="1"
+                    android:maxLines="2"
                     style="@style/MediumTitle"
                     android:textAppearance="?attr/textAppearanceListItem"
                     android:textAlignment="center" />
@@ -58,6 +55,31 @@
                     android:textAlignment="center" />
 
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/eventTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                style="@style/SmallTitle"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textAlignment="viewStart"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:text="Time" />
+
+            <TextView
+                style="@style/SmallTitle"
+                android:id="@+id/eventAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textAlignment="viewStart"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true" />
 
         </RelativeLayout>
 
@@ -79,25 +101,6 @@
                 android:textAlignment="viewStart"
                 android:paddingBottom="4dp" />
 
-            <TextView
-                android:id="@+id/eventTime"
-                android:layout_width="fill_parent"
-                android:layout_height="24dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                style="@style/SmallTitleInverse"
-                android:textAppearance="?attr/textAppearanceListItem"
-                android:textAlignment="viewStart"/>
-
-            <TextView
-                style="@style/SmallTitleInverse"
-                android:id="@+id/eventAddress"
-                android:layout_width="fill_parent"
-                android:layout_height="24dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="?attr/textAppearanceListItem"
-                android:textAlignment="viewStart" />
         </LinearLayout>
     </LinearLayout>
 

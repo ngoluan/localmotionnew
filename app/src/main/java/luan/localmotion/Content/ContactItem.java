@@ -8,6 +8,7 @@ import com.orm.SugarRecord;
  * Created by luann on 2016-06-25.
  */
 public class ContactItem extends SugarRecord{
+    static public String UNIQUE_ID = "contactPhone";
     public String id;
     public String name;
     public String phoneNumber;

@@ -1,5 +1,6 @@
 package luan.localmotion;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -51,6 +52,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.orm.SugarRecord;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
@@ -78,11 +84,6 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     public GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     public Marker locMarker;
-    public static final int PICK_CONTACT_REQUEST = 1;
-    public static final int PICK_PLACE_REQUEST = 2;
-    public static final int PICK_EVENT_REQUEST = 3;
-    public static final int RESULT_CANCELED    = 0;
-    public static final int RESULT_OK           = -1;
     String placeAddress="";
 
     View view;
@@ -96,6 +97,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     private DirectionsRecyclerViewAdapter.OnDirectionsListener onDirectionsListener;
 
     Boolean placesLoaded=false;
+    Location mCurrentLocation=null;
     public ScheduleFragment() {
 
     }
@@ -135,9 +137,9 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         profilePicView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent contactIntent = new Intent(getContext(), PickContactActivity.class);
+                Intent contactIntent = new Intent(getContext(), ActivityPickContact.class);
 
-                startActivityForResult(contactIntent,PICK_CONTACT_REQUEST);
+                startActivityForResult(contactIntent, Utils.PICK_CONTACT_REQUEST);
             }
         });
         Button scheduleOpenYelpButton= (Button)view.findViewById(R.id.scheduleOpenYelpButton);
@@ -146,7 +148,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             public void onClick(View v) {
                 Intent placesIntent = new Intent(getContext(), ActivityPickPlace.class);
 
-                startActivityForResult(placesIntent,PICK_PLACE_REQUEST);
+                startActivityForResult(placesIntent, Utils.PICK_PLACE_REQUEST);
             }
         });
         Button scheduleEventYelpButton= (Button)view.findViewById(R.id.scheduleOpenEventsButton);
@@ -155,7 +157,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             public void onClick(View v) {
                 Intent eventsIntent = new Intent(getContext(), ActivityPickEvent.class);
 
-                startActivityForResult(eventsIntent ,PICK_EVENT_REQUEST);
+                startActivityForResult(eventsIntent , Utils.PICK_EVENT_REQUEST);
             }
         });
 
@@ -213,6 +215,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
         expandableLayout= (ExpandableLinearLayout) view.findViewById(R.id.schedulePlacesChooser);
 
+        mCurrentLocation = Utils.getLocationFromHistory(getContext());
         return  view;
     }
     void setupFragment(){
@@ -238,9 +241,8 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
     }
     void setupMap(){
-
-        if (mMap != null&&scheduleActvity.mCurrentLocation!=null) {
-            Location mCurrentLocation=scheduleActvity.mCurrentLocation;
+        
+        if (mMap != null&&mCurrentLocation!=null) {
             LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
@@ -300,13 +302,24 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
     }
     public void getCalender(){
-        CalendarProvider calendarProvider = new CalendarProvider(getContext());
-        List<me.everything.providers.android.calendar.Calendar> calendars = calendarProvider.getCalendars().getList();
-        Log.d(MainActivity.TAG, "Luan-getCalender: "+calendars.toString());
-        for (me.everything.providers.android.calendar.Calendar calendar:calendars
-                ) {
+        if(Dexter.isRequestOngoing()==false){
+            Dexter.checkPermissions(new MultiplePermissionsListener() {
+                @Override public void onPermissionsChecked(MultiplePermissionsReport report) {
 
+                    CalendarProvider calendarProvider = new CalendarProvider(getContext());
+                    List<me.everything.providers.android.calendar.Calendar> calendars = calendarProvider.getCalendars().getList();
+                    Log.d(MainActivity.TAG, "Luan-getCalender: "+calendars.toString());
+                    for (me.everything.providers.android.calendar.Calendar calendar:calendars
+                            ) {
+
+                    }
+                }
+                @Override public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {token.continuePermissionRequest();}
+            }, Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR);
         }
+
+
+
     }
 
     public String getSelectedDateTime(String firstOrLast){
@@ -608,7 +621,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
         LinearLayout contactsLayout = (LinearLayout) view.findViewById(R.id.scheduleContactsLayout);
         for (String contact : phones) {
-            Contacts.fillView(getContext(), Contacts.getContactItem(getContext(), contact),contactsLayout, 96, null);
+            Contacts.fillView(getContext(), Contacts.getContactItem(getContext(), contact),contactsLayout, 96, null, R.color.colorSecondary);
         }
 
     }
@@ -619,7 +632,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         int children = contactsLayout.getChildCount();
         for (int i = 0; i < contacts.size(); i++) {
             if(contacts.get(i)==null) continue;
-            Contacts.fillView(getContext(), contacts.get(i),contactsLayout, 96, children-1);
+            Contacts.fillView(getContext(), contacts.get(i),contactsLayout, 96, children-1, R.color.colorGrey);
 
             Contacts.isMember(contacts.get(i), getContext(), new Contacts.ContactListener() {
                 @Override
@@ -629,9 +642,9 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                         if(contact.phoneNumber.equals( scheduleActvity.contactList.get(i1).phoneNumber)){
                             View contactView = (View) contactsLayout.findViewWithTag(contact.phoneNumber);
                             CircularImageView circularImageView = (CircularImageView) contactView.findViewById(R.id.contactProfilePic);
-                            circularImageView.setBorderColor(getResources().getColor(R.color.colorDark));
+                            circularImageView.setBorderColor(getResources().getColor(R.color.colorSecondary));
                             scheduleActvity.contactList.get(i1).isMember=result;
-                            scheduleActvity.useSMS=true;
+                            scheduleActvity.useSMS=false;
                         }
                     }
 
@@ -687,7 +700,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         ImageView placesPic = (ImageView) view.findViewById(R.id.placePic);
         new LoadImage(placesPic).execute(event.logo.url);
 
-        setupPlaceMap(Double.parseDouble(event.venue.address.latitude), Double.parseDouble(event.venue.address.longitude), mMap);
+        setupPlaceMap(Double.parseDouble(String.valueOf(event.venue.address.latitude)), Double.parseDouble(String.valueOf(event.venue.address.longitude)), mMap);
 
     }
     public void fillPlaces(String name, String address, String snippet, String imgUrl, Double lat, Double lng){
@@ -770,7 +783,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         });
     }
     void setupPlaceMap(final Double targetLat, final Double targetLng, final GoogleMap map){
-        if (scheduleActvity.mCurrentLocation == null || map==null) {
+        if (mCurrentLocation == null || map==null) {
             new java.util.Timer().schedule(
                     new java.util.TimerTask() {
                         @Override
@@ -794,7 +807,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         LatLng loc = new LatLng(targetLat, targetLng);
         locMarker = map.addMarker(new MarkerOptions()
                 .position(loc));
-        LatLng currentLocation = new LatLng(scheduleActvity.mCurrentLocation.getLatitude(), scheduleActvity.mCurrentLocation.getLongitude());
+        LatLng currentLocation = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(loc).include(currentLocation);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(builder.build(), 100);
@@ -828,11 +841,11 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == PICK_CONTACT_REQUEST) {
+        if (requestCode == Utils.PICK_CONTACT_REQUEST) {
             // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
+            if (resultCode == Utils.RESULT_OK) {
                 //List<String> phones= new ArrayList<>();
-                String normalizedPhone = Utils.normalizeNumber(data.getStringExtra("contactPhoneNumber"));
+                String normalizedPhone = Utils.normalizeNumber(data.getStringExtra(ContactItem.UNIQUE_ID), getContext());
                 //phones.add(normalizedPhone);
                 scheduleActvity.calendarEvent.addPhone(normalizedPhone);
                 //TODO kind of weird. why would you need a separate contact list? Maybe have add phone generate it or calendar event generate it everytime it's called?
@@ -840,14 +853,14 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                 //fillContact_v2(phones);
             }
         }
-        else if(requestCode == PICK_PLACE_REQUEST) {
-            if (resultCode == RESULT_OK) {
+        else if(requestCode == Utils.PICK_PLACE_REQUEST) {
+            if (resultCode == Utils.RESULT_OK) {
                 //fillYelpPlace(data.getStringExtra("placeId"));
                 scheduleActvity.getYelpPlace(data.getStringExtra("yelpPlaceId"));
             }
         }
-        else if(requestCode == PICK_EVENT_REQUEST) {
-            if (resultCode == RESULT_OK) {
+        else if(requestCode == Utils.PICK_EVENT_REQUEST) {
+            if (resultCode == Utils.RESULT_OK) {
                 //fillYelpPlace(data.getStringExtra("placeId"));
                 scheduleActvity.getEventBrite(data.getStringExtra("eventId"));
             }
@@ -887,8 +900,8 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if(scheduleActvity.mCurrentLocation !=null){
-            LatLng loc = new LatLng(scheduleActvity.mCurrentLocation.getLatitude(), scheduleActvity.mCurrentLocation.getLongitude());
+        if(mCurrentLocation !=null){
+            LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             locMarker = mMap.addMarker(new MarkerOptions()
                     .position(loc)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.locationicon)));
