@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -48,7 +49,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ScheduleActvity extends AppCompatActivity implements ScheduleFragment.OnFragmentInteractionListener, ChatFragment.OnListFragmentInteractionListener{
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
-
+    MessageReceiver messageReceiver;
     Contacts contacts;
     Places places;
 
@@ -97,11 +98,25 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         SugarContext.init(this);
 
         //setBottomBar();
+        messageReceiver = new MessageReceiver();
+        messageReceiver.setListener(new OnReceiveMessage() {
+            @Override
+            public void onReceiveMessage(Chat chat) {
 
+            }
+        });
+        registerReceiver(messageReceiver, new IntentFilter(ChatFragment.TYPE_MESSAGE));
         processExtras();
 
     }
-
+    @Override
+    protected void onDestroy() {
+        if (messageReceiver != null) {
+            unregisterReceiver(messageReceiver);
+            messageReceiver = null;
+        }
+        super.onDestroy();
+    }
     void processExtras(){
         Intent intent = getIntent();
         extras = intent.getExtras();

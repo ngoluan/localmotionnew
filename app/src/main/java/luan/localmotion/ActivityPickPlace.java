@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -49,7 +50,7 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        myToolbar.setTitle("Yelp Places");
+        getSupportActionBar().setTitle("Yelp Places");
     }
 
 
@@ -89,12 +90,13 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
             LinearLayout filterLayout= (LinearLayout) getLayoutInflater().inflate(R.layout.filter_yelp,null);
             Spinner categorySpinner = (Spinner) filterLayout.findViewById(R.id.yelpCategorySpinner);
 
-            List<String> list = new ArrayList<String>();
+            final List<String> categoryList = new ArrayList<String>();
             for (YelpCategoryItem category: placesFragment.yelpCategoryItems) {
-                list.add(category.alias);
+                if(category.parents.length()==0)
+                    categoryList.add(category.title);
             }
             ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getBaseContext(),
-                    android.R.layout.simple_spinner_item, list);
+                    android.R.layout.simple_spinner_item, categoryList);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             categorySpinner.setAdapter(dataAdapter);
 
@@ -116,7 +118,7 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
                             LinearLayout filterLayout = (LinearLayout) dialog.getHolderView();
 
                             switch (view.getId()){
-                                case R.id.eventsSearchButton:
+                                case R.id.yelpSearchButton:
 
 
                                     Spinner categorySpinner = (Spinner) filterLayout.findViewById(R.id.yelpCategorySpinner);
@@ -127,7 +129,15 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
 
                                     if(!categorySpinner.getSelectedItem().toString().equals("All")){
                                         int pos=categorySpinner.getSelectedItemPosition();
-                                        placesFragment.category_filter = placesFragment.yelpCategoryItems.get(pos).alias;
+                                        String alias = "";
+
+                                        for (int i = 0; i < placesFragment.yelpCategoryItems.size(); i++) {
+                                            if(placesFragment.yelpCategoryItems.get(i).title.equals(categoryList.get(pos))){
+                                                placesFragment.category_filter = placesFragment.yelpCategoryItems.get(i).alias;
+                                                break;
+                                            }
+                                        }
+
                                     }
                                     else{
                                         placesFragment.category_filter="";
@@ -170,6 +180,7 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
                                     placesFragment.models.clear();
 
                                     placesFragment.fillPlacesFragment(null);
+                                    dialog.dismiss();
 
                             }
                         }
@@ -177,10 +188,15 @@ public class ActivityPickPlace extends AppCompatActivity implements BaseListener
 
                     })
                     .setContentHolder(new ViewHolder(filterLayout))
-                    .setExpanded(true)  // This will enable the expand feature, (similar to android L share dialog)
+                    .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                    /*.setExpanded(true)  // This will enable the expand feature, (similar to android L share dialog)*/
                     .create();
 
             dialog.show();
+        }
+
+        else if (id == R.id.action_map  ) {
+            placesFragment.toggleMap();
         }
         else if (id == android.R.id.home) {
             onBackPressed();

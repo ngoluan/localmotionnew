@@ -18,48 +18,7 @@
         android:layout_height="match_parent">
 
 
-        <com.github.aakira.expandablelayout.ExpandableLinearLayout
-            android:id="@+id/eventExpandableLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:ael_duration="400"
-            app:ael_expanded="false"
-            android:background="@color/colorTertiaryClear">
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <RelativeLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="Category" />
-
-                    <Spinner
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/eventCategorySpinner"
-                        android:layout_alignParentRight="true" />
-                </RelativeLayout>
-
-                <Button
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Search"
-                    android:id="@+id/eventSearchButton" />
-            </LinearLayout>
-
-        </com.github.aakira.expandablelayout.ExpandableLinearLayout>
 
         <com.github.aakira.expandablelayout.ExpandableLinearLayout
             android:id="@+id/eventMapExpandableLayout"
@@ -80,11 +39,11 @@
                 android:layout_margin="1dp"
                 android:layout_width="fill_parent" />
         </com.github.aakira.expandablelayout.ExpandableLinearLayout>
-        <ImageView
+        <!--<ImageView
             android:layout_width="fill_parent"
             android:layout_height="12dp"
             android:id="@+id/eventsExpandMapButton"
-            android:src="@drawable/upicon" />
+            android:src="@drawable/upicon" />-->
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/events_list"

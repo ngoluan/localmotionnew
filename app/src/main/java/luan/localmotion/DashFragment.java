@@ -612,7 +612,6 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
 
     }
     void addPlacesChild(String businessName, final String businessId, String categoryName, String img){
-        Log.d(MainActivity.TAG, "Luan-addPlacesChild: "+businessName+" "+businessId);
         final FlexboxLayout layout = (FlexboxLayout) view.findViewById(R.id.dashPlacesGrid);
         View placesView = getActivity().getLayoutInflater().inflate(R.layout.dash_places, null);
 

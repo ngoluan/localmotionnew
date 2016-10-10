@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,7 +44,7 @@ public class ActivityPickEvent extends AppCompatActivity implements BaseListener
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        myToolbar.setTitle("Events");
+        getSupportActionBar().setTitle("Events");
     }
 
 
@@ -154,10 +155,14 @@ public class ActivityPickEvent extends AppCompatActivity implements BaseListener
 
                     })
                     .setContentHolder(new ViewHolder(filterLayout))
-                    .setExpanded(true)  // This will enable the expand feature, (similar to android L share dialog)
+                    .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                    /*.setExpanded(true)  // This will enable the expand feature, (similar to android L share dialog)*/
                     .create();
 
             dialog.show();
+        }
+        else if (id == R.id.action_map  ) {
+            eventsFragment.toggleMap();
         }
         else if (id == android.R.id.home) {
             onBackPressed();

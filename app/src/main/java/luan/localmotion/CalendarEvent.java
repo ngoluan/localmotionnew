@@ -3,6 +3,8 @@ package luan.localmotion;
 
 import com.orm.SugarRecord;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,13 +30,11 @@ public class CalendarEvent extends SugarRecord {
     public CalendarEvent(){}
 
     public List<String> getPhones(){
-        UtilListSerializer serializer = new UtilListSerializer();
-        List<String> phones= serializer.deserialize(contactsPhone);
+        List<String> phones= new ArrayList<String>(Arrays.asList(contactsPhone.split(",")));
         return phones;
     }
     public void addPhone(String normalizedPhoneNUmber){
-        UtilListSerializer serializer = new UtilListSerializer();
-        List<String> phones= serializer.deserialize(contactsPhone);
+        List<String> phones= new ArrayList<String>(Arrays.asList(contactsPhone.split(",")));
         for (int i = 0; i < phones.size(); i++) {
             if(phones.get(i).equals("")){
                 phones.remove(i);
@@ -45,7 +45,8 @@ public class CalendarEvent extends SugarRecord {
 
         }
         phones.add(normalizedPhoneNUmber);
-        contactsPhone = serializer.serialize(phones);
+        contactsPhone=android.text.TextUtils.join(",", phones);
+
     }
 
 
@@ -78,4 +79,6 @@ public class CalendarEvent extends SugarRecord {
         }
         return null;
     }
+
 }
+

@@ -88,7 +88,7 @@ public class EventsFragment extends BaseFragment<EventbriteEvent> implements OnM
                 addToMap();
             }
         });
-        expandableLayout = (ExpandableLinearLayout) view.findViewById(R.id.eventExpandableLayout);
+/*        expandableLayout = (ExpandableLinearLayout) view.findViewById(R.id.eventExpandableLayout);
 
         final ImageView expandMapButton = (ImageView) view.findViewById(R.id.eventsExpandMapButton);
         expandMapButton.setOnClickListener(new View.OnClickListener() {
@@ -104,14 +104,17 @@ public class EventsFragment extends BaseFragment<EventbriteEvent> implements OnM
                             .into(expandMapButton);
                 }
             }
-        });
+        });*/
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.eventMap);
         mapFragment.getMapAsync(this);
 
         return view;
     }
-
+    public void toggleMap(){
+        ExpandableLinearLayout expandableMapLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayoutMap);
+        expandableMapLayout.toggle();
+    }
     public void getEventbrite(String term, String category_filter, String date_start) {
         Location mCurrentLocation = Utils.getLocationFromHistory(getContext());
 

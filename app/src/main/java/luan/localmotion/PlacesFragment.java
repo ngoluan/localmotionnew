@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -71,7 +72,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
 
     private boolean loading;
     int offset = 0;
-    int numberofItems = 9;
+    int numberofItems = 15;
     Places places;
     Location mCurrentLocation=null;
     ArrayList<Marker> markers;
@@ -220,7 +221,10 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
 
         return view;
     }
-
+    public void toggleMap(){
+        ExpandableLinearLayout expandableMapLayout= (ExpandableLinearLayout) view.findViewById(R.id.expandableLayoutMap);
+        expandableMapLayout.toggle();
+    }
     public void getPlaces() {
 
         LatLng loc=null;
@@ -252,7 +256,6 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
                 int i=0;
                 for (Business business :
                         businesses) {
-                    Log.d(MainActivity.TAG, "Luan-OnGetSearch: "+(i%4));
                     models.add(new PlacesItem(
                             business.id(),
                             business.name(),
@@ -286,12 +289,21 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
 
 
     }
-    public void mapShownBusinesses(ArrayList<PlacesItem> places){
+    public void mapShownBusinesses(final ArrayList<PlacesItem> places){
         int first = gridLayoutManager.findFirstVisibleItemPosition();
         int last = gridLayoutManager.findLastVisibleItemPosition();
-        if(mMap!=null)
-            mMap.clear();
 
+        if(mMap==null || first==-1){
+
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    mapShownBusinesses(places);
+                }
+            }, 1000);
+
+            return;
+        }
         markers.clear();
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         LatLng loc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
@@ -303,9 +315,11 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
 
             PlacesItem place = places.get(i);
             LatLng placeLoc = new LatLng(place.lat,place.lng);
-
+            String name = place.name;
+            if(name.length()>10)
+                name=name.substring(0,10)+"...";
             MarkerOptions markerOptions = new MarkerOptions().
-                    icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(String.valueOf(i)))).
+                    icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(name))).
                     position(placeLoc).
                     anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
 
@@ -413,7 +427,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
                         category = categories.getJSONObject(i);
                         yelpCategoryItems.add(new YelpCategoryItem(category.getString("alias"),category.getJSONArray("parents"),category.getString("title")));
                     }
-                    fillCategories();
+                    //fillCategories();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -429,7 +443,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
         startActivity(scheduleIntent);
     }
     public void fillCategories(){
-        Spinner categorySpinner = (Spinner) view.findViewById(R.id.categorySpinner);
+        /*Spinner categorySpinner = (Spinner) view.findViewById(R.id.categorySpinner);
         List<String> list = new ArrayList<String>();
         for (YelpCategoryItem category: yelpCategoryItems
              ) {
@@ -442,7 +456,7 @@ public class PlacesFragment  extends BaseFragment<PlacesItem>  implements OnMapR
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getContext(),
                 android.R.layout.simple_spinner_item, list);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(dataAdapter);
+        categorySpinner.setAdapter(dataAdapter);*/
     }
 
     @Override

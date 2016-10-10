@@ -13,12 +13,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <SearchView
+    <!--<SearchView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/searchView"
         android:queryHint="Type term or keyword"
-        android:iconifiedByDefault="false" />
+        android:iconifiedByDefault="false" />-->
 
 
 
@@ -86,12 +86,7 @@
         </com.github.aakira.expandablelayout.ExpandableLinearLayout>
 
 
-    <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="12dp"
-        android:id="@+id/expandMapButton"
-        android:src="@drawable/upicon"
-        android:background="@color/colorTertiaryClear" />
+
 
     <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -102,6 +97,6 @@
         android:layout_height="match_parent"
         app:layoutManager="LinearLayoutManager"
         tools:context=".PlacesFragment"
-        tools:listitem="@layout/fragment_places" />
+        tools:listitem="@layout/view_places" />
 </LinearLayout>
 </FrameLayout>

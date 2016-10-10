@@ -7,4 +7,9 @@
         android:icon="@drawable/ic_search_white_48dp"
         android:title="Search"
         app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_map"
+        android:icon="@drawable/mapicon"
+        android:title="Search"
+        app:showAsAction="ifRoom"/>
 </menu>

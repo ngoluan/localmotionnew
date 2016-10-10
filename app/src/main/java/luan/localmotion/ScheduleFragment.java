@@ -2,26 +2,25 @@ package luan.localmotion;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -75,6 +74,8 @@ import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 import luan.localmotion.Content.ContactItem;
 import me.everything.providers.android.calendar.CalendarProvider;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
 
 public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,FragmentInterface, GoogleApiClient.OnConnectionFailedListener {
 
@@ -98,6 +99,9 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
 
     Boolean placesLoaded=false;
     Location mCurrentLocation=null;
+
+    Boolean timeLongClickMode = false;
+
     public ScheduleFragment() {
 
     }
@@ -463,11 +467,47 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //String string = (String) parent.getAdapter().getItem(position);
                 //Toast.makeText(getContext(), string, Toast.LENGTH_SHORT).show();
-                mTimeAdapter.toggleSelection(position);
+
+
+/*
+                if(mTimeAdapter.mSelectedItemsIds.get(position)==false){
+
+                }
+                else{
+                    mTimeAdapter.toggleSelection(position);
+                }
+*/
+
+
+
+                if(timeLongClickMode ==true){
+                    int first = mTimeAdapter.getSelectedIds().indexOf(true)+1;
+                    if(first<=position){
+                        for (int i = first; i <= position; i++) {
+                            mTimeAdapter.toggleSelection(i);
+                        }
+                    }
+                    else{
+                        for (int i = position; i > first; i--) {
+                            mTimeAdapter.toggleSelection(i);
+                        }
+                    }
+                    //saveSelectedTime();
+                    timeLongClickMode = false;
+
+                }
+                else{
+                    mTimeAdapter.toggleSelection(position);
+                    //getSelectedDateTime("first")
+                }
+
+
+
+/*                mTimeAdapter.toggleSelection(position);
                 Calendar beginTime = getTimestamp(getSelectedDateTime("first"));
                 Calendar endTime = getTimestamp(getSelectedDateTime("last"));
                 scheduleActvity.calendarEvent.beginTime = beginTime.getTimeInMillis();
-                scheduleActvity.calendarEvent.endTime = endTime.getTimeInMillis();
+                scheduleActvity.calendarEvent.endTime = endTime.getTimeInMillis();*/
             }
         });
         //setListViewHeightBasedOnChildren(timeListView);
@@ -482,8 +522,19 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         });
         timeListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                timeListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
+
+
+                Vibrator v = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+                v.vibrate(100);
+
+
+                    mTimeAdapter.resetSelected();
+                mTimeAdapter.toggleSelection(position);
+                timeLongClickMode =true;
+
+                /*timeListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
                 // Capture ListView item click
                 timeListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
 
@@ -498,14 +549,14 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                         mTimeAdapter.toggleSelection(position);
                     }
 
-                    /**
+                    *//**
                      * Called to report a user click on an action button.
                      * @return true if this callback handled the calendarEvent,
                      *          false if the standard MenuItem invocation should continue.
-                     */
+                     *//*
                     @Override
                     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                       /* if (item.getItemId() == R.id.delete){
+                       *//* if (item.getItemId() == R.id.delete){
                             SparseBooleanArray selected = mTimeAdapter.getSelectedIds();
                             short size = (short)selected.size();
                             for (byte I = 0; I<size; I++){
@@ -519,44 +570,50 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                             mode.finish();
                             return true;
                         }
-                        */
+                        *//*
                         return false;
                     }
 
-                    /**
+                    *//**
                      * Called when action mode is first created.
                      * The menu supplied will be used to generate action buttons for the action mode.
                      * @param mode ActionMode being created
                      * @param menu Menu used to populate action buttons
                      * @return true if the action mode should be created,
                      *          false if entering this mode should be aborted.
-                     */
+                     *//*
                     @Override
                     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                         //mode.getMenuInflater().inflate(R.menu.menu_main, menu);
                         return true;
                     }
 
-                    /**
+                    *//**
                      * Called when an action mode is about to be exited and destroyed.
-                     */
+                     *//*
                     @Override
                     public void onDestroyActionMode(ActionMode mode) {
                         //  mTimeAdapter.removeSelection();
                     }
 
-                    /**
+                    *//**
                      * Called to refresh an action mode's action menu whenever it is invalidated.
                      * @return true if the menu or action mode was updated, false otherwise.
-                     */
+                     *//*
                     @Override
                     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
                         return false;
                     }
-                });
-                return false;
+                });*/
+                return true;
             }
         });
+    }
+    public void saveSelectedTime(){
+        Calendar beginTime = getTimestamp(getSelectedDateTime("first"));
+        Calendar endTime = getTimestamp(getSelectedDateTime("last"));
+        scheduleActvity.calendarEvent.beginTime = beginTime.getTimeInMillis();
+        scheduleActvity.calendarEvent.endTime = endTime.getTimeInMillis();
     }
     public Calendar getTimestamp(String time){
         Calendar beginTime = Calendar.getInstance();
@@ -602,7 +659,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
         listView.setLayoutParams(params);
     }
 
-    View.OnClickListener clickListener = new View.OnClickListener() {
+/*    View.OnClickListener clickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
@@ -615,7 +672,7 @@ public class ScheduleFragment extends Fragment implements OnMapReadyCallback ,Fr
                     break;
             }
         }
-    };
+    };*/
     public void fillContact_v2(List<String> phones){
 
 

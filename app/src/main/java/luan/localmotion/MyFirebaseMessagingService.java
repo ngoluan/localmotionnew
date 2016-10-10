@@ -80,7 +80,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         else if(data.get("type").equals(ChatFragment.TYPE_MESSAGE)){
             Chat chat = new Chat(
-                    data.get("senderPhone"),
+                    data.get("sendersPhone"),
                     Calendar.getInstance().getTimeInMillis(),
                     data.get("message"),
                     data.get("eventUniqueId")
@@ -117,14 +117,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void sendNotification(Map<String,String> data) {
 
 
-        if(data.get("type").equals("calendarEvent")){
+        if(data.get("type").equals(ChatFragment.TYPE_EVENT)){
             sendEventNotification(data);
         }
-        else if(data.get("type").equals("message")){
+        else if(data.get("type").equals(ChatFragment.TYPE_MESSAGE)){
             sendMessageNotification(data);
         }
-
-
     }
     public void sendMessageNotification(Map<String,String> data){
         Intent intent = new Intent(this, MainActivity.class);
@@ -142,9 +140,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
 
-        if(!data.get("title").equals(""))
+        if(data.get("title")!=null)
             notificationBuilder.setContentTitle(data.get("title"));
-        if(!data.get("message").equals(""))
+        if(data.get("message")!=null)
             notificationBuilder.setContentTitle(data.get("message"));
 
 

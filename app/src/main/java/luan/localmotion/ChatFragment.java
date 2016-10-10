@@ -123,7 +123,8 @@ public class ChatFragment extends Fragment implements FragmentInterface {
             EditText messageEditText = (EditText) view.findViewById(R.id.messageEditText);
             Chat chat = new Chat(
                     Utils.getPhoneNumber(getContext()),
-                    Calendar.getInstance().getTimeInMillis(),messageEditText.getText().toString(),
+                    Calendar.getInstance().getTimeInMillis(),
+                    messageEditText.getText().toString(),
                     scheduleActvity.calendarEvent.eventUniqueId);
             long chatId= chat.save();
             chats.add(chat);
@@ -136,6 +137,7 @@ public class ChatFragment extends Fragment implements FragmentInterface {
 
 
             sendData.put("type",TYPE_MESSAGE);
+            sendData.put("eventUniqueId",scheduleActvity.calendarEvent.eventUniqueId);
             sendData.put("contactsPhone",scheduleActvity.calendarEvent.contactsPhone);
             sendData.put("message",chat.message);
             sendData.put("senderPhone",chat.senderPhone);

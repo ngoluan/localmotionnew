@@ -1,6 +1,5 @@
 package luan.localmotion;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,7 +10,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import luan.localmotion.Content.PlacesItem;
 
 /**
@@ -30,11 +28,11 @@ public class PlacesRecyclerViewAdapter  extends BaseRecyclerViewAdapter<PlacesIt
     @Override
     protected View createView(Context context, ViewGroup viewGroup, int viewType) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.fragment_places, viewGroup, false);
+        View view = inflater.inflate(R.layout.view_places, viewGroup, false);
 
         ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
         layoutParams.width=Math.round(width);
-        layoutParams.height=(int) (width*1.);
+        layoutParams.height=Math.round(width);
         view.setLayoutParams(layoutParams);
 
         return view;
