@@ -1,14 +1,9 @@
 package luan.localmotion;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutCompat;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,46 +15,33 @@ import android.widget.LinearLayout;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
-import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
-import jp.wasabeef.recyclerview.animators.FadeInRightAnimator;
 import me.everything.providers.android.contacts.ContactsProvider;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-public class ChatFragment extends Fragment implements FragmentInterface {
-
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
-    private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
-    View view;
+public class ChatFragment extends BaseFragment<Chat>{
     ScheduleActvity scheduleActvity;
-    private ArrayList<Chat> chats = new ArrayList<Chat>();
-    RecyclerView recyclerView;
-    ChatRecyclerViewAdapter chatRecyclerViewAdapter;
+    ChatRecyclerViewAdapter recyclerViewAdapter;
     static String TYPE_MESSAGE="chat";
     static String TYPE_EVENT="calendarEvent";
-    LinearLayoutManager linearLayoutManager;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    MessageReceiver messagingReceiver= new MessageReceiver() {
+    /*MessageReceiver messagingReceiver= new MessageReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(MainActivity.TAG, "Luan-onReceiveFragment: "+intent.getExtras().toString());
             String type = intent.getExtras().getString("type");
             String id = intent.getExtras().getString("id");
             Chat chat = Chat.findById(Chat.class,Integer.parseInt(id));
-            chats.add(chat);
-            chatRecyclerViewAdapter.animateTo(chats);
-            linearLayoutManager.scrollToPosition(chats.size());
+            models.add(chat);
+            recyclerViewAdapter.animateTo(models);
+            linearLayoutManager.scrollToPosition(models.size());
         }
-    };
+    };*/
     public ChatFragment() {
     }
 
@@ -71,52 +53,40 @@ public class ChatFragment extends Fragment implements FragmentInterface {
         fragment.setArguments(args);
         return fragment;
     }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
-
-        getActivity().registerReceiver(messagingReceiver, new IntentFilter(ChatFragment.TYPE_MESSAGE));
-    }
-
+    
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         view = inflater.inflate(R.layout.fragment_chat_list, container, false);
-        recyclerView = (RecyclerView) view.findViewById(R.id.list);
 
         scheduleActvity = (ScheduleActvity) getActivity();
 
-        if(scheduleActvity.calendarEvent.getId()!=null){
-            List<Chat> chatList = Chat.find(Chat.class, "event_unique_id=?", scheduleActvity.calendarEvent.eventUniqueId.toString());
-            if(chatList!=null) chats.addAll(chatList);
-        }
+        recyclerViewAdapter = new ChatRecyclerViewAdapter(getContext(), mListListener);
 
-        // Set the adapter
-        if (recyclerView instanceof RecyclerView) {
-            Context context = view.getContext();
-            recyclerView.setItemAnimator(new FadeInRightAnimator());
-            linearLayoutManager = new LinearLayoutManager(context);
-            linearLayoutManager.setStackFromEnd(true);
-            recyclerView.setLayoutManager(linearLayoutManager);
-            chatRecyclerViewAdapter = new ChatRecyclerViewAdapter(chats, mListener);
-            AlphaInAnimationAdapter alphaInAnimationAdapter = new AlphaInAnimationAdapter(chatRecyclerViewAdapter);
-            recyclerView.setAdapter(alphaInAnimationAdapter);
-            linearLayoutManager.scrollToPosition(chats.size());
-            //recyclerView.setAdapter(new ChatRecyclerViewAdapter(Messages.ITEMS, mListener));
-        }
+        listColumns = 1;
 
+        createRecyclerViews(R.id.chatList);
+        setRecyclerViewAdapter(recyclerViewAdapter);
+
+        getChats();
 
         View sendButtonView= view.findViewById(R.id.sendButton);
         sendButtonView.setOnClickListener(onSendButtonClick);
         return view;
     }
+    public void getChats(){
+        if(scheduleActvity.calendarEvent.getId()!=null){
+            List<Chat> chatList = Chat.find(Chat.class, "event_unique_id=?", scheduleActvity.calendarEvent.eventUniqueId.toString());
+            if(chatList!=null) models.addAll(chatList);
+            recyclerViewAdapter.animateTo(models);
 
+            linearLayoutManager.scrollToPosition(models.size());
+        }
+    }
+    public void refreshChats(){
+
+    }
     android.view.View.OnClickListener onSendButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -125,10 +95,11 @@ public class ChatFragment extends Fragment implements FragmentInterface {
                     Utils.getPhoneNumber(getContext()),
                     Calendar.getInstance().getTimeInMillis(),
                     messageEditText.getText().toString(),
-                    scheduleActvity.calendarEvent.eventUniqueId);
+                    scheduleActvity.calendarEvent.eventUniqueId
+            );
             long chatId= chat.save();
-            chats.add(chat);
-            chatRecyclerViewAdapter.notifyItemInserted(chats.size()-1);
+            models.add(chat);
+            recyclerViewAdapter.notifyItemInserted(models.size()-1);
             TelephonyManager tMgr = (TelephonyManager)  getContext().getSystemService(Context.TELEPHONY_SERVICE);
 
             HashMap<String,String> sendData = new HashMap<String, String>();
@@ -140,25 +111,13 @@ public class ChatFragment extends Fragment implements FragmentInterface {
             sendData.put("eventUniqueId",scheduleActvity.calendarEvent.eventUniqueId);
             sendData.put("contactsPhone",scheduleActvity.calendarEvent.contactsPhone);
             sendData.put("message",chat.message);
-            sendData.put("senderPhone",chat.senderPhone);
+            sendData.put("sendersPhone",chat.sendersPhone);
             sendData.put("dateTime",String.valueOf(chat.dateTime));
             Utils.sendMessage(sendData, getContext());
             scheduleActvity.calendarEvent.save();
         }
     };
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        getActivity().registerReceiver(messagingReceiver, new IntentFilter(ChatFragment.TYPE_MESSAGE));
-
-    }
-    @Override
-    public void onPause() {
-        // Unregister since the activity is not visible
-        getActivity().unregisterReceiver(messagingReceiver);
-        super.onPause();
-    }
     public void retrieveContacts(){
         ScheduleActvity activity = (ScheduleActvity) getActivity();
         long eventId = activity.eventId;
@@ -211,10 +170,10 @@ public class ChatFragment extends Fragment implements FragmentInterface {
         retrieveContacts();
         List<Chat> chatList = Chat.find(Chat.class, "event_unique_id=?", scheduleActvity.calendarEvent.eventUniqueId.toString());
         if(chatList!=null) {
-            chats.clear();
-            chats.addAll(chatList);
-            chatRecyclerViewAdapter.animateTo(chats);
-            linearLayoutManager.scrollToPosition(chats.size());
+            models.clear();
+            models.addAll(chatList);
+            recyclerViewAdapter.animateTo(models);
+            linearLayoutManager.scrollToPosition(models.size());
         }
     }
 
@@ -222,23 +181,6 @@ public class ChatFragment extends Fragment implements FragmentInterface {
     public void fragmentBecameInvisible() {
         //if(messagingReceiver!=null){getActivity().unregisterReceiver(messagingReceiver);}
 
-    }
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-        //if(messagingReceiver!=null){getActivity().unregisterReceiver(messagingReceiver);}
     }
 
     /**

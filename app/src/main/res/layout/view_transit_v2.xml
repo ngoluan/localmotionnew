@@ -1,60 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="100dp"
-    android:layout_height="100dp"
-    android:layout_margin="1dp"
-    android:padding="2dp">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="75dp"
+    xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
+    android:layout_height="100dp">
 
-
+    <!--<ProgressBar
+        android:id="@+id/progressBarToday"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="100dp"
+        android:indeterminate="false"
+        android:max="60"
+        android:progress="33"
+        android:progressDrawable="@drawable/progressbar"
+        android:layout_height="100dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />-->
     <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/imageView7"
-        android:background="@drawable/borders_round_primary" />
-
-    <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="4dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Route"
-            android:id="@+id/route"
-            android:scrollHorizontally="true"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:layout_gravity="top|center_horizontal"
-            style="@style/SmallTitle"
-            android:textSize="12dp" />
+        CircleProgressView:srcCompat="@drawable/borders_round"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/imageView3"
+        tools:layout_width="match_parent" />
 
+    <RelativeLayout
+        android:id="@+id/circleLayout"
+        android:padding="@dimen/med"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <RelativeLayout
+        <at.grabner.circleprogress.CircleProgressView
+            android:id="@+id/transitCircleView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"></RelativeLayout>
+            android:layout_height="match_parent"
+            CircleProgressView:cpv_blockCount="60"
+            CircleProgressView:cpv_blockScale="0.7"
+            CircleProgressView:cpv_value="0"
+            CircleProgressView:cpv_maxValue="60"
+            CircleProgressView:cpv_barColor="@color/colorPrimary"
+            CircleProgressView:cpv_barWidth="6dp"
+            CircleProgressView:cpv_rimColor="@color/colorLighterGrey"
+            CircleProgressView:cpv_rimWidth="8dp"
+            CircleProgressView:cpv_outerContourSize="0dp"
+            CircleProgressView:cpv_innerContourSize="0dp"
+            CircleProgressView:cpv_textSize="36dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true" />
+    </RelativeLayout>
+    <TextView
+        style="@style/SmallTitleInverse"
+        android:padding="@dimen/med"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Direction"
+        android:id="@+id/transitDirection"
+        android:scrollHorizontally="true"
+        android:layout_below="@id/circleLayout"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:textSize="10sp"
+        android:maxLines="3"
+        android:ellipsize="end" />
 
-        <ImageView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/imageView2"
-            android:layout_weight="1"
-            android:src="@drawable/busicon"
-            android:padding="4dp"
-            android:tint="@color/colorWhite"
-            android:tintMode="multiply" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Mins"
-            android:id="@+id/eta"
-            android:layout_gravity="bottom|center_horizontal"
-            style="@style/SmallTitle"  />
-    </LinearLayout>
-
-
-
+    <!--    <luan.localmotion.CircleProgressBar
+            android:id="@+id/custom_progressBar"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_margin="10dp"
+            app:progress="35"
+            app:progressBarThickness="4dp"/>-->
 </RelativeLayout>

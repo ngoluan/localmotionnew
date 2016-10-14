@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:ael_duration="400"
-            app:ael_expanded="true">
+            app:ael_expanded="false">
             <fragment
                 class="com.google.android.gms.maps.SupportMapFragment"
                 tools:context="luan.localmotion.MapsActivity"

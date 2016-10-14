@@ -1,5 +1,7 @@
 package luan.localmotion;
 
+import android.*;
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -36,16 +38,19 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.karumi.dexter.listener.single.PermissionListener;
 import com.uber.sdk.android.core.UberSdk;
 import com.uber.sdk.core.auth.Scope;
 import com.uber.sdk.rides.client.SessionConfiguration;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
@@ -128,17 +133,19 @@ public class MainActivity extends AppCompatActivity implements
             prefs.edit().putString("lastLng", "-79.3832").apply();
             prefs.edit().putString("lastProvider", "provider").apply();
         }
-        Dexter.checkPermission(new PermissionListener() {
-            @Override public void onPermissionGranted(PermissionGrantedResponse response) {
+        Dexter.checkPermissions(new MultiplePermissionsListener() {
+            @Override
+            public void onPermissionsChecked(MultiplePermissionsReport report) {
                 Utils.serverUserCheckIn(FirebaseInstanceId.getInstance().getToken(), getApplicationContext());
             }
-            @Override public void onPermissionDenied(PermissionDeniedResponse response) {
-                //Toast.makeText(res, "Can't detect phone number", Toast.LENGTH_SHORT).show();
-            }
-            @Override public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+
+            @Override
+            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
                 token.continuePermissionRequest();
             }
-        }, android.Manifest.permission.READ_SMS);
+
+
+        }, android.Manifest.permission.READ_SMS, android.Manifest.permission.READ_CONTACTS, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION);
 
 
 
@@ -401,6 +408,17 @@ public class MainActivity extends AppCompatActivity implements
                     LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 15);
                     dashFragment.mMap.animateCamera(cameraUpdate);
+                }
+
+            }
+        }
+        else if (id == R.id.action_transit) {
+            if (mViewPager.getCurrentItem() == 0) {
+                DashFragment dashFragment = (DashFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 0);
+                if(dashFragment!=null){
+                    dashFragment.dashTransitExpandableLayout.toggle();
+                    //dashFragment.dashTransitExpandableLayout.move(1000);
+                    //dashFragment.dashTransitExpandableLayout.expand();
                 }
 
             }

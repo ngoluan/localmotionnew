@@ -5,6 +5,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -129,7 +130,12 @@ public class ContactFragment extends BaseFragment<ContactItem>  implements Searc
                                 contactsMap.put(contact.normilizedPhone, contact);
                                 //Bitmap profilePic= Contacts.retrieveContactPhoto(getContext(),contact.phone);
                                 Bitmap profilePic=null;
-                                models.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, contact.uriPhoto));
+                                Uri profilePicUri = null;
+                                if(contact.uriPhoto!=null){
+                                    Uri.parse(contact.uriPhoto);
+
+                                }
+                                models.add(new ContactItem(String.valueOf(contact.id), contact.displayName, contact.phone,profilePic, profilePicUri));
                             }
 
                         }

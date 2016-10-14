@@ -16,6 +16,7 @@ import android.provider.Telephony;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.Html;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -30,6 +31,8 @@ import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.github.aakira.expandablelayout.ExpandableLayout;
+import com.github.aakira.expandablelayout.ExpandableLinearLayout;
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -49,12 +52,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
+import at.grabner.circleprogress.CircleProgressView;
+import at.grabner.circleprogress.TextMode;
 import luan.localmotion.Content.ContactItem;
 import luan.localmotion.Content.NextBusDashItem;
 import retrofit2.Call;
@@ -73,7 +81,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
     public BikeShare bikeShare;
     public MainActivity activity;
     public NextBus nextBus;
-
+    ExpandableLinearLayout dashTransitExpandableLayout;
     public Contacts contacts;
 
     static int NEXTBUS=0;
@@ -146,6 +154,8 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             }
         });
 
+        dashTransitExpandableLayout = (ExpandableLinearLayout) view.findViewById(R.id.dashTransitExpandableLayout);
+        //dashTransitExpandableLayout.setClosePosition((int) Math.round(squareSize4*3));
         return view;
     }
 
@@ -492,7 +502,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
                 int start=direction.indexOf("-");
                 int end=direction.indexOf("towards");
                 if(end>start) //sometimes, it doesn't fit this
-                direction=direction.substring(0, start-1) + " " + direction.substring(end);
+                    direction=direction.substring(0, start-1) + " " + direction.substring(end);
                 TextView directionView = (TextView) item.findViewById(R.id.transitDirection);
                 directionView.setText(direction);
                 String eta="";
@@ -530,6 +540,134 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             });
         }
     }
+    public class PredictionDraw_3 implements Runnable {
+        List<NextBusPrediction> routesArr;
+        FlexboxLayout transitView;
+        public PredictionDraw_3(List<NextBusPrediction> routesArr, FlexboxLayout transitView){
+            this.transitView=transitView;
+            this.routesArr=routesArr;
+
+        }
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT);
+            int numberOfItems=0;
+
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    int totalViews = transitView.getChildCount();
+                    for (int i = 0; i < totalViews; i++) {
+                        View child = (View) transitView.getChildAt(i);
+                        transitView.removeView(child);
+                    }
+                    transitView.removeViews(0,totalViews);
+                }
+            });
+
+            //loop through directions
+            final List<View > treemap = new ArrayList<View>();
+            for (int route = 0; route < routesArr.size(); route++) {
+                for (int vehicle = 0; vehicle < routesArr.get(route).values.size(); vehicle++) {
+                    View item = getActivity().getLayoutInflater().inflate(R.layout.view_transit_v2,null);
+                    ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(squareSize4, (int)Math.round(squareSize4*1.5));
+                    item.setLayoutParams(layoutParams);
+                    CircleProgressView mCircleView = (CircleProgressView) item.findViewById(R.id.transitCircleView);
+                    //TextView routeView = (TextView) item.findViewById(R.id.transitRouteNumber);
+                    //routeView.setText(routesArr.get(route).route.id);
+
+                    int c = routesArr.get(route).route.title.indexOf("-")+1;
+                    String routeShortTitle =routesArr.get(route).route.title.substring(c);
+
+                    //TextView routeNameView = (TextView) item.findViewById(R.id.transitRouteName);
+                    //routeNameView.setText(routeShortTitle);
+
+                    String direction = routesArr.get(route).values.get(0).direction.title.replace("To: ","");
+                    int start=direction.indexOf("-");
+                    int end=direction.indexOf("towards");
+                    if(end>start) //sometimes, it doesn't fit this
+                    {
+                        direction=direction.substring(0, start-1) + " " + direction.substring(end);
+                    }
+                    TextView directionView = (TextView) item.findViewById(R.id.transitDirection);
+                    String sourceString = "<b>"+routesArr.get(route).route.title+"</b>"+ ": "+ direction;
+                    directionView.setText(Html.fromHtml(sourceString));
+
+                    TextView etaView = (TextView) item.findViewById(R.id.transitETA);
+
+
+
+                    Integer eta =Integer.parseInt(routesArr.get(route).values.get(vehicle).minutes);
+                        if(vehicle==2) break;
+
+                    mCircleView.setTextMode(TextMode.VALUE);
+                    mCircleView.setValue(eta);
+                    mCircleView.setUnit("mins");
+                    //mCircleView.setText(routesArr.get(route).route.title);
+                    //eta = eta.substring(0,eta.length()-2);
+                    //etaView.setText(routesArr.get(route).route.id);
+
+                    item.setTag(eta);
+                    treemap.add(item);
+                    //draw(item, numberOfItems);
+
+                    numberOfItems++;
+                }
+            }
+
+            Collections.sort(treemap, new Comparator<View>(){
+                public int compare(View emp1, View emp2) {
+                    // ## Ascending order
+                    if (Integer.parseInt(emp1.getTag().toString()) > Integer.parseInt(emp2.getTag().toString())) {
+                        return 1;
+                    }
+                    else if (Integer.parseInt(emp1.getTag().toString()) < Integer.parseInt(emp2.getTag().toString())) {
+                        return -1;
+                    }
+                    else {
+                        return 0;
+                    }
+                    // return Integer.valueOf(emp1.getId()).compareTo(emp2.getId()); // To compare integer values
+
+                    // ## Descending order
+                    // return emp2.getFirstName().compareToIgnoreCase(emp1.getFirstName()); // To compare string values
+                    // return Integer.valueOf(emp2.getId()).compareTo(emp1.getId()); // To compare integer values
+                }
+            });
+            for (int i = 0; i < treemap.size(); i++) {
+                draw(treemap.get(i), i);
+            }
+            /*getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    //transitView.addView(icon, position);
+*//*                    YoYo.with(Techniques.SlideInRight)
+                            .duration(700)
+                            .playOn(icon);*//*
+                    for (int i = 0; i < treemap.size(); i++) {
+                        transitView.addView(treemap.get(i), i);
+                    }
+                    //
+                }
+            });*/
+
+
+        }
+        void draw(final View icon, final int position){
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    transitView.addView(icon, position);
+/*                    YoYo.with(Techniques.SlideInRight)
+                            .duration(700)
+                            .playOn(icon);*/
+                }
+            });
+        }
+    }
     public void getTransit(Location loc){
         nextBus.setNextBusListener(new NextBus.NextBusListener(){
 
@@ -550,7 +688,7 @@ public class DashFragment extends Fragment implements OnMapReadyCallback, SwipeR
             public void onResponse(Call<List<NextBusPrediction>> call, Response<List<NextBusPrediction>> response) {
 
                 FlexboxLayout transitView = (FlexboxLayout) view.findViewById(R.id.transitView);
-                Thread t = new Thread(new PredictionDraw_2(response.body(), transitView));
+                Thread t = new Thread(new PredictionDraw_3(response.body(), transitView));
                 t.start();
             }
 

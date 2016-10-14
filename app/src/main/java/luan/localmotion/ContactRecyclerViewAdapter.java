@@ -52,7 +52,6 @@ public class ContactRecyclerViewAdapter extends BaseRecyclerViewAdapter<ContactI
             ImageView contactImgView = (ImageView) viewHolder.getView(R.id.contactProfilePic);
 
             contactName.setText(item.name);
-
             Picasso.with(mContext).load(item.profilePicURI)
                     .error(R.drawable.personicon)
                     .placeholder(R.drawable.personicon)

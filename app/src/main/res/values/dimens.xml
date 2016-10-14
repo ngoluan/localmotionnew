@@ -8,4 +8,5 @@
     <dimen name="label_margin">12dp</dimen>
     <dimen name="grid_margin">2dp</dimen>
     <dimen name="grid_padding">4dp</dimen>
+    <dimen name="med">4dp</dimen>
 </resources>

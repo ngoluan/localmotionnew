@@ -102,7 +102,11 @@ public class ScheduleActvity extends AppCompatActivity implements ScheduleFragme
         messageReceiver.setListener(new OnReceiveMessage() {
             @Override
             public void onReceiveMessage(Chat chat) {
+                if (mViewPager.getCurrentItem() == 1) {
+                    ChatFragment chatFragment = (ChatFragment) mSectionsPagerAdapter.getActiveFragment(mViewPager, 1);
+                    chatFragment.getChats();
 
+                }
             }
         });
         registerReceiver(messageReceiver, new IntentFilter(ChatFragment.TYPE_MESSAGE));

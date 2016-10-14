@@ -38,6 +38,8 @@ import java.util.Map;
 
 import luan.localmotion.Content.ContactItem;
 
+import static com.orm.util.ContextUtil.getContext;
+
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
     CalendarEvent calendarEvent =null;
     private static final String TAG = "MyFirebaseMsgService";

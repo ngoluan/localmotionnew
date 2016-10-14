@@ -87,11 +87,46 @@ public class Contacts {
 
         return photo;
     }
+    static Uri getPhotoUri(long contactId, Context mContext) {
+        ContentResolver contentResolver = mContext.getContentResolver();
+
+        try {
+            Cursor cursor = contentResolver
+                    .query(ContactsContract.Data.CONTENT_URI,
+                            null,
+                            ContactsContract.Data.CONTACT_ID
+                                    + "="
+                                    + contactId
+                                    + " AND "
+
+                                    + ContactsContract.Data.MIMETYPE
+                                    + "='"
+                                    + ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE
+                                    + "'", null, null);
+
+            if (cursor != null) {
+                if (!cursor.moveToFirst()) {
+                    return null; // no photo
+                }
+            } else {
+                return null; // error in cursor process
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        Uri person = ContentUris.withAppendedId(
+                ContactsContract.Contacts.CONTENT_URI, contactId);
+        return Uri.withAppendedPath(person,
+                ContactsContract.Contacts.Photo.CONTENT_DIRECTORY);
+    }
     public static ContactItem getContactItem(Context context, String phoneNumber){
         ContactItem contact=null;
         String contactName = null;
         String contactId=null;
-        String contactPicUri=null;
+        Uri contactPicUri=null;
         InputStream inputStream=null;
         Bitmap profilePic=null;
         ContentResolver cr = context.getContentResolver();
@@ -104,7 +139,7 @@ public class Contacts {
         if(cursor.moveToFirst()) {
             contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup._ID));
             contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-
+            contactPicUri = getPhotoUri(Long.parseLong(contactId), context);
             profilePic=null;
 
             contact=new ContactItem(contactId, contactName,phoneNumber,profilePic, contactPicUri);

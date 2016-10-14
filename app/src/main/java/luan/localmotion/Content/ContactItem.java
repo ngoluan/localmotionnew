@@ -1,6 +1,7 @@
 package luan.localmotion.Content;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 
 import com.orm.SugarRecord;
 
@@ -13,10 +14,10 @@ public class ContactItem extends SugarRecord{
     public String name;
     public String phoneNumber;
     public Bitmap profilePic;
-    public String profilePicURI;
+    public Uri profilePicURI;
     public boolean isMember =false;
 
-    public ContactItem(String id, String name, String phoneNumber, Bitmap profilePic, String profilePicURI) {
+    public ContactItem(String id, String name, String phoneNumber, Bitmap profilePic, Uri profilePicURI) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
